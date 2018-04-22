@@ -5,14 +5,13 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link href="/assets/bulma-0.6.2/css/bulma.css" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/featherlight-1.5.0/featherlight.min.css">
+  <link href="/assets/bootstrap-4.1.0/css/bootstrap.min.css" rel="stylesheet">
 
   <link href="/assets/styles.css" rel="stylesheet" type="text/css">
 
   <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
   <script src="/assets/jquery-3.3.1.min.js"></script>
-  <script src="/assets/featherlight-1.5.0/featherlight.min.js"></script>
+  <script src="/assets/bootstrap/js/bootstrap.min.js"></script>
   <script src="/assets/script.js"></script>
 
   <?php include('views/components/favicon.php') ?>
