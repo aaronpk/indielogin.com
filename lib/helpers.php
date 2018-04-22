@@ -24,6 +24,13 @@ function j($json) {
   return htmlspecialchars(json_encode($json, JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES));
 }
 
+function redis() {
+  static $client = false;
+  if(!$client)
+    $client = new Predis\Client('tcp://127.0.0.1:6379');
+  return $client;
+}
+
 function pa($a) {
   echo '<pre>';
   print_r($a);
@@ -118,6 +125,11 @@ function fetch_profile($me) {
     $response = $e->getResponse();
     return [
       'code' => $response->getStatusCode(),
+      'exception' => $e->getMessage(),
+    ];
+  } catch(\GuzzleHttp\Exception\ConnectException $e) {
+    return [
+      'code' => 0,
       'exception' => $e->getMessage(),
     ];
   }

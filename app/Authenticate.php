@@ -157,6 +157,44 @@ class Authenticate {
     return $response;
   }
 
+  public function verify(ServerRequestInterface $request, ResponseInterface $response) {
+    $params = $request->getParsedBody();
+
+    if(!isset($params['code'])) {
+      die('missing code');
+    }
+
+    if(!isset($params['client_id'])) {
+      die('missing client_id');
+    }
+
+    if(!isset($params['redirect_uri'])) {
+      die('missing redirect_uri');
+    }
+
+    $login = redis()->get('indielogin:code:'.$params['code']);
+
+    if(!$login) {
+      die('code expired');
+    }
+
+    $login = json_decode($login, true);
+
+    // Verify client_id and redirect_uri match
+    if($params['client_id'] != $login['client_id']) {
+      die('client_id mismatch');
+    }
+
+    if($params['redirect_uri'] != $login['redirect_uri']) {
+      die('redirect_uri mismatch');
+    }
+
+    $response->getBody()->write(json_encode([
+      'me' => $login['me']
+    ]));
+    return $response->withHeader('Content-type', 'application/json');
+  }
+
   private function _startAuthenticate(&$response, $login_request, $details) {
     $_SESSION['login_request'] = $login_request;
 
@@ -164,7 +202,7 @@ class Authenticate {
     return $this->{$method}($response, $login_request, $details);
   }
 
-  private function _finishAuthenticate() {
+  private function _finishAuthenticate(&$response) {
     // Generate a temporary authorization code to store the user details
     $code = bin2hex(random_bytes(32));
 
@@ -174,8 +212,9 @@ class Authenticate {
     ];
     $redirect = \p3k\url\add_query_params_to_url($_SESSION['login_request']['redirect_uri'], $params);
 
-    echo $redirect;
-    die();
+    redis()->setex('indielogin:code:'.$code, 60, json_encode($_SESSION['login_request']));
+
+    return $response->withHeader('Location', $redirect)->withStatus(302);
   }
 
   private function _userError(&$response, $errors) {

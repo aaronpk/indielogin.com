@@ -91,11 +91,7 @@ trait GitHub {
     unset($_SESSION['attempted_me']);
     unset($_SESSION['state']);
 
-    return $this->_finishAuthenticate();
-
-    pa($result['body']);
-    pa($_SESSION);
-    die();
+    return $this->_finishAuthenticate($response);
   }
 
 }

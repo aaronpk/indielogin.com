@@ -23,6 +23,7 @@ $route->map('GET', '/setup', 'App\\Controller::setup_docs');
 $route->map('GET', '/debug', 'App\\Controller::debug');
 
 $route->map('GET', '/auth', 'App\\Authenticate::start');
+$route->map('POST', '/auth', 'App\\Authenticate::verify');
 
 $route->map('GET', '/redirect/github', 'App\\Authenticate::redirect_github');
 
