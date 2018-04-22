@@ -1,4 +1,8 @@
 <?php
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\UriInterface;
+
 date_default_timezone_set('UTC');
 
 if(getenv('ENV')) {
@@ -18,6 +22,12 @@ function e($text) {
 
 function j($json) {
   return htmlspecialchars(json_encode($json, JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES));
+}
+
+function pa($a) {
+  echo '<pre>';
+  print_r($a);
+  echo '</pre>';
 }
 
 function generate_state() {
@@ -48,4 +58,116 @@ function http_client() {
     $http = new \p3k\HTTP(Config::$useragent);
   $http->set_timeout(10);
   return $http;
+}
+
+// For link-rel-parser
+function get_absolute_uri($href, $url) {
+  return \Mf2\resolveUrl($url, $href);
+}
+
+function fetch_profile($me) {
+
+  $client = new \GuzzleHttp\Client();
+
+  // Keep track of redirects in this array
+  $redirects = [];
+
+  $onRedirect = function(
+      RequestInterface $request,
+      ResponseInterface $response,
+      UriInterface $uri
+  ) use(&$redirects) {
+    $redirects[] = [
+      'code' => $response->getStatusCode(),
+      'from' => ''.$request->getUri(),
+      'to' => ''.$uri
+    ];
+  };
+
+  try {
+    // Fetch the entered URL
+    $res = $client->request('GET', $me, [
+      'timeout'         => 10,
+      'allow_redirects' => [
+        'max'             => 10,
+        'strict'          => true,
+        'referer'         => true,
+        'on_redirect'     => $onRedirect,
+        'track_redirects' => true
+      ]
+    ]);
+  } catch(\GuzzleHttp\Exception\ClientException $e) {
+    if($e->hasResponse()) {
+      $response = $e->getResponse();
+      return [
+        'code' => $response->getStatusCode(),
+        'exception' => $e->getMessage(),
+      ];
+    } else {
+      return [
+        'code' => 0,
+        'exception' => $e->getMessage(),
+      ];
+    }
+  } catch(\GuzzleHttp\Exception\TooManyRedirectsException $e) {
+    return [
+      'code' => 0,
+      'exception' => $e->getMessage(),
+    ];
+  } catch(\GuzzleHttp\Exception\ServerException $e) {
+    $response = $e->getResponse();
+    return [
+      'code' => $response->getStatusCode(),
+      'exception' => $e->getMessage(),
+    ];
+  }
+
+  // Check all the redirects to override $me, but stop if a 302/307 is encountered
+  // https://www.w3.org/TR/indieauth/#discovery-by-clients-p-2
+  $original_me = $me;
+
+  $new_me = \IndieAuth\Client::normalizeMeURL($me);
+  foreach($redirects as $r) {
+    if($r['code'] == 302 || $r['code'] == 307) {
+      break;
+    }
+    $new_me = $r['to'];
+  }
+  $me = $new_me;
+
+  // Get the final URL
+  $final_url = $original_me;
+  if(count($redirects)) {
+    $final_url = $redirects[count($redirects)-1]['to'];
+  }
+
+  // Parse the resulting body for rel me/authn/authorization_endpoint
+  $body = ''.$res->getBody();
+
+  $parsed = \Mf2\parse($body, $final_url);
+  $rels = $parsed['rels'];
+  $relURLs = $parsed['rel-urls'];
+
+  // If the header includes a rel=authorization_endpoint, use that instead of from the body
+  // https://www.w3.org/TR/indieauth/#discovery-by-clients-p-3
+  if($res->getHeaderLine('Link')) {
+    $link = 'Link: '.$res->getHeaderLine('Link');
+    $link_rels = \IndieWeb\http_rels($link, $final_url);
+    if(isset($link_rels['authorization_endpoint'])) {
+      $rels['authorization_endpoint'] = $link_rels['authorization_endpoint'];
+    }
+  }
+
+  return [
+    'code' => $res->getStatusCode(),
+    'me' => $me,
+    'me_entered' => $original_me,
+    'final_url' => $final_url,
+    'rels' => [
+      'me' => $rels['me'] ?? [],
+      'authn' => $rels['authn'] ?? [],
+      'authorization_endpoint' => $rels['authorization_endpoint'] ?? []
+    ],
+    'redirects' => $redirects,
+  ];
 }

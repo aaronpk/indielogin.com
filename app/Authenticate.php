@@ -7,7 +7,12 @@ use Config;
 
 class Authenticate {
 
+  use Provider\GitHub;
+  use Provider\IndieAuth;
+
   public function start(ServerRequestInterface $request, ResponseInterface $response) {
+    session_start();
+
     $params = $request->getQueryParams();
 
     // Check that the application provided all the necessary parameters
@@ -16,6 +21,7 @@ class Authenticate {
 
     $client_id = false;
     $redirect_uri = false;
+    $state = false;
 
     if(!isset($params['client_id'])) {
       $errors[] = 'The request is missing the client_id parameter';
@@ -40,6 +46,19 @@ class Authenticate {
       }
     }
 
+    if(!isset($params['state'])) {
+      $errors[] = 'The request is missing the state parameter';
+    } else {
+      $state = $params['state'];
+    }
+
+    $login_request = [
+      'client_id' => $client_id,
+      'redirect_uri' => $redirect_uri,
+      'state' => $state,
+    ];
+
+
     if(count($errors)) {
       $response->getBody()->write(view('auth/app-error', [
         'title' => Config::$name.' Error',
@@ -63,43 +82,39 @@ class Authenticate {
       $view = 'auth/start';
 
       // Fetch the user's home page now
-      $r = $this->_fetchUserHomePage($params['me']);
+      $profile = fetch_profile($params['me']);
 
       $errors = [];
 
       // Show an error to the user if there was a problem
-      if($r['code'] != 200 ) {
+      if($profile['code'] != 200 ) {
         return $this->_userError($response, ['Your website did not return HTTP 200']);
       }
 
-      $parsed = \Mf2\parse($r['body'], $params['me']);
-      $rels = $parsed['rels'];
-      $relURLs = $parsed['rel-urls'];
+      // Store the canonical URL of the user
+      $_SESSION['expected_me'] = $profile['me'];
+      $login_request['me'] = $profile['me'];
+
+      $rels = $profile['rels'];
 
       // If there is an IndieAuth authorization_endpoint, redirect there now
-      if(isset($rels['authorization_endpoint'])) {
+      if(count($rels['authorization_endpoint'])) {
         $authorization_endpoint = $rels['authorization_endpoint'][0];
+
         // Check that it's a full URL
         if(!\p3k\url\is_url($authorization_endpoint)) {
           return $this->_userError($response, ['We found an authorization_endpoint but it does not look like a URL']);
         }
 
-        $me = \IndieAuth\Client::normalizeMeURL($params['me']);
-
-        // Encode this request's me/redirect_uri/state in the state parameter to avoid a session?
-        $state = generate_state();
-        $authorize = \IndieAuth\Client::buildAuthorizationURL($authorization_endpoint, $me, Config::$base.'start/indieauth/redirect', Config::$base, $state, '');
-
-        echo $authorize;
-        die();
-        return $response->withHeader('Location', $authorize)->withStatus(302);
+        return $this->_startAuthenticate($response, $login_request, [
+          'provider' => 'indieauth',
+          'authorization_endpoint' => $authorization_endpoint,
+        ]);
       }
 
-      if(isset($rels['authn'])) {
+      if(count($rels['authn'])) {
         // Find which of the rels are supported providers
         $supported = $this->_getSupportedProviders($rels['authn'], ($rels['pgpkey'] ?? []));
-
-print_r($supported);
 
         // If there are none, then error out now since the user explicitly said not to trust rel=mes
         if(count($supported) == 0) {
@@ -108,8 +123,7 @@ print_r($supported);
 
         // If there is one rel=authn, redirect now
         if(count($supported) == 1) {
-          echo 'starting '.$supported[0]['provider'].' auth for '.$supported[0]['url'];
-          die();
+          return $this->_startAuthenticate($response, $login_request, $supported[0]);
         }
 
         // If there is more than one rel=authn, show the chooser
@@ -117,17 +131,15 @@ print_r($supported);
 
       }
 
-      if(isset($rels['me'])) {
+      if(count($rels['me'])) {
         $supported = $this->_getSupportedProviders($rels['me']);
 
         // If there is one rel=me, redirect now
         if(count($supported) == 1) {
-          echo 'starting '.$supported[0]['provider'].' auth for '.$supported[0]['url'];
-          die();
+          return $this->_startAuthenticate($response, $login_request, $supported[0]);
         }
 
         // If there is more than one rel=me, show the chooser
-
 
       }
 
@@ -137,12 +149,33 @@ print_r($supported);
 
     $response->getBody()->write(view($view, [
       'title' => 'Sign In using '.Config::$name,
-      'me' => ($params['me'] ?? ''),
+      'me' => ($profile['me'] ?? ($params['me'] ?? '')),
       'client_id' => $client_id,
       'redirect_uri' => $redirect_uri,
-      'state' => ($params['state'] ?? ''),
+      'state' => $state,
     ]));
     return $response;
+  }
+
+  private function _startAuthenticate(&$response, $login_request, $details) {
+    $_SESSION['login_request'] = $login_request;
+
+    $method = '_start_'.$details['provider'];
+    return $this->{$method}($response, $login_request, $details);
+  }
+
+  private function _finishAuthenticate() {
+    // Generate a temporary authorization code to store the user details
+    $code = bin2hex(random_bytes(32));
+
+    $params = [
+      'code' => $code,
+      'state' => $_SESSION['login_request']['state'],
+    ];
+    $redirect = \p3k\url\add_query_params_to_url($_SESSION['login_request']['redirect_uri'], $params);
+
+    echo $redirect;
+    die();
   }
 
   private function _userError(&$response, $errors) {
@@ -160,18 +193,18 @@ print_r($supported);
       if(preg_match('~^https:?//(?:www\.)?(github|twitter)\.com/([a-z0-9_]+$)~', $url, $match)) {
         $supported[] = [
           'provider' => $match[1],
-          'url' => $url
+          'username' => $match[2],
         ];
       } elseif(preg_match('~^mailto:(.+)$~', $url, $match)) {
         $supported[] = [
           'provider' => 'email',
-          'url' => $match[1]
+          'email' => $match[1],
         ];
       } else {
         if(in_array($url, $pgps)) {
           $supported[] = [
             'provider' => 'pgp',
-            'url' => $url
+            'key' => $url
           ];
         }
       }
@@ -180,11 +213,5 @@ print_r($supported);
     return $supported;
   }
 
-  private function _fetchUserHomePage($url) {
-    $http = http_client();
-    return $http->get($url, [
-      'Accept: text/html'
-    ]);
-  }
 
 }

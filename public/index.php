@@ -24,6 +24,8 @@ $route->map('GET', '/debug', 'App\\Controller::debug');
 
 $route->map('GET', '/auth', 'App\\Authenticate::start');
 
+$route->map('GET', '/redirect/github', 'App\\Authenticate::redirect_github');
+
 
 $templates = new League\Plates\Engine(dirname(__FILE__).'/../views');
 
