@@ -1,0 +1,33 @@
+body {
+  font-family: sans-serif;
+  background: #FAFAFA;
+  padding: 0;
+  margin: 0;
+  font-size: 12pt;
+}
+
+.column {
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media(max-width: 600px) {
+  .column {
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0;
+    padding-top: 12px;
+  }
+  .column .entry {
+    border: 0;
+  }
+}
+
+.hidden {
+  display: none;
+}
+
+
