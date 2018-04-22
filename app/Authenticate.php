@@ -106,6 +106,8 @@ class Authenticate {
           return $this->_userError($response, ['We found an authorization_endpoint but it does not look like a URL']);
         }
 
+        $login_request['authorization_endpoint'] = $authorization_endpoint;
+
         return $this->_startAuthenticate($response, $login_request, [
           'provider' => 'indieauth',
           'authorization_endpoint' => $authorization_endpoint,
@@ -213,6 +215,8 @@ class Authenticate {
     $redirect = \p3k\url\add_query_params_to_url($_SESSION['login_request']['redirect_uri'], $params);
 
     redis()->setex('indielogin:code:'.$code, 60, json_encode($_SESSION['login_request']));
+
+    unset($_SESSION['login_request']);
 
     return $response->withHeader('Location', $redirect)->withStatus(302);
   }

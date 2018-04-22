@@ -88,7 +88,6 @@ trait GitHub {
 
     unset($_SESSION['github_expected_user']);
     unset($_SESSION['expected_me']);
-    unset($_SESSION['attempted_me']);
     unset($_SESSION['state']);
 
     return $this->_finishAuthenticate($response);
