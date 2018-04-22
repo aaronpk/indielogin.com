@@ -9,21 +9,21 @@ class Controller {
 
   public function index(ServerRequestInterface $request, ResponseInterface $response) {
     $response->getBody()->write(view('index', [
-      'title' => 'IndieLogin.com',
+      'title' => Config::$name,
     ]));
     return $response;
   }
 
   public function api_docs(ServerRequestInterface $request, ResponseInterface $response) {
     $response->getBody()->write(view('docs/api', [
-      'title' => 'IndieLogin.com API Docs',
+      'title' => Config::$name.' API Docs',
     ]));
     return $response;
   }
 
   public function setup_docs(ServerRequestInterface $request, ResponseInterface $response) {
     $response->getBody()->write(view('docs/setup', [
-      'title' => 'How to Start Using IndieLogin.com',
+      'title' => 'How to Start Using '.Config::$name,
     ]));
     return $response;
   }

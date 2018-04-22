@@ -51,7 +51,7 @@
 
   <p>If you don't want to use any existing accounts to authenticate, you can use a PGP key and sign a challenge while logging in instead. You'll just need to link to your PGP key from your website.</p>
 
-  <p><pre><?= e('<a href="/key.txt" rel="pgpkey">PGP Key</a>') ?></pre></p>
+  <p><pre><?= e('<a href="/key.txt" rel="pgpkey authn">PGP Key</a>') ?></pre></p>
 
 
   <h3 id="indieauth">IndieAuth</h3>

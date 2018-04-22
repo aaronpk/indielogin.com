@@ -2,9 +2,27 @@
 
 <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
   <div class="col-md-5 p-lg-5 mx-auto my-5">
+
     <h1 class="display-4 font-weight-normal"><?= Config::$name ?></h1>
+
     <p class="lead font-weight-normal">Sign in with your domain name.</p>
-    <a class="btn btn-outline-secondary" href="/demo">Try it Now</a>
+
+    <div>
+      <p class="lead">Try it!</p>
+
+      <form action="/auth" method="get">
+        <div class="form-group">
+          <input type="url" placeholder="example.com" name="me" class="form-control">
+        </div>
+
+        <input type="hidden" name="client_id" value="<?= Config::$base ?>">
+        <input type="hidden" name="redirect_uri" value="<?= Config::$base ?>demo">
+        <input type="hidden" name="state" value="<?= generate_state() ?>">
+
+        <button class="btn btn-outline-secondary">Sign In</button>
+      </form>
+
+    </div>
   </div>
   <div class="product-device box-shadow d-none d-md-block"></div>
   <div class="product-device product-device-2 box-shadow d-none d-md-block"></div>

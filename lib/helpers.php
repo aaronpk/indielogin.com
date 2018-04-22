@@ -20,6 +20,11 @@ function j($json) {
   return htmlspecialchars(json_encode($json, JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES));
 }
 
+function generate_state() {
+  $_SESSION['state'] = bin2hex(random_bytes(12));
+  return $_SESSION['state'];
+}
+
 function is_logged_in() {
   return isset($_SESSION) && array_key_exists('me', $_SESSION);
 }
