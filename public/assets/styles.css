@@ -7,8 +7,7 @@ pre {
   border-radius: 6px;
 }
 
-.container {
-  width: auto;
+.container-narrow {
   max-width: 680px;
   padding: 0 15px;
 }

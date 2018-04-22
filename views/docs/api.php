@@ -1,6 +1,6 @@
 <?php $this->layout('layout', ['title' => $title]) ?>
 
-<div class="container">
+<div class="container container-narrow">
 
   <h1><?= Config::$name ?></h1>
 
