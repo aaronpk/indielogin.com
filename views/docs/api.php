@@ -65,7 +65,7 @@ client_id=https://example.com/</pre></p>
 Content-Type: application/json
 
 {
-"me": "https://aaronparecki.com/"
+  "me": "https://aaronparecki.com/"
 }</pre></p>
 
   <p>An example error response:</p>
@@ -74,8 +74,8 @@ Content-Type: application/json
 Content-Type: application/json
 
 {
-"error": "invalid_request",
-"error_description": "The code provided was not valid"
+  "error": "invalid_request",
+  "error_description": "The code provided was not valid"
 }</pre></p>
 
 
