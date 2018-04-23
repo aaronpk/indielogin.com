@@ -130,8 +130,7 @@ class Authenticate {
         }
 
         // If there is more than one rel=authn, show the chooser
-
-
+        return $this->_showProviderChooser($response, $login_request, $supported);
       }
 
       if(count($rels['me'])) {
@@ -143,7 +142,7 @@ class Authenticate {
         }
 
         // If there is more than one rel=me, show the chooser
-
+        return $this->_showProviderChooser($response, $login_request, $supported);
       }
 
       // Show an error
@@ -158,6 +157,26 @@ class Authenticate {
       'state' => $state,
     ]));
     return $response;
+  }
+
+  public function select(ServerRequestInterface $request, ResponseInterface $response) {
+    session_start();
+
+    $params = $request->getQueryParams();
+
+    if(!isset($params['code'])) {
+      die('bad request');
+    }
+
+    $details = redis()->get('indielogin:select:'.$params['code']);
+
+    if(!$details) {
+      die('expired, start over');
+    }
+
+    $details = json_decode($details, true);
+
+    return $this->_startAuthenticate($response, $details['login_request'], $details['provider']);
   }
 
   public function verify(ServerRequestInterface $request, ResponseInterface $response) {
@@ -196,6 +215,34 @@ class Authenticate {
       'me' => $login['me']
     ]));
     return $response->withHeader('Content-type', 'application/json');
+  }
+
+  private function _showProviderChooser(&$response, $login_request, $providers) {
+    $choices = [];
+
+    // Generate a temporary code for each provider
+    foreach($providers as $provider) {
+      $code = bin2hex(random_bytes(32));
+      $details = [
+        'login_request' => $login_request,
+        'provider' => $provider,
+      ];
+      $choices[] = [
+        'code' => $code,
+        'provider' => $provider,
+      ];
+      redis()->setex('indielogin:select:'.$code, 120, json_encode($details));
+    }
+
+    // Show the select form
+    $response->getBody()->write(view('auth/select', [
+      'title' => 'Authenticate',
+      'me' => $login_request['me'],
+      'client_id' => $login_request['client_id'],
+      'redirect_uri' => $login_request['redirect_uri'],
+      'choices' => $choices,
+    ]));
+    return $response;
   }
 
   private function _startAuthenticate(&$response, $login_request, $details) {
@@ -238,17 +285,20 @@ class Authenticate {
         $supported[] = [
           'provider' => $match[1],
           'username' => $match[2],
+          'display' => $match[1].'.com/'.$match[2],
         ];
       } elseif(preg_match('~^mailto:(.+)$~', $url, $match)) {
         $supported[] = [
           'provider' => 'email',
           'email' => $match[1],
+          'display' => $match[1],
         ];
       } else {
         if(in_array($url, $pgps)) {
           $supported[] = [
             'provider' => 'pgp',
-            'key' => $url
+            'key' => $url,
+            'display' => $url,
           ];
         }
       }
