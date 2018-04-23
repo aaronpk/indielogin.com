@@ -21,6 +21,7 @@ $route->map('GET', '/', 'App\\Controller::index');
 $route->map('GET', '/api', 'App\\Controller::api_docs');
 $route->map('GET', '/setup', 'App\\Controller::setup_docs');
 $route->map('GET', '/debug', 'App\\Controller::debug');
+$route->map('GET', '/demo', 'App\\Controller::demo');
 
 $route->map('GET', '/auth', 'App\\Authenticate::start');
 $route->map('GET', '/select', 'App\\Authenticate::select');

@@ -1,4 +1,4 @@
-<?php $this->layout('layout', ['title' => 'IndieLogin.com']) ?>
+<?php $this->layout('layout', ['title' => $title]) ?>
 
 <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
   <div class="col-md-5 p-lg-5 mx-auto my-5">

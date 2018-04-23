@@ -14,6 +14,29 @@ class Controller {
     return $response;
   }
 
+  public function demo(ServerRequestInterface $request, ResponseInterface $response) {
+    $params = $request->getQueryParams();
+
+    if(!isset($params['code'])) {
+      return $response->withHeader('Location', '/')->withStatus(302);
+    }
+
+    // We'll cheat and extract the user details directly instead of making a post request to ourselves here
+    $login = redis()->get('indielogin:code:'.$params['code']);
+
+    if(!$login) {
+      return $response->withHeader('Location', '/?error=code_expired')->withStatus(302);
+    }
+
+    $login = json_decode($login, true);
+
+    $response->getBody()->write(view('demo', [
+      'title' => Config::$name,
+      'me' => $login['me'],
+    ]));
+    return $response;
+  }
+
   public function api_docs(ServerRequestInterface $request, ResponseInterface $response) {
     $response->getBody()->write(view('docs/api', [
       'title' => Config::$name.' API Docs',
