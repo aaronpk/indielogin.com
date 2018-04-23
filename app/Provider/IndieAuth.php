@@ -12,7 +12,6 @@ trait IndieAuth {
     $state = generate_state();
     $authorize = \IndieAuth\Client::buildAuthorizationURL($details['authorization_endpoint'], $login_request['me'], Config::$base.'redirect/indieauth', $login_request['client_id'], $state, '');
 
-    die('Me: '.$login_request['me'].' Click to continue <a href="'.$authorize.'">'.$authorize.'</a>');
     return $response->withHeader('Location', $authorize)->withStatus(302);
   }
 
@@ -25,7 +24,6 @@ trait IndieAuth {
     if(!isset($_SESSION['state']) || $_SESSION['state'] != $query['state']) {
       die('Invalid state parameter from IndieAuth server');
     }
-
 
     $params = [
       'code' => $query['code'],

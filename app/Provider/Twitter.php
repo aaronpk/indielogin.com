@@ -19,9 +19,7 @@ trait Twitter {
     $_SESSION['twitter_request_token'] = $request_token;
     $twitter_login_url = $twitter->url('oauth/authorize', ['oauth_token' => $request_token['oauth_token']]);
 
-    pa($details);
-
-    die('Me: '.$login_request['me'].' Click to continue <a href="'.$twitter_login_url.'">'.$twitter_login_url.'</a>');
+    return $response->withHeader('Location', $twitter_login_url)->withStatus(302);
   }
 
   public function redirect_twitter(ServerRequestInterface $request, ResponseInterface $response) {

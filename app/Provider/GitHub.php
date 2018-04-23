@@ -19,9 +19,8 @@ trait GitHub {
     $authorize = 'https://github.com/login/oauth/authorize?'.http_build_query($params);
 
     $_SESSION['github_expected_user'] = $details['username'];
-    pa($details);
 
-    die('Me: '.$login_request['me'].' Click to continue <a href="'.$authorize.'">'.$authorize.'</a>');
+    return $response->withHeader('Location', $authorize)->withStatus(302);
   }
 
   public function redirect_github(ServerRequestInterface $request, ResponseInterface $response) {
