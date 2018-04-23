@@ -8,6 +8,7 @@ use Config;
 class Authenticate {
 
   use Provider\GitHub;
+  use Provider\Twitter;
   use Provider\IndieAuth;
 
   public function start(ServerRequestInterface $request, ResponseInterface $response) {

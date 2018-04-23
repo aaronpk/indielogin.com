@@ -23,7 +23,7 @@ trait IndieAuth {
 
     // Verify the state parameter
     if(!isset($_SESSION['state']) || $_SESSION['state'] != $query['state']) {
-      die('Invalid state parameter from GitHub');
+      die('Invalid state parameter from IndieAuth server');
     }
 
 

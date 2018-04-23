@@ -9,7 +9,8 @@
         "p3k/http": "^0.1.7",
         "mf2/mf2": "^0.4.3",
         "indieweb/link-rel-parser": "^0.1.3",
-        "predis/predis": "^1.1"
+        "predis/predis": "^1.1",
+        "abraham/twitteroauth": "^0.7.4"
     },
     "autoload": {
       "psr-4": {
