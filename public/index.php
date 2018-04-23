@@ -26,6 +26,7 @@ $route->map('GET', '/demo', 'App\\Controller::demo');
 $route->map('GET', '/auth', 'App\\Authenticate::start');
 $route->map('GET', '/select', 'App\\Authenticate::select');
 $route->map('POST', '/auth', 'App\\Authenticate::verify');
+$route->map('POST', '/select', 'App\\Authenticate::post_select');
 
 $route->map('GET', '/redirect/github', 'App\\Authenticate::redirect_github');
 $route->map('GET', '/redirect/twitter', 'App\\Authenticate::redirect_twitter');

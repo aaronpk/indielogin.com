@@ -50,10 +50,6 @@ trait IndieAuth {
       die('A different user logged in');
     }
 
-    // Remember them for next time
-    $_SESSION['me'] = $_SESSION['expected_me'];
-
-    unset($_SESSION['expected_me']);
     unset($_SESSION['state']);
 
     return $this->_finishAuthenticate($response);

@@ -69,18 +69,55 @@ class Authenticate {
     }
 
     if(!isset($params['me'])) {
-      $view = 'auth/form';
+      if(isset($params['action']) && $params['action'] == 'logout')
+        unset($_SESSION['me']);
+
+      if(isset($_SESSION['me']))
+        $_SESSION['expected_me'] = $_SESSION['me'];
+
+      // If the developer isn't expecting a particular user, use the session user if present
+      $response->getBody()->write(view('auth/form', [
+        'title' => 'Sign In using '.Config::$name,
+        'me' => $_SESSION['me'] ?? '',
+        'client_id' => $client_id,
+        'redirect_uri' => $redirect_uri,
+        'state' => $state,
+      ]));
+      return $response;
     } else {
 
-      // Check if there is a cookie identifying the user and show a prompt instead
+      // If the user-entered 'me' is the same as the one in the session, skip authentication and show a prompt
+      // Otherwise, drop the session 'me' and make the user authenticate again
+      if(isset($_SESSION['me']) && $_SESSION['me'] == $params['me']) {
+        $switch_account = '/auth?'.http_build_query([
+          'action' => 'logout',
+          'client_id' => $client_id,
+          'redirect_uri' => $redirect_uri,
+          'state' => $state,
+        ]);
 
+        $code = bin2hex(random_bytes(32));
+        redis()->setex('indielogin:select:'.$code, 120, json_encode($login_request));
+        $_SESSION['expected_me'] = $_SESSION['me'];
 
+        $response->getBody()->write(view('auth/prompt', [
+          'title' => 'Sign In using '.Config::$name,
+          'me' => $_SESSION['me'],
+          'code' => $code,
+          'client_id' => $client_id,
+          'redirect_uri' => $redirect_uri,
+          'state' => $state,
+          'switch_account' => $switch_account
+        ]));
+        return $response;
+      }
+
+      unset($_SESSION['me']);
 
       // Verify the "me" parameter is a URL
-
-
-
-      $view = 'auth/start';
+      if(!\p3k\url\is_url($params['me'])) {
+        die('Invalid URL entered');
+      }
 
       // Fetch the user's home page now
       $profile = fetch_profile($params['me']);
@@ -148,15 +185,6 @@ class Authenticate {
       // Show an error
       return $this->_userError($response, ['We couldn\'t find any rel=me links.']);
     }
-
-    $response->getBody()->write(view($view, [
-      'title' => 'Sign In using '.Config::$name,
-      'me' => ($profile['me'] ?? ($params['me'] ?? '')),
-      'client_id' => $client_id,
-      'redirect_uri' => $redirect_uri,
-      'state' => $state,
-    ]));
-    return $response;
   }
 
   public function select(ServerRequestInterface $request, ResponseInterface $response) {
@@ -177,6 +205,26 @@ class Authenticate {
     $details = json_decode($details, true);
 
     return $this->_startAuthenticate($response, $details['login_request'], $details['provider']);
+  }
+
+  public function post_select(ServerRequestInterface $request, ResponseInterface $response) {
+    session_start();
+
+    $params = $request->getParsedBody();
+
+    if(!isset($params['code'])) {
+      die('bad request');
+    }
+
+    $details = redis()->get('indielogin:select:'.$params['code']);
+
+    if(!$details) {
+      die('expired, start over');
+    }
+
+    $details = json_decode($details, true);
+    $_SESSION['login_request'] = $details;
+    return $this->_finishAuthenticate($response);
   }
 
   public function verify(ServerRequestInterface $request, ResponseInterface $response) {
@@ -260,11 +308,16 @@ class Authenticate {
       'code' => $code,
       'state' => $_SESSION['login_request']['state'],
     ];
+
     $redirect = \p3k\url\add_query_params_to_url($_SESSION['login_request']['redirect_uri'], $params);
+
+    $_SESSION['login_request']['me'] = $_SESSION['expected_me'];
 
     redis()->setex('indielogin:code:'.$code, 60, json_encode($_SESSION['login_request']));
 
     unset($_SESSION['login_request']);
+    $_SESSION['me'] = $_SESSION['expected_me'];
+    unset($_SESSION['expected_me']);
 
     return $response->withHeader('Location', $redirect)->withStatus(302);
   }

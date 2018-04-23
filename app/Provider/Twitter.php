@@ -94,11 +94,7 @@ trait Twitter {
       die();
     }
 
-    // Store this in the session to remember them for next time
-    $_SESSION['me'] = $_SESSION['expected_me'];
-
     unset($_SESSION['twitter_expected_user']);
-    unset($_SESSION['expected_me']);
 
     return $this->_finishAuthenticate($response);
   }
