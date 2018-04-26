@@ -44,6 +44,9 @@ trait IndieAuth {
     ]);
 
     $auth = json_decode($result['body'], true);
+    if(!$auth) {
+      parse_str($result['body'], $auth);
+    }
 
     if(!isset($auth['me'])) {
       if($auth) {
