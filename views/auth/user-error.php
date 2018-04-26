@@ -3,7 +3,7 @@
 <div class="container container-narrow">
 
   <? if($error): ?>
-    <div class="alert alert-warning"><?= e($error) ?></div>
+    <div class="alert alert-warning"><?= $error ?></div>
   <? endif ?>
 
   <? if(isset($opts['found'])): ?>

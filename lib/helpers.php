@@ -16,6 +16,7 @@ if(getenv('ENV')) {
 function make_logger($channel) {
   $log = new Logger($channel);
   $log->pushHandler(new StreamHandler(dirname(__FILE__).'/../logs/app.log', Logger::DEBUG));
+  $log->pushProcessor(new Monolog\Processor\WebProcessor);
   return $log;
 }
 

@@ -9,6 +9,8 @@ use Abraham\TwitterOAuth\TwitterOAuth;
 trait Twitter {
 
   private function _start_twitter(&$response, $login_request, $details) {
+    $userlog = make_logger('user');
+
     $_SESSION['twitter_expected_user'] = $details['username'];
 
     $twitter = new TwitterOAuth(Config::$twitterClientID, Config::$twitterClientSecret);
@@ -19,13 +21,21 @@ trait Twitter {
     $_SESSION['twitter_request_token'] = $request_token;
     $twitter_login_url = $twitter->url('oauth/authorize', ['oauth_token' => $request_token['oauth_token']]);
 
+    $userlog->info('Beginning Twitter login', ['provider' => $details, 'login' => $login_request]);
+
     return $response->withHeader('Location', $twitter_login_url)->withStatus(302);
   }
 
   public function redirect_twitter(ServerRequestInterface $request, ResponseInterface $response) {
     session_start();
 
+    $userlog = make_logger('user');
+
     $query = $request->getQueryParams();
+
+    if(!isset($_SESSION['twitter_request_token'])) {
+      return $response->withHeader('Location', '/')->withStatus(302);
+    }
 
     $twitter = new TwitterOAuth(Config::$twitterClientID, Config::$twitterClientSecret,
       $_SESSION['twitter_request_token']['oauth_token'], $_SESSION['twitter_request_token']['oauth_token_secret']);
@@ -34,17 +44,17 @@ trait Twitter {
     unset($_SESSION['twitter_request_token']);
 
     if(!isset($credentials['screen_name'])) {
-      // Error authorizing
-      echo 'Twitter error';
-      pa($credentials);
-      die();
+      $userlog->warning('Twitter authorization error', ['response' => $credentials]);
+      return $this->_userError($response, 'There was a problem verifying the request from Twitter', [
+        'response' => json_encode($credentials, JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES)
+      ]);
     }
 
     $twitter_user = $credentials['screen_name'];
 
     if($twitter_user != $_SESSION['twitter_expected_user']) {
-      echo 'A different Twitter user authenticated';
-      die();
+      $userlog->warning('Twitter user mismatch', ['profile' => $twitter_user, 'expected' => $_SESSION['twitter_expected_user']]);
+      return $this->_userError($response, 'You logged in to Twitter as <b>'.$twitter_user.'</b> but your website links to <b>'.$_SESSION['twitter_expected_user'].'</b>');
     }
 
     $twitter = new TwitterOAuth(Config::$twitterClientID, Config::$twitterClientSecret,
@@ -54,8 +64,10 @@ trait Twitter {
     $profile = $twitter->get('users/show', ['screen_name'=>$twitter_user]);
 
     if(!$profile) {
-      echo 'Problem fetching twitter profile';
-      die();
+      $userlog->warning('Error fetching Twitter profile', ['response' => $profile]);
+      return $this->_userError($response, 'There was a problem with the request to Twitter', [
+        'response' => json_encode($profile, JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES)
+      ]);
     }
 
     $verified = false;
@@ -85,14 +97,18 @@ trait Twitter {
     }
 
     if(!$verified) {
-      if($expanded_url)
-        echo 'Your Twitter profile linked to '.$expanded_url.' but we were expecting '.$_SESSION['expected_me'];
-      else
-        echo 'There was no link in your Twitter profile.';
+      $userlog->warning('Twitter URL mismatch', ['bio' => $bio, 'website' => $expanded_url, 'expected' => $_SESSION['expected_me']]);
 
-      pa($profile);
-      die();
+      if($expanded_url)
+        $msg = 'Your Twitter profile linked to <b>'.e($expanded_url).'</b> but we were expecting to see <b>'.$_SESSION['expected_me'].'</b>. Make sure you link to <b>'.$_SESSION['expected_me'].'</b> in your Twitter profile.';
+      else
+        $msg = 'There were no links found in your Twitter profile.';
+
+      return $this->_userError($response, $msg);
+
     }
+
+    $userlog->info('Successful Twitter login', ['username' => $_SESSION['twitter_expected_user']]);
 
     unset($_SESSION['twitter_expected_user']);
 
