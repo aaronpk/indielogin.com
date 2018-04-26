@@ -43,7 +43,7 @@
     </div>
   </div>
 
-
+<!--
   <hr class="featurette-divider">
 
 
@@ -63,6 +63,8 @@
       <div class="bg-dark box-shadow mx-auto" style="width: 80%; height: 300px; border-radius: 21px 21px 0 0;"></div>
     </div>
   </div>
+-->
+
 
 </div>
 

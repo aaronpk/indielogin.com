@@ -43,6 +43,9 @@
     </div>
   </nav>
 
+  <div class="alert alert-info">This site is currently in Alpha, and is not ready for production use. Feel free to test it out and report any errors <a href="https://github.com/aaronpk/IndieLogin.com">on GitHub</a>.</div>
+
+
   <?= $this->section('content')?>
 
 </body>
