@@ -19,7 +19,7 @@ trait Twitter {
       'oauth_callback' => Config::$base . 'redirect/twitter'
     ]);
     $_SESSION['twitter_request_token'] = $request_token;
-    $twitter_login_url = $twitter->url('oauth/authorize', ['oauth_token' => $request_token['oauth_token']]);
+    $twitter_login_url = $twitter->url('oauth/authenticate', ['oauth_token' => $request_token['oauth_token']]);
 
     $userlog->info('Beginning Twitter login', ['provider' => $details, 'login' => $login_request]);
 
