@@ -11,7 +11,7 @@
 
   <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
   <script src="/assets/jquery-3.3.1.min.js"></script>
-  <script src="/assets/bootstrap/js/bootstrap.min.js"></script>
+  <script src="/assets/bootstrap-4.1.0/js/bootstrap.min.js"></script>
   <script src="/assets/script.js"></script>
 
   <?php include('views/components/favicon.php') ?>
