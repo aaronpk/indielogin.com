@@ -14,6 +14,9 @@ class Authenticate {
   public function start(ServerRequestInterface $request, ResponseInterface $response) {
     session_start();
 
+    $devlog = make_logger('dev');
+    $userlog = make_logger('user');
+
     $params = $request->getQueryParams();
 
     // Check that the application provided all the necessary parameters
@@ -67,6 +70,8 @@ class Authenticate {
 
 
     if(count($errors)) {
+      $devlog->info('Bad auth request', ['errors' => $errors, 'params' => $params]);
+
       $response->getBody()->write(view('auth/dev-error', [
         'title' => Config::$name.' Error',
         'errors' => $errors
@@ -122,6 +127,7 @@ class Authenticate {
 
       // Verify the "me" parameter is a URL
       if(!\p3k\url\is_url($params['me'])) {
+        $userlog->info('Invalid "me" entered', ['me' => $params['me']]);
         return $this->_userError($response, 'You entered something that doesn\'t look like a URL. Please go back and try again.');
       }
 
@@ -132,6 +138,8 @@ class Authenticate {
 
       // Show an error to the user if there was a problem
       if($profile['code'] != 200 ) {
+        $userlog->warning('Problem connecting to website', ['me' => $params['me'], 'exception' => $profile['exception']]);
+
         return $this->_userError($response, 'There was a problem connecting to your website', [
           'me' => $params['me'],
           'response' => $profile['exception'],
@@ -150,6 +158,7 @@ class Authenticate {
 
         // Check that it's a full URL and was not a relative URL.
         if(!\p3k\url\is_url($authorization_endpoint)) {
+          $userlog->warning('Authorization endpoint does not look like a URL', ['me' => $params['me'], 'authorization_endpoint' => $authorization_endpoint]);
           return $this->_userError($response, 'We found an authorization_endpoint but it does not look like a URL');
         }
 
@@ -167,6 +176,7 @@ class Authenticate {
 
         // If there are none, then error out now since the user explicitly said not to trust rel=mes
         if(count($supported) == 0) {
+          $userlog->warning('No supported rel=authn URLs', ['me' => $params['me'], 'relauthn' => $rels['authn']]);
           return $this->_userError($response,
             'None of the rel=authn URLs found on your page were recognized as a supported provider', [
               'found' => $rels['authn']
@@ -188,6 +198,7 @@ class Authenticate {
 
         // If there are no supported rel=me, then show an error
         if(count($supported) == 0) {
+          $userlog->warning('No supported rel=me URLs', ['me' => $params['me'], 'relme' => $rels['me']]);
           return $this->_userError($response,
             'None of the rel=me URLs found on your page were recognized as a supported provider', [
               'found' => $rels['me']
@@ -205,6 +216,7 @@ class Authenticate {
       }
 
       // Show an error
+      $userlog->warning('No rel=me URLs found', ['me' => $params['me']]);
       return $this->_userError($response, 'We couldn\'t find any rel=me links on your website.');
     }
   }
@@ -212,16 +224,19 @@ class Authenticate {
   public function select(ServerRequestInterface $request, ResponseInterface $response) {
     session_start();
 
+    $userlog = make_logger('user');
+
     $params = $request->getQueryParams();
 
     if(!isset($params['code'])) {
+      $userlog->info('No code was present in the select request');
       die('bad request');
     }
 
     $details = redis()->get('indielogin:select:'.$params['code']);
-
     if(!$details) {
-      die('expired, start over');
+      $userlog->warning('Select code expired');
+      return $this->_userError($response, 'The session timed out. Please go back and try again.');
     }
 
     $details = json_decode($details, true);
@@ -232,16 +247,20 @@ class Authenticate {
   public function post_select(ServerRequestInterface $request, ResponseInterface $response) {
     session_start();
 
+    $userlog = make_logger('user');
+
     $params = $request->getParsedBody();
 
     if(!isset($params['code'])) {
+      $userlog->info('No code was present in the select request');
       die('bad request');
     }
 
     $details = redis()->get('indielogin:select:'.$params['code']);
 
     if(!$details) {
-      die('expired, start over');
+      $userlog->warning('Select code expired');
+      return $this->_userError($response, 'The session timed out. Please go back and try again.');
     }
 
     $details = json_decode($details, true);
@@ -252,34 +271,67 @@ class Authenticate {
   public function verify(ServerRequestInterface $request, ResponseInterface $response) {
     $params = $request->getParsedBody();
 
+    $devlog = make_logger('dev');
+    $userlog = make_logger('user');
+
+    $errors = [];
+
     if(!isset($params['code'])) {
-      die('missing code');
+      $errors[] = 'Request is missing the "code" parameter';
     }
 
     if(!isset($params['client_id'])) {
-      die('missing client_id');
+      $errors[] = 'Request is missing the "client_id" parameter';
     }
 
     if(!isset($params['redirect_uri'])) {
-      die('missing redirect_uri');
+      $errors[] = 'Request is missing the "redirect_uri" parameter';
+    }
+
+    if(count($errors)) {
+      $devlog->info('verify request is missing one or more parameters', ['errors' => $errors, 'params' => $params]);
+      $response->getBody()->write(json_encode([
+        'error' => 'invalid_request',
+        'details' => $errors,
+      ]));
+      return $response->withStatus(400);
     }
 
     $login = redis()->get('indielogin:code:'.$params['code']);
 
     if(!$login) {
-      die('code expired');
+      $devlog->info('authorization code expired', ['params' => $params]);
+      $response->getBody()->write(json_encode([
+        'error' => 'invalid_request',
+        'error_description' => 'The authorization code expired',
+      ]));
+      return $response->withStatus(400);
     }
 
     $login = json_decode($login, true);
 
     // Verify client_id and redirect_uri match
     if($params['client_id'] != $login['client_id']) {
-      die('client_id mismatch');
+      $devlog->info('client_id mismatch', ['params' => $params, 'login' => $login]);
+      $response->getBody()->write(json_encode([
+        'error' => 'invalid_grant',
+        'error_description' => 'The client_id in the request did not match the client_id the code was issued to',
+      ]));
+      return $response->withStatus(400);
     }
 
     if($params['redirect_uri'] != $login['redirect_uri']) {
-      die('redirect_uri mismatch');
+      $devlog->info('redirect_uri mismatch', ['params' => $params, 'login' => $login]);
+      $response->getBody()->write(json_encode([
+        'error' => 'invalid_grant',
+        'error_description' => 'The redirect_uri in the request did not match the redirect_uri the code was issued to',
+      ]));
+      return $response->withStatus(400);
     }
+
+    $userlog->info('Completed login for user', ['me' => $login['me'], 'details' => $login]);
+
+    redis()->del('indielogin:code:'.$params['code']);
 
     $response->getBody()->write(json_encode([
       'me' => $login['me']

@@ -34,3 +34,18 @@ pre {
 .api-docs h2, .api-docs h3 {
   margin-top: 1em;
 }
+
+.login-details {
+  margin-top: 1em;
+  border-radius: 6px;
+  border: 1px #eee solid;
+  background: #fafafa;
+  padding: 1em;
+}
+.login-details p:last-child {
+  margin-bottom: 0;
+}
+.login-details .redirect_uri {
+  font-size: 0.8em;
+}
+

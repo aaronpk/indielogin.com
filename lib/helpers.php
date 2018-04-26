@@ -2,6 +2,8 @@
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
 
 date_default_timezone_set('UTC');
 
@@ -9,6 +11,20 @@ if(getenv('ENV')) {
   require(dirname(__FILE__).'/config.'.getenv('ENV').'.php');
 } else {
   require(dirname(__FILE__).'/config.php');
+}
+
+function make_logger($channel) {
+  $log = new Logger($channel);
+  $log->pushHandler(new StreamHandler(dirname(__FILE__).'/../logs/app.log', Logger::DEBUG));
+  return $log;
+}
+
+function log_info($msg) {
+  logger()->info($msg);
+}
+
+function log_warning($msg) {
+  logger()->warning($msg);
 }
 
 function view($template, $data=[]) {

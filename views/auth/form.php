@@ -1,6 +1,8 @@
 <?php $this->layout('layout', ['title' => $title]) ?>
 
-<div class="container">
+<div class="container container-narrow">
+
+  <p>Log in to <a href="<?= $client_id ?>"><?= $client_id ?></a></p>
 
   <form action="/auth" method="get">
     <div class="form-group">

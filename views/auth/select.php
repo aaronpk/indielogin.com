@@ -10,8 +10,10 @@
   <?php endforeach ?>
   </ul>
 
-  <p>Logging in to <a href="$client_id"><?= $client_id ?></a></p>
+  <div class="login-details">
+    <p>Logging in to <a href="<?= $client_id ?>"><?= $client_id ?></a></p>
 
-  <p class="redirect-uri">You will be redirected to <?= $redirect_uri ?></p>
+    <p class="redirect_uri">You will be redirected to <?= $redirect_uri ?></p>
+  </div>
 
 </div>
