@@ -32,6 +32,12 @@ class Authenticate {
       $client_id = $params['client_id'];
     }
 
+    if(isset(Config::$allowedClientIDs)) {
+      if($client_id && !in_array($client_id, Config::$allowedClientIDs)) {
+        $errors[] = 'This client_id is not enabled for use on this website';
+      }
+    }
+
     if(!isset($params['redirect_uri'])) {
       $errors[] = 'The request is missing the redirect_uri parameter';
     } else if(!\p3k\url\is_url($params['redirect_uri'])) {
@@ -61,7 +67,7 @@ class Authenticate {
 
 
     if(count($errors)) {
-      $response->getBody()->write(view('auth/app-error', [
+      $response->getBody()->write(view('auth/dev-error', [
         'title' => Config::$name.' Error',
         'errors' => $errors
       ]));
@@ -87,7 +93,6 @@ class Authenticate {
     } else {
 
       // If the user-entered 'me' is the same as the one in the session, skip authentication and show a prompt
-      // Otherwise, drop the session 'me' and make the user authenticate again
       if(isset($_SESSION['me']) && $_SESSION['me'] == $params['me']) {
         $switch_account = '/auth?'.http_build_query([
           'action' => 'logout',
@@ -112,11 +117,12 @@ class Authenticate {
         return $response;
       }
 
+      // Otherwise, drop the session 'me' and make the user authenticate again
       unset($_SESSION['me']);
 
       // Verify the "me" parameter is a URL
       if(!\p3k\url\is_url($params['me'])) {
-        die('Invalid URL entered');
+        return $this->_userError($response, 'You entered something that doesn\'t look like a URL. Please go back and try again.');
       }
 
       // Fetch the user's home page now
@@ -126,7 +132,10 @@ class Authenticate {
 
       // Show an error to the user if there was a problem
       if($profile['code'] != 200 ) {
-        return $this->_userError($response, ['Your website did not return HTTP 200']);
+        return $this->_userError($response, 'There was a problem connecting to your website', [
+          'me' => $params['me'],
+          'response' => $profile['exception'],
+        ]);
       }
 
       // Store the canonical URL of the user
@@ -139,9 +148,9 @@ class Authenticate {
       if(count($rels['authorization_endpoint'])) {
         $authorization_endpoint = $rels['authorization_endpoint'][0];
 
-        // Check that it's a full URL
+        // Check that it's a full URL and was not a relative URL.
         if(!\p3k\url\is_url($authorization_endpoint)) {
-          return $this->_userError($response, ['We found an authorization_endpoint but it does not look like a URL']);
+          return $this->_userError($response, 'We found an authorization_endpoint but it does not look like a URL');
         }
 
         $login_request['authorization_endpoint'] = $authorization_endpoint;
@@ -158,7 +167,11 @@ class Authenticate {
 
         // If there are none, then error out now since the user explicitly said not to trust rel=mes
         if(count($supported) == 0) {
-          return $this->_userError($response, ['None of the rel=authn URLs found on your page were recognized as a supported provider']);
+          return $this->_userError($response,
+            'None of the rel=authn URLs found on your page were recognized as a supported provider', [
+              'found' => $rels['authn']
+            ]
+          );
         }
 
         // If there is one rel=authn, redirect now
@@ -173,6 +186,15 @@ class Authenticate {
       if(count($rels['me'])) {
         $supported = $this->_getSupportedProviders($rels['me']);
 
+        // If there are no supported rel=me, then show an error
+        if(count($supported) == 0) {
+          return $this->_userError($response,
+            'None of the rel=me URLs found on your page were recognized as a supported provider', [
+              'found' => $rels['me']
+            ]
+          );
+        }
+
         // If there is one rel=me, redirect now
         if(count($supported) == 1) {
           return $this->_startAuthenticate($response, $login_request, $supported[0]);
@@ -183,7 +205,7 @@ class Authenticate {
       }
 
       // Show an error
-      return $this->_userError($response, ['We couldn\'t find any rel=me links.']);
+      return $this->_userError($response, 'We couldn\'t find any rel=me links on your website.');
     }
   }
 
@@ -322,10 +344,11 @@ class Authenticate {
     return $response->withHeader('Location', $redirect)->withStatus(302);
   }
 
-  private function _userError(&$response, $errors) {
+  private function _userError(&$response, $error, $opts=[]) {
     $response->getBody()->write(view('auth/user-error', [
       'title' => 'Error',
-      'errors' => $errors,
+      'error' => $error,
+      'opts' => $opts
     ]));
     return $response;
   }

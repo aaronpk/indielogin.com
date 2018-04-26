@@ -1,6 +1,6 @@
 <?php $this->layout('layout', ['title' => $title]) ?>
 
-<div class="container">
+<div class="container container-narrow">
 
   <p>Log in as <?= $me ?></p>
 

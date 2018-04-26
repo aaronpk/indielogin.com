@@ -16,4 +16,21 @@ pre {
   display: none;
 }
 
+.setup section {
+  margin-top: 1em;
+  border-radius: 6px;
+  border: 1px #eee solid;
+  background: #fafafa;
+  padding: 1em;
+}
+.setup pre {
+  background: #eee;
+  border: 1px #ddd solid;
+}
+.setup h2, .setup h3 {
+  color: #333;
+}
 
+.api-docs h2, .api-docs h3 {
+  margin-top: 1em;
+}

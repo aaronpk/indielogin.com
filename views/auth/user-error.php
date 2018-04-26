@@ -1,13 +1,28 @@
-<?php $this->layout('layout', ['title' => $title]) ?>
+<? $this->layout('layout', ['title' => $title]) ?>
 
-<div class="container">
+<div class="container container-narrow">
 
-  <h3>Error</h3>
+  <? if($error): ?>
+    <div class="alert alert-warning"><?= e($error) ?></div>
+  <? endif ?>
 
-  <ul>
-  <?php foreach($errors as $error): ?>
-    <li><?= e($error) ?></li>
-  <?php endforeach ?>
-  </ul>
+  <? if(isset($opts['found'])): ?>
+    <p>The following links were found on your website, but are not supported authentication options.</p>
+    <ul>
+    <? foreach($opts['found'] as $f): ?>
+      <li><a href="<?= e($f) ?>"><?= e($f) ?></a></li>
+    <? endforeach ?>
+    </ul>
+  <? endif ?>
+
+  <? if(isset($opts['me'])): ?>
+    <p>We got an error trying to connect to <code><?= e($opts['me']) ?></code></p>
+  <? endif ?>
+
+  <? if(isset($opts['response'])): ?>
+    <pre><?= e($opts['response']) ?></pre>
+  <? endif ?>
+
+  <p>View the <a href="/setup">setup instructions</a> for more information.</p>
 
 </div>

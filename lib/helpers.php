@@ -127,6 +127,11 @@ function fetch_profile($me) {
       'code' => $response->getStatusCode(),
       'exception' => $e->getMessage(),
     ];
+  } catch(\GuzzleHttp\Exception\RequestException $e) {
+    return [
+      'code' => 0,
+      'exception' => $e->getMessage(),
+    ];
   } catch(\GuzzleHttp\Exception\ConnectException $e) {
     return [
       'code' => 0,

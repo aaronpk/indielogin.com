@@ -1,8 +1,8 @@
 <?php $this->layout('layout', ['title' => $title]) ?>
 
-<div class="container">
+<div class="container container-narrow">
 
-  <p>Log in as <?= $me ?></p>
+  <p>Log in as <a href="<?= $me ?>"><?= $me ?></a></p>
 
   <ul>
   <?php foreach($choices as $choice): ?>
@@ -10,8 +10,8 @@
   <?php endforeach ?>
   </ul>
 
-  <p>Logging in to <?= $client_id ?></p>
+  <p>Logging in to <a href="$client_id"><?= $client_id ?></a></p>
 
-  <p>You will be redirected to <?= $redirect_uri ?></p>
+  <p class="redirect-uri">You will be redirected to <?= $redirect_uri ?></p>
 
 </div>
