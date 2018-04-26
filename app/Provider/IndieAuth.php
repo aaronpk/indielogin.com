@@ -32,11 +32,35 @@ trait IndieAuth {
       return $this->_userError($response, 'Your IndieAuth server did not return a valid state parameter');
     }
 
+    if(!isset($query['code'])) {
+      if(isset($query['error'])) {
+        $userlog->warning('IndieAuth endpoint returned an error in the redirect', [
+          'query' => $query,
+          'login' => $_SESSION['login_request'],
+        ]);
+        return $this->_userError($response, 'Your IndieAuth server returned an error', [
+          'response' => $query['error']
+        ]);
+      } else {
+        $userlog->warning('IndieAuth endpoint returned an invalid response in the redirect', [
+          'query' => $query,
+          'login' => $_SESSION['login_request'],
+        ]);
+        return $this->_userError($response, 'Your IndieAuth server returned an invalid response');
+      }
+    }
+
     $params = [
       'code' => $query['code'],
       'client_id' => $_SESSION['login_request']['client_id'],
       'redirect_uri' => Config::$base.'redirect/indieauth',
     ];
+
+    $userlog->info('Verifying the authorization code with the IndieAuth server', [
+      'authorization_endpoint' => $_SESSION['login_request']['authorization_endpoint'],
+      'params' => $params,
+      'login' => $_SESSION['login_request'],
+    ]);
 
     $http = http_client();
     $result = $http->post($_SESSION['login_request']['authorization_endpoint'], $params, [
