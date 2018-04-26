@@ -69,6 +69,8 @@ trait IndieAuth {
 
     unset($_SESSION['state']);
 
+    $_SESSION['authorization_endpoint'] = $_SESSION['login_request']['authorization_endpoint'];
+
     $userlog->info('Successful IndieAuth login', ['me' => $_SESSION['expected_me']]);
 
     return $this->_finishAuthenticate($response);

@@ -98,7 +98,9 @@ class Authenticate {
     } else {
 
       // If the user-entered 'me' is the same as the one in the session, skip authentication and show a prompt
-      if(isset($_SESSION['me']) && $_SESSION['me'] == $params['me']) {
+      // But don't show this prompt to people who have an authorization endpoint
+      if(!isset($_SESSION['authorization_endpoint'])
+        && isset($_SESSION['me']) && $_SESSION['me'] == $params['me']) {
         $switch_account = '/auth?'.http_build_query([
           'action' => 'logout',
           'client_id' => $client_id,
