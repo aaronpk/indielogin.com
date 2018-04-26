@@ -1,8 +1,10 @@
 <?php $this->layout('layout', ['title' => $title]) ?>
 
-<div class="container container-narrow">
+<div class="container container-narrow choose-profile">
 
   <p>Log in as <a href="<?= $me ?>"><?= $me ?></a></p>
+
+  <p>Choose an authentication provider to continue logging in.</p>
 
   <ul>
   <?php foreach($choices as $choice): ?>

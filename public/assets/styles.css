@@ -49,3 +49,12 @@ pre {
   font-size: 0.8em;
 }
 
+.choose-profile ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+.choose-profile ul li {
+  margin-bottom: 1em;
+}
