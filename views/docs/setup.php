@@ -20,8 +20,10 @@
       <ul>
         <li><a href="#twitter">Twitter</a></li>
         <li><a href="#github">GitHub</a></li>
+        <!--
         <li><a href="#email">Email Address</a></li>
         <li><a href="#pgp">PGP Key</a></li>
+        -->
         <li><a href="#indieauth">Your IndieAuth Server</a></li>
       </ul>
     </div>
@@ -51,6 +53,8 @@
     </div>
   </section>
 
+  <!--
+
   <section id="email" class="h-entry">
     <h3 class="p-name">Email</h3>
 
@@ -67,6 +71,7 @@
     <p><pre><?= e('<a href="/key.txt" rel="pgpkey authn">PGP Key</a>') ?></pre></p>
   </section>
 
+  -->
 
   <section id="indieauth" class="h-entry">
     <h3 class="p-name">IndieAuth</h3>

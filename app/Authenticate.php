@@ -415,6 +415,7 @@ class Authenticate {
           'username' => $match[2],
           'display' => $match[1].'.com/'.$match[2],
         ];
+      /*
       } elseif(preg_match('~^mailto:(.+)$~', $url, $match)) {
         $supported[] = [
           'provider' => 'email',
@@ -429,6 +430,7 @@ class Authenticate {
             'display' => $url,
           ];
         }
+      */
       }
     }
 
