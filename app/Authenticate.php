@@ -31,12 +31,15 @@ class Authenticate {
       $errors[] = 'The request is missing the client_id parameter';
     } else if(!\p3k\url\is_url($params['client_id'])) {
       $errors[] = 'The client_id parameter provided is not a URL';
+    } else if(strpos($params['client_id'], '.') === false) {
+      $errors[] = 'The client_id parameter must be a full URL';
     } else {
       $client_id = $params['client_id'];
     }
 
-    if(isset(Config::$allowedClientIDs)) {
-      if($client_id && !in_array($client_id, Config::$allowedClientIDs)) {
+    if(isset(Config::$allowedClientIDHostss)) {
+      $client_host = parse_url($client_id, PHP_URL_HOST);
+      if($client_id && !in_array($client_host, Config::$allowedClientIDHostss)) {
         $errors[] = 'This client_id is not enabled for use on this website';
       }
     }
@@ -48,9 +51,17 @@ class Authenticate {
     } else {
       $redirect_uri = $params['redirect_uri'];
 
-      // check that the redirect uri is on the same domain as the client id
+      // check that the redirect uri is on the same domain as the client id,
+      // or that the redirect uri is a subdomain of the client id
       if($client_id) {
-        if(parse_url($client_id, PHP_URL_HOST) != parse_url($redirect_uri, PHP_URL_HOST)) {
+        $client_host = parse_url($client_id, PHP_URL_HOST);
+        $redirect_host = parse_url($redirect_uri, PHP_URL_HOST);
+        // TODO: need to somehow blacklist TLDs like .co.uk from being used as a client_id
+        if(
+          ($client_host != $redirect_host)
+          &&
+          (strpos($redirect_host, '.'.$client_host) === false)
+        ) {
           $errors[] = 'The client_id and redirect_uri must be on the same domain';
         }
       }
