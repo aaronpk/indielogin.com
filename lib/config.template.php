@@ -9,4 +9,14 @@ class Config {
 
   public static $twitterClientID = '';
   public static $twitterClientSecret = '';
+
+  public static $mailgun = [
+    'key' => 'key-',
+    'domain' => 'mail.indielogin.com',
+    'from' => '"indielogin.com" <login@indielogin.com>'
+  ];
+
+  public static $allowedClientIDHosts = [
+    'indielogin.com',
+  ];
 }
