@@ -429,6 +429,12 @@ class Authenticate {
           'username' => $match[2],
           'display' => $match[1].'.com/'.$match[2],
         ];
+      } elseif(preg_match('~https?://twitter\.com/intent/user\?screen_name=(.+)~', $url, $match)) {
+        $supported[] = [
+          'provider' => 'twitter',
+          'username' => $match[1],
+          'display' => 'twitter.com/'.$match[1],
+        ];
       } elseif(preg_match('~^mailto:(.+)$~', $url, $match)) {
         $supported[] = [
           'provider' => 'email',

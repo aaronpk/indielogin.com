@@ -54,7 +54,7 @@ trait Twitter {
 
     if($twitter_user != $_SESSION['twitter_expected_user']) {
       $userlog->warning('Twitter user mismatch', ['profile' => $twitter_user, 'expected' => $_SESSION['twitter_expected_user']]);
-      return $this->_userError($response, 'You logged in to Twitter as <b>'.$twitter_user.'</b> but your website links to <b>'.$_SESSION['twitter_expected_user'].'</b>');
+      return $this->_userError($response, 'You logged in to Twitter as <b>@'.$twitter_user.'</b> but your website links to <b>@'.$_SESSION['twitter_expected_user'].'</b>');
     }
 
     $twitter = new TwitterOAuth(Config::$twitterClientID, Config::$twitterClientSecret,
