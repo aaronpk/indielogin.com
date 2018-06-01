@@ -10,6 +10,7 @@ class Authenticate {
   use Provider\GitHub;
   use Provider\Twitter;
   use Provider\IndieAuth;
+  use Provider\Email;
 
   public function start(ServerRequestInterface $request, ResponseInterface $response) {
     session_start();
@@ -119,7 +120,7 @@ class Authenticate {
           'state' => $state,
         ]);
 
-        $code = bin2hex(random_bytes(32));
+        $code = random_string();
         redis()->setex('indielogin:select:'.$code, 120, json_encode($login_request));
         $_SESSION['expected_me'] = $_SESSION['me'];
 
@@ -357,7 +358,7 @@ class Authenticate {
 
     // Generate a temporary code for each provider
     foreach($providers as $provider) {
-      $code = bin2hex(random_bytes(32));
+      $code = random_string();
       $details = [
         'login_request' => $login_request,
         'provider' => $provider,
@@ -389,7 +390,7 @@ class Authenticate {
 
   private function _finishAuthenticate(&$response) {
     // Generate a temporary authorization code to store the user details
-    $code = bin2hex(random_bytes(32));
+    $code = random_string();
 
     $params = [
       'code' => $code,
@@ -428,13 +429,13 @@ class Authenticate {
           'username' => $match[2],
           'display' => $match[1].'.com/'.$match[2],
         ];
-      /*
       } elseif(preg_match('~^mailto:(.+)$~', $url, $match)) {
         $supported[] = [
           'provider' => 'email',
           'email' => $match[1],
           'display' => $match[1],
         ];
+      /*
       } else {
         if(in_array($url, $pgps)) {
           $supported[] = [

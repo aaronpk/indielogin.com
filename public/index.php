@@ -32,6 +32,9 @@ $route->map('GET', '/redirect/github', 'App\\Authenticate::redirect_github');
 $route->map('GET', '/redirect/twitter', 'App\\Authenticate::redirect_twitter');
 $route->map('GET', '/redirect/indieauth', 'App\\Authenticate::redirect_indieauth');
 
+$route->map('POST', '/auth/send_email', 'App\\Authenticate::send_email');
+$route->map('POST', '/auth/verify_email_code', 'App\\Authenticate::verify_email_code');
+
 
 $templates = new League\Plates\Engine(dirname(__FILE__).'/../views');
 

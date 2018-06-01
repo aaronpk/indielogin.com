@@ -41,6 +41,19 @@ function j($json) {
   return htmlspecialchars(json_encode($json, JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES));
 }
 
+function random_string() {
+  return bin2hex(random_bytes(32));
+}
+
+function random_user_code() {
+  $charset = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+  $code = '';
+  for($i = 0; $i < 6; $i++) {
+    $code .= substr($charset, random_int(0, strlen($charset)-1), 1);
+  }
+  return $code;
+}
+
 function redis() {
   static $client = false;
   if(!$client)
