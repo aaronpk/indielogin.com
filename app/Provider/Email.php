@@ -15,6 +15,8 @@ trait Email {
     $code = random_string();
     redis()->setex('indielogin:email:'.$code, EMAIL_TIMEOUT, json_encode($details));
 
+    $_SESSION['login_request']['profile'] = $details['email'];
+
     $response->getBody()->write(view('auth/email', [
       'title' => 'Log In via Email',
       'code' => $code,
@@ -45,6 +47,9 @@ trait Email {
     $login = json_decode($login, true);
 
     $usercode = random_user_code();
+
+    // 4 chars will take ~3000 requests per second to attack the code that is valid for 5 minutes.
+    // TODO: add rate limiting on $params['code'] to prevent this.
 
     redis()->setex('indielogin:email:usercode:'.$params['code'], EMAIL_TIMEOUT, $usercode);
 

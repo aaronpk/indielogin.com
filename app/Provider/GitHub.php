@@ -21,6 +21,7 @@ trait GitHub {
     $authorize = 'https://github.com/login/oauth/authorize?'.http_build_query($params);
 
     $_SESSION['github_expected_user'] = $details['username'];
+    $_SESSION['login_request']['profile'] = 'https://github.com/'.$details['username'];
 
     $userlog->info('Beginning GitHub login', ['provider' => $details, 'login' => $login_request]);
 

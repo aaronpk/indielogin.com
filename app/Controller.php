@@ -4,6 +4,7 @@ namespace App;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Config;
+use ORM;
 
 class Controller {
 
@@ -29,6 +30,12 @@ class Controller {
     }
 
     $login = json_decode($login, true);
+
+    $log = ORM::for_table('logins')->where('code', $params['code'])->find_one();
+    $log->complete = 1;
+    $log->date_complete = date('Y-m-d H:i:s');
+    $log->code = '';
+    $log->save();
 
     $response->getBody()->write(view('demo', [
       'title' => Config::$name,

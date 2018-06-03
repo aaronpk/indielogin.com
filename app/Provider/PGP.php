@@ -13,6 +13,8 @@ trait PGP {
 
     $keytext = file_get_contents($details['key']);
 
+    $_SESSION['login_request']['profile'] = $details['key'];
+
     $code = random_string();
     $details['keytext'] = $keytext;
     redis()->setex('indielogin:pgp:'.$code, PGP_TIMEOUT, json_encode($details));

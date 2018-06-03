@@ -22,6 +22,12 @@ class Authenticate {
 
     $params = $request->getQueryParams();
 
+    unset($_SESSION['twitter_expected_user']);
+    unset($_SESSION['github_expected_user']);
+    unset($_SESSION['expected_me']);
+    unset($_SESSION['me_entered']);
+    unset($_SESSION['authorization_endpoint']);
+
     // Check that the application provided all the necessary parameters
 
     $errors = [];
@@ -128,8 +134,10 @@ class Authenticate {
         ]);
 
         $code = random_string();
+        $login_request['provider'] = 'session';
         redis()->setex('indielogin:select:'.$code, 120, json_encode($login_request));
         $_SESSION['expected_me'] = $_SESSION['me'];
+        $_SESSION['me_entered'] = $_SESSION['me'];
 
         $response->getBody()->write(view('auth/prompt', [
           'title' => 'Sign In using '.Config::$name,
@@ -151,6 +159,8 @@ class Authenticate {
         $userlog->info('Invalid "me" entered', ['me' => $params['me']]);
         return $this->_userError($response, 'You entered something that doesn\'t look like a URL. Please go back and try again.');
       }
+
+      $_SESSION['me_entered'] = $params['me'];
 
       // Fetch the user's home page now
       $profile = fetch_profile($params['me']);
@@ -286,6 +296,7 @@ class Authenticate {
 
     $details = json_decode($details, true);
     $_SESSION['login_request'] = $details;
+
     return $this->_finishAuthenticate($response);
   }
 
@@ -354,6 +365,12 @@ class Authenticate {
 
     redis()->del('indielogin:code:'.$params['code']);
 
+    $log = ORM::for_table('logins')->where('code', $params['code'])->find_one();
+    $log->complete = 1;
+    $log->date_complete = date('Y-m-d H:i:s');
+    $log->code = '';
+    $log->save();
+
     $response->getBody()->write(json_encode([
       'me' => $login['me']
     ]));
@@ -390,12 +407,17 @@ class Authenticate {
 
   private function _startAuthenticate(&$response, $login_request, $details) {
     $_SESSION['login_request'] = $login_request;
+    $_SESSION['login_request']['provider'] = $details['provider'];
 
     $method = '_start_'.$details['provider'];
     return $this->{$method}($response, $login_request, $details);
   }
 
   private function _finishAuthenticate(&$response) {
+    if(!isset($_SESSION['login_request'])) {
+      return $response->withHeader('Location', '/')->withStatus(302);
+    }
+
     // Generate a temporary authorization code to store the user details
     $code = random_string();
 
@@ -410,9 +432,21 @@ class Authenticate {
 
     redis()->setex('indielogin:code:'.$code, 60, json_encode($_SESSION['login_request']));
 
-    unset($_SESSION['login_request']);
     $_SESSION['me'] = $_SESSION['expected_me'];
     unset($_SESSION['expected_me']);
+
+    $login = ORM::for_table('logins')->create();
+    $login->date = date('Y-m-d H:i:s');
+    $login->client_id = $_SESSION['login_request']['client_id'];
+    $login->redirect_uri = $_SESSION['login_request']['redirect_uri'];
+    $login->me_resolved = $_SESSION['me'];
+    $login->me_entered = $_SESSION['me_entered'];
+    $login->authn_provider = $_SESSION['login_request']['provider'] ?? '';
+    $login->authn_profile = $_SESSION['login_request']['profile'] ?? '';
+    $login->code = $code;
+    $login->save();
+
+    unset($_SESSION['login_request']);
 
     return $response->withHeader('Location', $redirect)->withStatus(302);
   }

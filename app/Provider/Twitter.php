@@ -12,6 +12,7 @@ trait Twitter {
     $userlog = make_logger('user');
 
     $_SESSION['twitter_expected_user'] = $details['username'];
+    $_SESSION['login_request']['profile'] = 'https://twitter.com/'.$details['username'];
 
     $twitter = new TwitterOAuth(Config::$twitterClientID, Config::$twitterClientSecret);
 

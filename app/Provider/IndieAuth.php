@@ -16,6 +16,8 @@ trait IndieAuth {
 
     $userlog->info('Beginning IndieAuth login', ['provider' => $details, 'login' => $login_request]);
 
+    $_SESSION['login_request']['profile'] = $details['authorization_endpoint'];
+
     return $response->withHeader('Location', $authorize)->withStatus(302);
   }
 
