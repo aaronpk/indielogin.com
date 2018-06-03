@@ -39,9 +39,9 @@ class Authenticate {
       $client_id = $params['client_id'];
     }
 
-    if(isset(Config::$allowedClientIDHostss)) {
+    if(isset(Config::$allowedClientIDHosts)) {
       $client_host = parse_url($client_id, PHP_URL_HOST);
-      if($client_id && !in_array($client_host, Config::$allowedClientIDHostss)) {
+      if($client_id && !in_array($client_host, Config::$allowedClientIDHosts)) {
         $errors[] = 'This client_id is not enabled for use on this website';
       }
     }
