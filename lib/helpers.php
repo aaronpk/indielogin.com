@@ -54,7 +54,7 @@ function random_string() {
 function random_user_code() {
   $charset = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
   $code = '';
-  for($i = 0; $i < 6; $i++) {
+  for($i = 0; $i < 4; $i++) {
     $code .= substr($charset, random_int(0, strlen($charset)-1), 1);
   }
   return $code;
