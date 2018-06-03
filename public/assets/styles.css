@@ -37,6 +37,7 @@ pre {
 
 .login-details {
   margin-top: 1em;
+  margin-bottom: 1em;
   border-radius: 6px;
   border: 1px #eee solid;
   background: #fafafa;
@@ -45,7 +46,7 @@ pre {
 .login-details p:last-child {
   margin-bottom: 0;
 }
-.login-details .redirect_uri {
+.redirect_uri {
   font-size: 0.8em;
 }
 
@@ -57,4 +58,15 @@ pre {
 }
 .choose-profile ul li {
   margin-bottom: 1em;
+}
+
+.setup-help {
+  margin-top: 3em;
+  padding: 1em;
+  border-radius: 6px;
+}
+.profile-examples img {
+  border-radius: 6px;
+  border: 1px #ccc solid;
+  margin: 1em 0;
 }
