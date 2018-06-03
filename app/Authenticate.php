@@ -100,7 +100,7 @@ class Authenticate {
         $_SESSION['expected_me'] = $_SESSION['me'];
 
       // If the developer isn't expecting a particular user, use the session user if present
-      $response->getBody()->write(view('auth/form', [
+      $response->getBody()->write(view('auth/login-form', [
         'title' => 'Sign In using '.Config::$name,
         'me' => $_SESSION['me'] ?? '',
         'client_id' => $client_id,
