@@ -26,13 +26,18 @@ $(function(){
   // Do this in JS so that without JS the button will be enabled.
   $("#submit-challenge").attr("disabled", "disabled");
 
-  // When the signature value is changed, check that it looks
-  // like a PGP signature and enable the button
-  $("#signed").on("change keyup", function(){
+  var enableSubmit = function(){
     if($("#signed").val().indexOf("BEGIN PGP SIGNATURE") !== -1) {
       $("#submit-challenge").removeAttr("disabled");
     }
-  });
+  };
+
+  // When the signature value is changed, check that it looks
+  // like a PGP signature and enable the button
+  $("#signed").on("change keyup keydown", enableSubmit);
+
+  // Also check often just in case another event doens't catch it
+  setInterval(enableSubmit, 500);
 
   $("#submit-challenge").click(function(){
     $(this).attr("disabled", "disabled");
