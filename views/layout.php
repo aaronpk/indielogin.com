@@ -43,7 +43,7 @@
     </div>
   </nav>
 
-  <div class="alert alert-info">This site is currently in Beta. Please report any errors <a href="https://github.com/aaronpk/IndieLogin.com">on GitHub</a>.</div>
+  <div class="alert alert-info" style="margin: 1em;">This site is currently in Beta. Please report any errors <a href="https://github.com/aaronpk/IndieLogin.com">on GitHub</a>.</div>
 
 
   <?= $this->section('content')?>
