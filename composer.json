@@ -13,7 +13,8 @@
         "abraham/twitteroauth": "^0.7.4",
         "monolog/monolog": "^1.23",
         "mailgun/mailgun-php": "^2.5",
-        "php-http/guzzle6-adapter": "^1.1"
+        "php-http/guzzle6-adapter": "^1.1",
+        "j4mie/idiorm": "^1.5"
     },
     "autoload": {
       "psr-4": {

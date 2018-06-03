@@ -18,7 +18,10 @@ class Config {
 
   public static $pgpVerificationAPI = 'http://127.0.0.1:9009';
 
-  public static $allowedClientIDHosts = [
-    'indielogin.com',
+  public static $db = [
+    'host' => '127.0.0.1',
+    'database' => 'indielogin',
+    'username' => 'indielogin',
+    'password' => 'indielogin'
   ];
 }

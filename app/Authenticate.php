@@ -4,6 +4,7 @@ namespace App;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Config;
+use ORM;
 
 class Authenticate {
 
@@ -39,11 +40,9 @@ class Authenticate {
       $client_id = $params['client_id'];
     }
 
-    if(isset(Config::$allowedClientIDHosts)) {
-      $client_host = parse_url($client_id, PHP_URL_HOST);
-      if($client_id && !in_array($client_host, Config::$allowedClientIDHosts)) {
-        $errors[] = 'This client_id is not enabled for use on this website';
-      }
+    $client = ORM::for_table('clients')->where('client_id', $client_id)->find_one();
+    if(!$client) {
+      $errors[] = 'This client_id is not registered';
     }
 
     if(!isset($params['redirect_uri'])) {
@@ -64,7 +63,14 @@ class Authenticate {
           &&
           (strpos($redirect_host, '.'.$client_host) === false)
         ) {
-          $errors[] = 'The client_id and redirect_uri must be on the same domain';
+          // If the client_id and redirect_uri have a different domain, ensure it's registered
+          $registered = ORM::for_table('redirect_uris')
+            ->where('client_id', $client->id)
+            ->where('redirect_uri', $redirect_uri)
+            ->find_one();
+          if(!$registered) {
+            $errors[] = 'The client_id and redirect_uri must be on the same domain';
+          }
         }
       }
     }

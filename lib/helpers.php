@@ -13,6 +13,12 @@ if(getenv('ENV')) {
   require(dirname(__FILE__).'/config.php');
 }
 
+function initdb() {
+  ORM::configure('mysql:host=' . Config::$db['host'] . ';dbname=' . Config::$db['database']);
+  ORM::configure('username', Config::$db['username']);
+  ORM::configure('password', Config::$db['password']);
+}
+
 function make_logger($channel) {
   $log = new Logger($channel);
   $log->pushHandler(new StreamHandler(dirname(__FILE__).'/../logs/app.log', Logger::DEBUG));

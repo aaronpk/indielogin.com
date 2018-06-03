@@ -14,6 +14,8 @@ $container->share('request', function () {
 });
 $container->share('emitter', Zend\Diactoros\Response\SapiEmitter::class);
 
+initdb();
+
 $route = new League\Route\RouteCollection($container);
 
 $route->map('GET', '/', 'App\\Controller::index');
