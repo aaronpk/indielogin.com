@@ -30,7 +30,7 @@
       <li>Add links on your website to your various social profiles (Twitter, Github, etc) with the attribute rel="me"</li>
       <li>Ensure these profiles link back to your website</li>
       <li>Alternatively, you can use your <a href="/setup#email">email</a> or <a href="/setup#pgp">PGP key</a></li>
-      <li>If your website supports the <a href="https://www.w3.org/TR/indieauth/">IndieAuth protocol</a> then this will work without any changes</li>
+      <li>If your website supports the <a href="https://www.w3.org/TR/indieauth/">IndieAuth protocol</a> then you don't need to do anything special, this site will use your IndieAuth server!</li>
     </ul>
 
     <p>Read the <a href="/setup">full setup instructions</a></p>
