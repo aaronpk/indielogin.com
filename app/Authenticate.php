@@ -11,6 +11,7 @@ class Authenticate {
   use Provider\Twitter;
   use Provider\IndieAuth;
   use Provider\Email;
+  use Provider\PGP;
 
   public function start(ServerRequestInterface $request, ResponseInterface $response) {
     session_start();
@@ -441,7 +442,6 @@ class Authenticate {
           'email' => $match[1],
           'display' => $match[1],
         ];
-      /*
       } else {
         if(in_array($url, $pgps)) {
           $supported[] = [
@@ -450,7 +450,6 @@ class Authenticate {
             'display' => $url,
           ];
         }
-      */
       }
     }
 

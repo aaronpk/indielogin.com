@@ -34,6 +34,7 @@ $route->map('GET', '/redirect/indieauth', 'App\\Authenticate::redirect_indieauth
 
 $route->map('POST', '/auth/send_email', 'App\\Authenticate::send_email');
 $route->map('POST', '/auth/verify_email_code', 'App\\Authenticate::verify_email_code');
+$route->map('POST', '/auth/verify_pgp_challenge', 'App\\Authenticate::verify_pgp_challenge');
 
 
 $templates = new League\Plates\Engine(dirname(__FILE__).'/../views');

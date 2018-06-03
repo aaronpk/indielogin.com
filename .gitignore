@@ -1,3 +1,5 @@
 vendor/
 .DS_Store
 lib/config.php
+logs/
+pgp/data/

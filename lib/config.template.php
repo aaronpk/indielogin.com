@@ -16,6 +16,8 @@ class Config {
     'from' => '"indielogin.com" <login@indielogin.com>'
   ];
 
+  public static $pgpVerificationAPI = 'http://127.0.0.1:9009';
+
   public static $allowedClientIDHosts = [
     'indielogin.com',
   ];
