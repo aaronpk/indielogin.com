@@ -26,7 +26,6 @@ class Authenticate {
     unset($_SESSION['github_expected_user']);
     unset($_SESSION['expected_me']);
     unset($_SESSION['me_entered']);
-    unset($_SESSION['authorization_endpoint']);
 
     // Check that the application provided all the necessary parameters
 
