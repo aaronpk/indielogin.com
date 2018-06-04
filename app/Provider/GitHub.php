@@ -85,7 +85,13 @@ trait GitHub {
     }
 
     // Verify that their GitHub profile links to the website we expected
-    if($profile['blog'] != $_SESSION['expected_me'] && strpos($profile['bio'], $_SESSION['expected_me']) === false) {
+    // Follow redirects on their bio URL in case they link to the non-canonical version of their URL
+    $expanded_url = $profile['blog'];
+    if($expanded_url) {
+      $expanded_url = fetch_profile($expanded_url);
+    }
+
+    if(($expanded_url['final_url'] ?? false) != $_SESSION['expected_me'] && strpos($profile['bio'], $_SESSION['expected_me']) === false) {
       $userlog->warning('GitHub URL mismatch', ['profile' => $profile, 'expected' => $_SESSION['expected_me']]);
       return $this->_userError($response, 'Your GitHub profile linked to <b>'.e($profile['blog']).'</b> but we were expecting to see <b>'.$_SESSION['expected_me'].'</b>. Make sure you link to <b>'.$_SESSION['expected_me'].'</b> in your GitHub profile.');
     }

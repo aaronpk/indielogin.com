@@ -84,7 +84,7 @@ trait Twitter {
 
       $expanded_url = fetch_profile($expanded_url);
 
-      if($expanded_url['final_url'] == $_SESSION['expected_me']) {
+      if(($expanded_url['final_url'] ?? false) == $_SESSION['expected_me']) {
         $verified = true;
       }
     }
