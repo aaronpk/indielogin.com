@@ -89,6 +89,8 @@ trait GitHub {
     $expanded_url = $profile['blog'];
     if($expanded_url) {
       $expanded_url = fetch_profile($expanded_url);
+      if(isset($expanded_url['final_url']))
+        $expanded_url['final_url'] = \p3k\url\normalize($expanded_url['final_url']);
     }
 
     if(($expanded_url['final_url'] ?? false) != $_SESSION['expected_me'] && strpos($profile['bio'], $_SESSION['expected_me']) === false) {
