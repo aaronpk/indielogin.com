@@ -106,7 +106,7 @@ trait Twitter {
       $userlog->warning('Twitter URL mismatch', ['bio' => $bio, 'website' => $expanded_url, 'expected' => $_SESSION['expected_me']]);
 
       if($expanded_url)
-        $msg = 'Your Twitter profile linked to <b>'.e($expanded_url).'</b> but we were expecting to see <b>'.$_SESSION['expected_me'].'</b>. Make sure you link to <b>'.$_SESSION['expected_me'].'</b> in your Twitter profile.';
+        $msg = 'Your Twitter profile linked to <b>'.e($expanded_url['final_url']).'</b> but we were expecting to see <b>'.$_SESSION['expected_me'].'</b>. Make sure you link to <b>'.$_SESSION['expected_me'].'</b> in your Twitter profile.';
       else
         $msg = 'There were no links found in your Twitter profile.';
 
