@@ -200,9 +200,11 @@ class Authenticate {
         ]);
       }
 
+      // If there are any rel=authn values defined, *only* search those for supported providers.
+      // The user has said to only trust these specific providers, so don't fall back to rel=me
       if(count($rels['authn'])) {
         // Find which of the rels are supported providers
-        $supported = $this->_getSupportedProviders($rels['authn'], ($rels['pgpkey'] ?? []));
+        $supported = $this->_getSupportedProviders($rels, 'authn');
 
         // If there are none, then error out now since the user explicitly said not to trust rel=mes
         if(count($supported) == 0) {
@@ -223,8 +225,9 @@ class Authenticate {
         return $this->_showProviderChooser($response, $login_request, $supported);
       }
 
-      if(count($rels['me'])) {
-        $supported = $this->_getSupportedProviders($rels['me']);
+      // Check for any rel=me or rel=pgpkey
+      if(count($rels['me']) || count($rels['pgpkey'])) {
+        $supported = $this->_getSupportedProviders($rels, 'me');
 
         // If there are no supported rel=me, then show an error
         if(count($supported) == 0) {
@@ -459,10 +462,10 @@ class Authenticate {
     return $response;
   }
 
-  private function _getSupportedProviders($rels, $pgps=[]) {
+  private function _getSupportedProviders($rels, $mode='me') {
     $supported = [];
 
-    foreach($rels as $url) {
+    foreach($rels[$mode] as $url) {
       if(preg_match('~^https:?//(?:www\.)?(github|twitter)\.com/([a-z0-9_]+$)~', $url, $match)) {
         $supported[] = [
           'provider' => $match[1],
@@ -481,14 +484,16 @@ class Authenticate {
           'email' => $match[1],
           'display' => $match[1],
         ];
-      } else {
-        if(in_array($url, $pgps)) {
-          $supported[] = [
-            'provider' => 'pgp',
-            'key' => $url,
-            'display' => $url,
-          ];
-        }
+      }
+    }
+
+    foreach($rels['pgpkey'] as $url) {
+      if($mode == 'me' || ($mode == 'authn' && in_array($url, $rels['authn']))) {
+        $supported[] = [
+          'provider' => 'pgp',
+          'key' => $url,
+          'display' => $url,
+        ];
       }
     }
 
