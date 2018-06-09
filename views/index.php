@@ -34,7 +34,11 @@
   <div class="row featurette">
     <div class="col-md-7">
       <h2 class="featurette-heading">What is <span class="text-muted"><?= Config::$name ?>?</span></h2>
-      <p class="lead"><?= Config::$name ?> is a way to <b>use your own domain name</b> as your online identity when signing in to websites. If your website supports IndieAuth, then you're ready to go right away. Otherwise, you can link from your home page to your Twitter or GitHub profile, or even use your email or PGP key to authenticate. Regardless of how you authenticate, your identity provided to the website will always be your website.</p>
+      <p class="lead"><?= Config::$name ?> makes it easy to add web sign-in to your applications.</p>
+
+      <p>If you'd like to let your users <b>log in with their own domain name</b> as their identity, you can use IndieLogin.com to handle the details of that for you.</p>
+
+      <p><?= Config::$name ?> supports <a href="https://indieauth.net/">IndieAuth</a>, so users with supported websites will be able to sign in using their own website's login. Otherwise, <?= Config::$name?> will check for links to Twitter, GitHub, an email address or PGP key, and will ask the user to authenticate that way. Regardless of how the user authenticates, the identity provided to the application will always be the user's primary website.</p>
     </div>
     <div class="col-md-5">
       <img class="featurette-image img-fluid mx-auto" src="/images/web-signin-splash.jpg" alt="Web Sign-In Prompt">
@@ -149,9 +153,8 @@
 
 @media (min-width: 62em) {
   .featurette-heading {
-    margin-top: 7rem;
+    margin-bottom: 2rem;
   }
 }
-
 
 </style>
