@@ -58,5 +58,19 @@ class Controller {
     return $response;
   }
 
+  public function faq(ServerRequestInterface $request, ResponseInterface $response) {
+    $response->getBody()->write(view('docs/faq', [
+      'title' => Config::$name.' FAQ',
+    ]));
+    return $response;
+  }
+
+  public function privacy(ServerRequestInterface $request, ResponseInterface $response) {
+    $response->getBody()->write(view('docs/privacy', [
+      'title' => 'Privacy Policy',
+    ]));
+    return $response;
+  }
+
 }
 

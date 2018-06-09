@@ -28,7 +28,7 @@
     <div class="collapse navbar-collapse" id="navbarCollapse">
       <ul class="navbar-nav mr-auto">
         <li class="nav-item">
-          <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+          <a class="nav-link" href="/">Home</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/setup">Setup</a>
@@ -39,6 +39,9 @@
         <li class="nav-item">
           <a class="nav-link" href="/faq">FAQ</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/privacy-policy">Privacy Policy</a>
+        </li>
       </ul>
     </div>
   </nav>
@@ -47,6 +50,26 @@
 
 
   <?= $this->section('content')?>
+
+  <footer class="footer">
+    <div class="row">
+      <div class="col-md-3">
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/setup">Setup</a></li>
+          <li><a href="/developers">Developers</a></li>
+          <li><a href="/faq">FAQ</a></li>
+          <li><a href="/privacy-policy">Privacy Policy</a></li>
+        </ul>
+      </div>
+      <div class="col-md-3">
+        <ul>
+          <li><a href="https://github.com/aaronpk/IndieLogin.com">Source Code</a></li>
+          <li><a href="https://github.com/aaronpk/IndieLogin.com/issues">Issues</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
 
 </body>
 </html>

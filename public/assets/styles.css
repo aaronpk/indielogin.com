@@ -70,3 +70,16 @@ pre {
   border: 1px #ccc solid;
   margin: 1em 0;
 }
+
+footer.footer {
+  margin-top: 60px;
+  background: #343A40;
+  color: white;
+}
+footer.footer ul {
+  margin: 0;
+  padding: 60px;
+}
+footer.footer a {
+  color: #D2ECF1;
+}

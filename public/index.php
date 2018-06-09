@@ -1,5 +1,10 @@
 <?php
 chdir('..');
+
+if(!file_exists('./lib/config.php')) {
+  die('Please copy lib/config.template.php to lib/config.php and fill in your configuration details');
+}
+
 include('vendor/autoload.php');
 
 use Psr\Http\Message\ResponseInterface;
@@ -22,6 +27,8 @@ $route->map('GET', '/', 'App\\Controller::index');
 
 $route->map('GET', '/api', 'App\\Controller::api_docs');
 $route->map('GET', '/setup', 'App\\Controller::setup_docs');
+$route->map('GET', '/faq', 'App\\Controller::faq');
+$route->map('GET', '/privacy-policy', 'App\\Controller::privacy');
 $route->map('GET', '/debug', 'App\\Controller::debug');
 $route->map('GET', '/demo', 'App\\Controller::demo');
 

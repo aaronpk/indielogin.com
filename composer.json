@@ -14,7 +14,8 @@
         "monolog/monolog": "^1.23",
         "mailgun/mailgun-php": "^2.5",
         "php-http/guzzle6-adapter": "^1.1",
-        "j4mie/idiorm": "^1.5"
+        "j4mie/idiorm": "^1.5",
+        "michelf/php-markdown": "^1.8"
     },
     "autoload": {
       "psr-4": {

@@ -6,7 +6,7 @@
 
   <p>If you are building a website and need to sign people in, you can use <?= Config::$name ?> to handle all the complicated parts.</p>
 
-  <p>Users will identify themselves with their domain name, and can authenticate using one of the <a href="/setup">supported authentication providers</a> such as Twitter, GitHub, or email. The user ID returned to you will be their domain name, ensuring that you don't end up creating multiple accounts depending on how the user authenticates.</p>
+  <p>Users will identify themselves with their website, and can authenticate using one of the <a href="/setup">supported authentication providers</a> such as Twitter, GitHub, or email. The user ID returned to you will be their website, ensuring that you don't end up creating multiple accounts depending on how the user authenticates.</p>
 
   <h2>1. Create a Web Sign-In form</h2>
 
@@ -48,7 +48,7 @@ EOT
 
   <h2>4. Verify the authorization code with <?= Config::$name ?></h2>
 
-  <p>At this point you need to verify the code which will also return the domain name of the authenticated user. Make a POST request to <code><?= Config::$base ?>auth</code> with the code, client_id and redirect_uri, and you will get back the full domain name of the authenticated user.</p>
+  <p>At this point you need to verify the code which will also return the website of the authenticated user. Make a POST request to <code><?= Config::$base ?>auth</code> with the code, client_id and redirect_uri, and you will get back the full website of the authenticated user.</p>
 
   <p><pre>POST <?= Config::$base?>auth HTTP/1.1
 Content-Type: application/x-www-form-urlencoded;charset=UTF-8
@@ -81,9 +81,8 @@ Content-Type: application/json
 
   <h2>You're Done!</h2>
 
-  <p>At this point you know the domain belonging to the authenticated user.</p>
+  <p>At this point you know the website belonging to the authenticated user.</p>
 
-  <p>You can store the domain secure session and log the user in with their domain name identity. You don't need to worry about whether they authenticated with Google, Twitter or Github, their identity is their domain name! You won't have to worry about merging duplicate accounts or handling error cases when Twitter is offline.</p>
-
+  <p>You can store the website in a secure session and log the user in as their website identity. You don't need to worry about whether they authenticated with Twitter or Github or email address, their identity is their website! You won't have to worry about merging duplicate accounts or handling error cases when Twitter is offline.</p>
 
 </div>
