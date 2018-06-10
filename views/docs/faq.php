@@ -19,7 +19,7 @@ If you are uncomfortable with the permissions requested, you can choose to authe
 
 ### Why does <?= Config::$name ?> ask for permission to read my public data in my GitHub account? {#github-permissions}
 
-If you choose to authenticate with GitHub, <?= Config::$name ?> uses the GitHub API to verify your account. The least amount of permissions this site can request from GitHub is accessing your public data. This site does not actually access your GitHub account other than to verify your username. Your GitHub token is never stored by this site or ptovided to the site you're logging in to.
+If you choose to authenticate with GitHub, <?= Config::$name ?> uses the GitHub API to verify your account. The least amount of permissions this site can request from GitHub is accessing your public data. This site does not actually access your GitHub account other than to verify your username. Your GitHub token is never stored by this site or provided to the site you're logging in to.
 
 If you are uncomfortable with the permissions requested, you can choose to authenticate using a <a href="/setup">different provider</a> such as your IndieAuth server, Twitter, email, or PGP key.
 
