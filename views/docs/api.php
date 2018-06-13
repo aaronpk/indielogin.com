@@ -38,6 +38,7 @@ EOT
 
   <p>After the user enters their domain in the sign-in form and submits, <?= Config::$name ?> will scan their website looking for <code>rel="me"</code> links from providers it knows about (see <a href="/setup">Supported Providers</a>).</p>
 
+  <p>They will authenticate using one of the supported providers, such as authenticating with their own IndieAuth server, logging in on GitHub, or verifying a temporary code sent to their email address.</p>
 
   <h2>3. The user is redirected back to your site</h2>
 
