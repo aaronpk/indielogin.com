@@ -466,7 +466,7 @@ class Authenticate {
     $supported = [];
 
     foreach($rels[$mode] as $url) {
-      if(preg_match('~^https:?//(?:www\.)?(github|twitter)\.com/([a-z0-9_]+$)~', $url, $match)) {
+      if(preg_match('~^https?://(?:www\.)?(github|twitter)\.com/([a-z0-9_]+$)~', $url, $match)) {
         $supported[] = [
           'provider' => $match[1],
           'username' => $match[2],
