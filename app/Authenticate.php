@@ -39,15 +39,18 @@ class Authenticate {
       $errors[] = 'The request is missing the client_id parameter';
     } else if(!\p3k\url\is_url($params['client_id'])) {
       $errors[] = 'The client_id parameter provided is not a URL';
-    } else if(strpos($params['client_id'], '.') === false) {
+    } else if(strpos($params['client_id'], '.') === false && parse_url($params['client_id'],PHP_URL_HOST) != 'localhost') {
       $errors[] = 'The client_id parameter must be a full URL';
     } else {
       $client_id = $params['client_id'];
     }
 
-    $client = ORM::for_table('clients')->where('client_id', $client_id)->find_one();
-    if(!$client) {
-      $errors[] = 'This client_id is not registered';
+    $client = false;
+    if(parse_url($params['client_id'], PHP_URL_HOST) != 'localhost') {
+      $client = ORM::for_table('clients')->where('client_id', $client_id)->find_one();
+      if(!$client) {
+        $errors[] = 'This client_id is not registered';
+      }
     }
 
     if(!isset($params['redirect_uri'])) {
@@ -68,11 +71,15 @@ class Authenticate {
           &&
           (strpos($redirect_host, '.'.$client_host) === false)
         ) {
-          // If the client_id and redirect_uri have a different domain, ensure it's registered
-          $registered = ORM::for_table('redirect_uris')
-            ->where('client_id', $client->id)
-            ->where('redirect_uri', $redirect_uri)
-            ->find_one();
+          if($client) {
+            // If the client_id and redirect_uri have a different domain, ensure it's registered
+            $registered = ORM::for_table('redirect_uris')
+              ->where('client_id', $client->id)
+              ->where('redirect_uri', $redirect_uri)
+              ->find_one();
+          } else {
+            $registered = false;
+          }
           if(!$registered) {
             $errors[] = 'The client_id and redirect_uri must be on the same domain';
           }
