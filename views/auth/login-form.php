@@ -9,7 +9,7 @@
 
     <form action="/auth" method="get">
       <div class="form-group">
-        <input type="url" placeholder="example.com" name="me" class="form-control">
+        <input type="url" placeholder="example.com" name="me" id="me" class="form-control">
       </div>
 
       <input type="hidden" name="client_id" value="<?= $client_id ?>">
@@ -21,3 +21,16 @@
   </div>
 
 </div>
+<script>
+$(function(){
+  // Save the URL entered and restore it next time they come back
+  if(window.localStorage) {
+    $("form").on("submit", function(e){
+      window.localStorage.setItem('me', $("#me").val());
+    });
+    if(me=window.localStorage.getItem('me')) {
+      $("#me").val(me);
+    }
+  }
+});
+</script>
