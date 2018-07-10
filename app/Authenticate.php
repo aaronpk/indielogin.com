@@ -257,7 +257,7 @@ class Authenticate {
 
       // Show an error
       $userlog->warning('No rel=me URLs found', ['me' => $params['me']]);
-      return $this->_userError($response, 'We couldn\'t find any rel=me links on your website.');
+      return $this->_userError($response, 'We couldn\'t find any way to authenticate you using your website.');
     }
   }
 
