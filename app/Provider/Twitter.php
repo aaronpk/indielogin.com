@@ -53,7 +53,7 @@ trait Twitter {
 
     $twitter_user = $credentials['screen_name'];
 
-    if($twitter_user != $_SESSION['twitter_expected_user']) {
+    if(strtolower($twitter_user) != strtolower($_SESSION['twitter_expected_user'])) {
       $userlog->warning('Twitter user mismatch', ['profile' => $twitter_user, 'expected' => $_SESSION['twitter_expected_user']]);
       return $this->_userError($response, 'You logged in to Twitter as <b>@'.$twitter_user.'</b> but your website links to <b>@'.$_SESSION['twitter_expected_user'].'</b>');
     }

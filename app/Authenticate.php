@@ -473,13 +473,19 @@ class Authenticate {
     $supported = [];
 
     foreach($rels[$mode] as $url) {
-      if(preg_match('~^https?://(?:www\.)?(github|twitter)\.com/([a-z0-9_]+$)~', $url, $match)) {
+      if(preg_match('~^https?://(?:www\.)?github\.com/([a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38})$~', $url, $match)) {
         $supported[] = [
-          'provider' => $match[1],
-          'username' => $match[2],
-          'display' => $match[1].'.com/'.$match[2],
+          'provider' => 'github',
+          'username' => $match[1],
+          'display' => 'github.com/'.$match[1],
         ];
-      } elseif(preg_match('~https?://twitter\.com/intent/user\?screen_name=(.+)~', $url, $match)) {
+      } elseif(preg_match('~^https?://(?:www\.)?twitter\.com/([a-zA-Z0-9_]{1,20})$~', $url, $match)) {
+        $supported[] = [
+          'provider' => 'twitter',
+          'username' => $match[1],
+          'display' => 'twitter.com/'.$match[1],
+        ];
+      } elseif(preg_match('~https?://(?:www\.)?twitter\.com/intent/user\?screen_name=([a-zA-Z0-9_]{1,20})$~', $url, $match)) {
         $supported[] = [
           'provider' => 'twitter',
           'username' => $match[1],

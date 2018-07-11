@@ -79,7 +79,7 @@ trait GitHub {
     }
 
     // Verify that the GitHub user that we expected signed in
-    if($profile['login'] != $_SESSION['github_expected_user']) {
+    if(strtolower($profile['login']) != strtolower($_SESSION['github_expected_user'])) {
       $userlog->warning('GitHub user mismatch', ['profile' => $profile, 'expected' => $_SESSION['github_expected_user']]);
       return $this->_userError($response, 'You logged in to GitHub as <b>'.$profile['login'].'</b> but your website links to <b>'.$_SESSION['github_expected_user'].'</b>');
     }
