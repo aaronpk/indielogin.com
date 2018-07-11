@@ -1,10 +1,7 @@
 html {
-  min-height: 100%;
-  position: relative;
 }
 
 body {
-  margin-bottom: 20rem;
 }
 
 pre {
@@ -81,9 +78,6 @@ footer.footer {
   margin-top: 60px;
   background: #343A40;
   color: white;
-  position: absolute;
-  bottom: 0;
-  width: 100%;
 }
 footer.footer ul {
   margin: 0;

@@ -51,6 +51,7 @@
 
   <?= $this->section('content')?>
 
+  <? if(!isset($nofooter)): ?>
   <footer class="footer">
     <div class="row">
       <div class="col-md-3">
@@ -70,6 +71,7 @@
       </div>
     </div>
   </footer>
+  <? endif ?>
 
 </body>
 </html>

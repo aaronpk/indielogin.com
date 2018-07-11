@@ -1,4 +1,4 @@
-<?php $this->layout('layout', ['title' => $title]) ?>
+<?php $this->layout('layout', ['title' => $title, 'nofooter' => true]) ?>
 
 <div class="container container-narrow">
 
