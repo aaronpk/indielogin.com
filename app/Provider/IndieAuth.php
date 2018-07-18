@@ -65,7 +65,7 @@ trait IndieAuth {
     ]);
 
     $http = http_client();
-    $result = $http->post($_SESSION['login_request']['authorization_endpoint'], $params, [
+    $result = $http->post($_SESSION['login_request']['authorization_endpoint'], http_build_query($params), [
       'Accept: application/json'
     ]);
 
