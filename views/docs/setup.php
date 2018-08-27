@@ -71,6 +71,12 @@
     <h3 class="p-name">IndieAuth</h3>
 
     <p>If your website supports <a href="https://indieweb.org/IndieAuth">IndieAuth</a>, then this site will use your IndieAuth server automatically! No further setup is needed, and you don't need to add any other social profiles to your site.</p>
+    <p>What is IndieAuth? These links might help give you an idea:
+       <ul>
+         <li><a href="https://aaronparecki.com/2018/07/07/7/oauth-for-the-open-web">IndieAuth: OAuth for the Open Web</a></li>
+         <li><a href="https://indieauth.spec.indieweb.org/">The IndieAuth Spec</a></li>
+      </ul>
+    </p>
   </section>
 
 
