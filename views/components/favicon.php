@@ -5,5 +5,4 @@
       <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#5bbad5">
       <link rel="shortcut icon" href="/icons/favicon.ico">
       <meta name="msapplication-TileColor" content="#da532c">
-      <meta name="msapplication-config" content="/icons/browserconfig.xml">
       <meta name="theme-color" content="#ffffff">
