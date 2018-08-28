@@ -27,7 +27,7 @@ $(function(){
   $("#submit-challenge").attr("disabled", "disabled");
 
   var enableSubmit = function(){
-    if($("#signed").val().indexOf("BEGIN PGP SIGNATURE") !== -1) {
+    if(/BEGIN PGP (SIGNED )?MESSAGE/.test($("#signed").val())) {
       $("#submit-challenge").removeAttr("disabled");
     }
   };
