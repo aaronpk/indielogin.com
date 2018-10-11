@@ -77,14 +77,14 @@ trait Twitter {
     // Extract the expanded profile URL
     if(isset($profile->url) && $profile->url && isset($profile->entities->url->urls)
       && count($profile->entities->url->urls)) {
-      $expanded_url = \p3k\url\normalize($profile->entities->url->urls[0]->expanded_url); // add slash path
+      $expanded_url = \p3k\url\normalize($profile->entities->url->urls[0]->expanded_url); // add slash path if missing
 
       // Follow this URL for redirects in case they put the non-canonical URL in their bio
       // e.g. they put "http://aaronpk.com" in their bio but that resolves to "https://aaronparecki.com/"
 
       $expanded_url = fetch_profile($expanded_url);
 
-      if(($expanded_url['final_url'] ?? false) == $_SESSION['expected_me']) {
+      if(($expanded_url['me'] ?? false) == $_SESSION['expected_me']) {
         $verified = true;
       }
     }
