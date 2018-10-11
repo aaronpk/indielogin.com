@@ -46,7 +46,7 @@ class Authenticate {
     }
 
     $client = false;
-    if(parse_url($params['client_id'], PHP_URL_HOST) != 'localhost') {
+    if($client_id && parse_url($client_id, PHP_URL_HOST) != 'localhost') {
       $client = ORM::for_table('clients')->where('client_id', $client_id)->find_one();
       if(!$client) {
         $errors[] = 'This client_id is not registered';
