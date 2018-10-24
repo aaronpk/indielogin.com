@@ -100,7 +100,10 @@ trait IndieAuth {
 
     $_SESSION['authorization_endpoint'] = $_SESSION['login_request']['authorization_endpoint'];
 
-    $userlog->info('Successful IndieAuth login', ['me' => $_SESSION['expected_me']]);
+    // Override the expected "me" with whatever the IndieAuth server returned, since we know it's on the same domain
+    $_SESSION['expected_me'] = $auth['me'];
+
+    $userlog->info('Successful IndieAuth login', ['me' => $auth['me']]);
 
     return $this->_finishAuthenticate($response);
   }
