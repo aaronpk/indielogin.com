@@ -184,7 +184,7 @@ function fetch_profile($me) {
     if($r['code'] == 302 || $r['code'] == 307) {
       break;
     }
-    $new_me = $r['to'];
+    $new_me = \IndieAuth\Client::normalizeMeURL($r['to']);
   }
   $me = $new_me;
 

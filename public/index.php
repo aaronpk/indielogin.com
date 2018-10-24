@@ -32,9 +32,9 @@ $route->map('GET', '/privacy-policy', 'App\\Controller::privacy');
 $route->map('GET', '/debug', 'App\\Controller::debug');
 $route->map('GET', '/demo', 'App\\Controller::demo');
 
-$route->map('GET', '/auth', 'App\\Authenticate::start');
+$route->map('GET', '/auth', 'App\\Authenticate::start')->setStrategy(new App\CORSStrategy);
 $route->map('GET', '/select', 'App\\Authenticate::select');
-$route->map('POST', '/auth', 'App\\Authenticate::verify');
+$route->map('POST', '/auth', 'App\\Authenticate::verify')->setStrategy(new App\CORSStrategy);
 $route->map('POST', '/select', 'App\\Authenticate::post_select');
 
 $route->map('GET', '/redirect/github', 'App\\Authenticate::redirect_github');
