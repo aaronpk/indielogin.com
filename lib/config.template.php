@@ -17,6 +17,7 @@ class Config {
   ];
 
   public static $pgpVerificationAPI = 'http://127.0.0.1:9009';
+  public static $redisAPI = 'tcp://127.0.0.1:6379';
 
   public static $db = [
     'host' => '127.0.0.1',

@@ -1,0 +1,55 @@
+version: "3"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+     - 80:80
+    volumes:
+     - .:/var/www/html
+    environment:
+     - APP_BASE
+     - APP_NAME
+     - GITHUB_ID
+     - GITHUB_SECRET
+     - TWITTER_ID
+     - TWITTER_SECRET
+     - MAILGUN_KEY
+     - MAILGUN_DOMAIN
+     - MAILGUN_FROM
+     - VERIFICATION_API
+     - MYSQL_DATABASE
+     - MYSQL_USER
+     - MYSQL_PASSWORD
+    depends_on:
+     - database
+     - pgp
+     - redis
+
+  database:
+    build:
+      context: .
+      dockerfile: Dockerfile.database
+    volumes:
+     - .:/var/www/html
+     - data:/var/lib/mysql
+    environment:
+     - MYSQL_DATABASE
+     - MYSQL_USER
+     - MYSQL_PASSWORD
+     - MYSQL_RANDOM_ROOT_PASSWORD
+
+  pgp:
+    build:
+      context: .
+      dockerfile: Dockerfile.pgp
+    volumes:
+     - .:/var/www/html
+
+  redis:
+    image: redis:alpine
+
+volumes:
+  data: {}
