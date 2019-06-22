@@ -137,6 +137,9 @@ function fetch_profile($me) {
         'referer'         => true,
         'on_redirect'     => $onRedirect,
         'track_redirects' => true
+      ],
+      'headers' => [
+        'User-Agent' => Config::$useragent
       ]
     ]);
   } catch(\GuzzleHttp\Exception\ClientException $e) {
