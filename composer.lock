@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "da5d13cc5722b11741102d216844df6a",
+    "content-hash": "de2c9c2c26d5774179e6037d1d35cfb3",
     "packages": [
         {
             "name": "abraham/twitteroauth",
@@ -752,16 +752,16 @@
         },
         {
             "name": "mf2/mf2",
-            "version": "v0.4.3",
+            "version": "0.4.6",
             "source": {
                 "type": "git",
-                "url": "https://github.com/indieweb/php-mf2.git",
-                "reference": "5c056e81f48b71130dab98de755683bb2b7e7615"
+                "url": "https://github.com/microformats/php-mf2.git",
+                "reference": "00b70ee7eb7f5b0585b1bd467f6c9cbd75055d23"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/indieweb/php-mf2/zipball/5c056e81f48b71130dab98de755683bb2b7e7615",
-                "reference": "5c056e81f48b71130dab98de755683bb2b7e7615",
+                "url": "https://api.github.com/repos/microformats/php-mf2/zipball/00b70ee7eb7f5b0585b1bd467f6c9cbd75055d23",
+                "reference": "00b70ee7eb7f5b0585b1bd467f6c9cbd75055d23",
                 "shasum": ""
             },
             "require": {
@@ -804,7 +804,7 @@
                 "parser",
                 "semantic"
             ],
-            "time": "2018-03-29T17:54:32+00:00"
+            "time": "2018-08-24T14:47:04+00:00"
         },
         {
             "name": "michelf/php-markdown",
