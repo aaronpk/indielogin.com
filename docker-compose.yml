@@ -1,0 +1,64 @@
+version: '3.5'
+services:
+  app:
+    build: .
+    user: ${CURRENT_UID}
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - 5000:8888
+    restart: always
+    volumes:
+      - ./:/docroot
+      - ./docker/supervisor.programs.ini:/etc/supervisor.d/supervisor.programs.ini:ro
+    links:
+      - mysql
+      - redis
+    environment:
+      DEPLOY_BASE_URL: "https://localhost:5000/"
+      DEPLOY_NAME: "IndieLogin.local"
+      USER_AGENT: "IndieLogin Agent (docker)"
+      GITHUB_CLIENT: ""
+      GITHUB_SECRET: ""
+      TWITTER_CLIENT: ""
+      TWITTER_SECRET: ""
+      MAILGUN_KEY: ""
+      MAILGUN_DOMAIN: ""
+      MAILGUN_FROM: ""
+      PGP_VERIFICATION_URL: ""
+      REDIS_URL: "tcp://redis:6379"
+      DATABASE_URL: "mysql://default_user:password@mysql/default"
+      PORT: 8888
+  mysql:
+    image: mysql
+    user: ${CURRENT_UID}
+    expose:
+      - 3306
+    ports:
+      - 3306:3306
+    restart: always
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      - ./dump/mysql:/dump
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: default
+      MYSQL_USER: default_user
+      MYSQL_PASSWORD: password
+      VIRTUAL_HOST: "mysql.localhost"
+      VIRTUAL_PORT: 3306
+    command: --default-authentication-plugin=mysql_native_password
+  redis:
+    image: redis
+    user: ${CURRENT_UID}
+    expose:
+      - 6379
+    ports:
+      - 6379:6379
+    restart: always
+    volumes:
+      - ./data/redis:/data
+    environment:
+      VIRTUAL_HOST: "redis.localhost"
+      VIRTUAL_PORT: 6379

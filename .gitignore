@@ -4,3 +4,11 @@ lib/config.php
 .env
 logs/
 pgp/data/
+data/mysql/binlog*
+data/mysql/*.pem
+data/mysql/ib*
+data/mysql/undo*
+data/mysql/*.cnf
+*.ibd
+*.rdb
+*.pid
