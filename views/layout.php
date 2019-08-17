@@ -51,7 +51,7 @@
 
   <?= $this->section('content')?>
 
-  <? if(!isset($nofooter)): ?>
+  <?php if(!isset($nofooter)): ?>
   <footer class="footer">
     <div class="row">
       <div class="col-md-3">
@@ -71,7 +71,7 @@
       </div>
     </div>
   </footer>
-  <? endif ?>
+  <?php endif ?>
 
 </body>
 </html>

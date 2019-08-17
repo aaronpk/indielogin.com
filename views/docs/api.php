@@ -10,7 +10,7 @@
 
   <h2>1. Create a Web Sign-In form</h2>
 
-  <? $base = Config::$base; ?>
+  <?php $base = Config::$base; ?>
   <pre><code><?= e(<<<EOT
 <form action="${base}auth" method="get">
   <label for="url">Web Address:</label>

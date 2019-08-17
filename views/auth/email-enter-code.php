@@ -2,9 +2,9 @@
 
 <div class="container container-narrow">
 
-  <? if($error ?? false): ?>
+  <?php if($error ?? false): ?>
     <div class="alert alert-danger"><?= $error ?></div>
-  <? endif ?>
+  <?php endif ?>
 
   <div id="usercode-prompt">
 
