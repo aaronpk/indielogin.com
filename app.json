@@ -1,0 +1,83 @@
+{
+  "name": "Indielogin",
+  "description": "Deploy Indielogin to heroku",
+  "repository": "https://github.com/aaronpk/indielogin.com",
+  "logo": "https://github.com/aaronpk/indielogin.com/raw/master/public/icons/android-chrome-512x512.png",
+  "website": "https://indielogin.com",
+  "keywords": ["indielogin", "nginx", "php", "docker", "container"],
+  "stack": "container",
+  "addons": [
+    "heroku-redis"
+  ],
+  "env": {
+    "USER_AGENT": {
+      "description": "User Agent",
+      "value": "Indielogin (heroku)"
+    },
+    "GITHUB_CLIENT": {
+      "description": "",
+      "value": "",
+      "required": false
+    },
+    "GITHUB_SECRET": {
+      "description": "",
+      "value": "",
+      "required": false
+    },
+    "TWITTER_CLIENT": {
+      "description": "",
+      "value": "",
+      "required": false
+    },
+    "TWITTER_SECRET": {
+      "description": "",
+      "value": "",
+      "required": false
+    },
+    "MAILGUN_KEY": {
+      "description": "",
+      "value": "",
+      "required": false
+    },
+    "MAILGUN_DOMAIN": {
+      "description": "",
+      "value": "",
+      "required": false
+    },
+    "MAILGUN_FROM": {
+      "description": "",
+      "value": "",
+      "required": false
+    },
+    "PGP_VERIFICATION_URL": {
+      "description": "",
+      "value": "",
+      "required": false
+    },
+    "DATABASE_URL": {
+      "description": "MySQL database URL (takes precedence over host, name, user & pass if not empty)",
+      "value": "",
+      "required": false
+    },
+    "DB_HOST": {
+      "description": "MySQL database Host (include port if necesarry)",
+      "value": "",
+      "required": false
+    },
+    "DB_NAME": {
+      "description": "MySQL database name",
+      "value": "",
+      "required": false
+    },
+    "DB_USER": {
+      "description": "MySQL database username",
+      "value": "",
+      "required": false
+    },
+    "DB_PASS": {
+      "description": "MySQL database password",
+      "value": "",
+      "required": false
+    }
+  }
+}
