@@ -5,6 +5,8 @@ use Psr\Http\Message\UriInterface;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 
+const LOCAL_FALLBACK_REDIS = 'tcp://127.0.0.1:6379';
+
 date_default_timezone_set('UTC');
 
 if(getenv('ENV')) {
@@ -61,10 +63,14 @@ function random_user_code() {
   return $code;
 }
 
+function get_redis_url() {
+  return $redisURL = getenv('REDIS_URL') ?? LOCAL_FALLBACK_REDIS;
+}
 function redis() {
   static $client = false;
-  if(!$client)
-    $client = new Predis\Client('tcp://127.0.0.1:6379');
+  if(!$client) {
+    $client = new Predis\Client(get_redis_url());
+  }
   return $client;
 }
 
