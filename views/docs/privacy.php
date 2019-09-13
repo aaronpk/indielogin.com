@@ -11,7 +11,7 @@ $this->layout('layout', ['title' => $title]);
 
 ### Logs
 
-<?= Config::$name ?> keeps logs of attempted and successful authentications. Properties of each log record are:
+<?= get_setting('name') ?> keeps logs of attempted and successful authentications. Properties of each log record are:
 
 * the date of the authentication attempt
 * the application identifier
@@ -30,7 +30,7 @@ Things that are not stored or logged in any way:
 
 ### Data Provided to Developers
 
-Since <?= Config::$name ?> is a service for developers wishing to easily implement logging in to apps, this service provides some information to the developers of the applications users log in to.
+Since <?= get_setting('name') ?> is a service for developers wishing to easily implement logging in to apps, this service provides some information to the developers of the applications users log in to.
 
 After a successful authentication, this website returns the fully resolved profile URL of the user who authenticated to the developer.
 

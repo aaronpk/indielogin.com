@@ -9,16 +9,32 @@ const LOCAL_FALLBACK_REDIS = 'tcp://127.0.0.1:6379';
 
 date_default_timezone_set('UTC');
 
+// Optional: Config file loading
+$config_file = dirname(__FILE__).'/config.php';
 if(getenv('ENV')) {
-  require(dirname(__FILE__).'/config.'.getenv('ENV').'.php');
+  $config_file = dirname(__FILE__).'/config.'.getenv('ENV').'.php';
+}
+if(file_exists($config_file) && is_executable($config_file)) {
+  require $config_file;
 } else {
-  require(dirname(__FILE__).'/config.php');
+  $initlog = make_logger('system-init');
+  $initlog->info("No executable config file '{$config_file}' falling back to ENV");
+}
+
+function get_setting($area, $name=null) {
+  $env_name = is_null($name) ? $area : "{$area}_{$name}";
+  return $_ENV[strtoupper($env_name)] ?? try_config($area, $name);
+}
+
+function try_config($area, $name=null) {
+  $attempted_value = class_exists('Config') ? Config::$$area : null;
+  return is_null($name) ? $attempted_value : $attempted_value[$name];
 }
 
 function initdb() {
-  ORM::configure('mysql:host=' . Config::$db['host'] . ';dbname=' . Config::$db['database']);
-  ORM::configure('username', Config::$db['username']);
-  ORM::configure('password', Config::$db['password']);
+  ORM::configure('mysql:host=' . get_setting('db', 'host') . ';dbname=' . get_setting('db', 'database'));
+  ORM::configure('username', get_setting('db', 'username'));
+  ORM::configure('password', get_setting('db', 'password'));
 }
 
 function make_logger($channel) {
@@ -105,7 +121,7 @@ function login_required(&$response) {
 function http_client() {
   static $http;
   if(!isset($http))
-    $http = new \p3k\HTTP(Config::$useragent);
+    $http = new \p3k\HTTP(get_setting('useragent'));
   $http->set_timeout(10);
   return $http;
 }
@@ -146,7 +162,7 @@ function fetch_profile($me) {
         'track_redirects' => true
       ],
       'headers' => [
-        'User-Agent' => Config::$useragent,
+        'User-Agent' => get_setting('useragent'),
         'Accept'     => 'text/html,*/*'
       ]
     ]);

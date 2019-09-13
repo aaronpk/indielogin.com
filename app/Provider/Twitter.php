@@ -14,10 +14,10 @@ trait Twitter {
     $_SESSION['twitter_expected_user'] = $details['username'];
     $_SESSION['login_request']['profile'] = 'https://twitter.com/'.$details['username'];
 
-    $twitter = new TwitterOAuth(Config::$twitterClientID, Config::$twitterClientSecret);
+    $twitter = new TwitterOAuth(get_setting('twitterClientID'), get_setting('twitterClientSecret'));
 
     $request_token = $twitter->oauth('oauth/request_token', [
-      'oauth_callback' => Config::$base . 'redirect/twitter'
+      'oauth_callback' => get_setting('base') . 'redirect/twitter'
     ]);
     $_SESSION['twitter_request_token'] = $request_token;
     $twitter_login_url = $twitter->url('oauth/authenticate', ['oauth_token' => $request_token['oauth_token']]);
@@ -38,7 +38,7 @@ trait Twitter {
       return $response->withHeader('Location', '/')->withStatus(302);
     }
 
-    $twitter = new TwitterOAuth(Config::$twitterClientID, Config::$twitterClientSecret,
+    $twitter = new TwitterOAuth(get_setting('twitterClientID'), get_setting('twitterClientSecret'),
       $_SESSION['twitter_request_token']['oauth_token'], $_SESSION['twitter_request_token']['oauth_token_secret']);
     $credentials = $twitter->oauth('oauth/access_token', ['oauth_verifier' => $query['oauth_verifier']]);
 
@@ -58,7 +58,7 @@ trait Twitter {
       return $this->_userError($response, 'You logged in to Twitter as <b>@'.$twitter_user.'</b> but your website links to <b>@'.$_SESSION['twitter_expected_user'].'</b>');
     }
 
-    $twitter = new TwitterOAuth(Config::$twitterClientID, Config::$twitterClientSecret,
+    $twitter = new TwitterOAuth(get_setting('twitterClientID'), get_setting('twitterClientSecret'),
       $credentials['oauth_token'], $credentials['oauth_token_secret']);
 
     // Fetch the full profile to look for the link to their website

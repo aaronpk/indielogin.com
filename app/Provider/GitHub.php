@@ -13,8 +13,8 @@ trait GitHub {
     $state = generate_state();
 
     $params = [
-      'client_id' => Config::$githubClientID,
-      'redirect_uri' => Config::$base.'redirect/github',
+      'client_id' => get_setting('githubClientID'),
+      'redirect_uri' => get_setting('base').'redirect/github',
       'state' => $state,
       'allow_signup' => 'false',
     ];
@@ -43,10 +43,10 @@ trait GitHub {
     unset($_SESSION['state']);
 
     $params = [
-      'client_id' => Config::$githubClientID,
-      'client_secret' => Config::$githubClientSecret,
+      'client_id' => get_setting('githubClientID'),
+      'client_secret' => get_setting('githubClientSecret'),
       'code' => $query['code'],
-      'redirect_uri' => Config::$base.'redirect/github',
+      'redirect_uri' => get_setting('base').'redirect/github',
     ];
 
     $http = http_client();

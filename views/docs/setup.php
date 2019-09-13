@@ -2,10 +2,10 @@
 
 <div class="container container-narrow setup h-entry">
 
-  <h1 class="p-name">How to Set Up Your Website for <?= Config::$name ?></h1>
+  <h1 class="p-name">How to Set Up Your Website for <?= get_setting('name') ?></h1>
 
   <div class="e-content">
-    <p>You've likely ended up here because a website you're trying to sign in to uses <?= Config::$name ?> to handle logging users in.</p>
+    <p>You've likely ended up here because a website you're trying to sign in to uses <?= get_setting('name') ?> to handle logging users in.</p>
 
     <p>Instead of making a new account here, we'll take advantage of some accounts you may already have in order to authenticate you. You can always choose the services you use to log in, and the site you're logging in to won't have access to them.</p>
   </div>
@@ -101,12 +101,12 @@
   <section id="choosing-auth-providers" class="h-entry">
     <h3 class="p-name">Explicitly Choosing Auth Providers</h3>
 
-    <p>If you don't want <?= Config::$name ?> to consider <i>all</i> your <code>rel="me"</code> links as possible authentication options, you can choose which ones specifically by using <code>rel="me authn"</code> instead. This allows you to, for example, only use providers that support two-factor authorization, while still linking to your existing profiles using <code>rel="me"</code>.</p>
+    <p>If you don't want <?= get_setting('name') ?> to consider <i>all</i> your <code>rel="me"</code> links as possible authentication options, you can choose which ones specifically by using <code>rel="me authn"</code> instead. This allows you to, for example, only use providers that support two-factor authorization, while still linking to your existing profiles using <code>rel="me"</code>.</p>
 
     <p><pre><?= e('<a href="https://twitter.com/aaronpk" rel="me">twitter.com/aaronpk</a>
 <a href="https://github.com/aaronpk" rel="me authn">github.com/aaronpk</a>') ?></pre></p>
 
-    <p>If <i>any</i> of your <code>rel="me"</code> links also include <code>authn</code> in the list of rels, then <?= Config::$name ?> will <i>only</i> use the links with <code>authn</code>, and will no longer consider your plain <code>rel="me"</code> links as authentication options.</p>
+    <p>If <i>any</i> of your <code>rel="me"</code> links also include <code>authn</code> in the list of rels, then <?= get_setting('name') ?> will <i>only</i> use the links with <code>authn</code>, and will no longer consider your plain <code>rel="me"</code> links as authentication options.</p>
   </section>
 
 

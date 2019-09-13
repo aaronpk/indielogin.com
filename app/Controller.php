@@ -10,7 +10,7 @@ class Controller {
 
   public function index(ServerRequestInterface $request, ResponseInterface $response) {
     $response->getBody()->write(view('index', [
-      'title' => Config::$name,
+      'title' => get_setting('name'),
     ]));
     return $response;
   }
@@ -38,7 +38,7 @@ class Controller {
     $log->save();
 
     $response->getBody()->write(view('demo', [
-      'title' => Config::$name,
+      'title' => get_setting('name'),
       'me' => $login['me'],
     ]));
     return $response;
@@ -46,21 +46,21 @@ class Controller {
 
   public function api_docs(ServerRequestInterface $request, ResponseInterface $response) {
     $response->getBody()->write(view('docs/api', [
-      'title' => Config::$name.' API Docs',
+      'title' => get_setting('name').' API Docs',
     ]));
     return $response;
   }
 
   public function setup_docs(ServerRequestInterface $request, ResponseInterface $response) {
     $response->getBody()->write(view('docs/setup', [
-      'title' => 'How to Start Using '.Config::$name,
+      'title' => 'How to Start Using '.get_setting('name'),
     ]));
     return $response;
   }
 
   public function faq(ServerRequestInterface $request, ResponseInterface $response) {
     $response->getBody()->write(view('docs/faq', [
-      'title' => Config::$name.' FAQ',
+      'title' => get_setting('name').' FAQ',
     ]));
     return $response;
   }

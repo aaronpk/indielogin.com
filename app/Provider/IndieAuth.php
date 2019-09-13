@@ -12,7 +12,7 @@ trait IndieAuth {
 
     // Encode this request's me/redirect_uri/state in the state parameter to avoid a session?
     $state = generate_state();
-    $authorize = \IndieAuth\Client::buildAuthorizationURL($details['authorization_endpoint'], $login_request['me'], Config::$base.'redirect/indieauth', Config::$base, $state, '');
+    $authorize = \IndieAuth\Client::buildAuthorizationURL($details['authorization_endpoint'], $login_request['me'], get_setting('base').'redirect/indieauth', get_setting('base'), $state, '');
 
     $userlog->info('Beginning IndieAuth login', ['provider' => $details, 'login' => $login_request]);
 
@@ -54,8 +54,8 @@ trait IndieAuth {
 
     $params = [
       'code' => $query['code'],
-      'client_id' => Config::$base,
-      'redirect_uri' => Config::$base.'redirect/indieauth',
+      'client_id' => get_setting('base'),
+      'redirect_uri' => get_setting('base').'redirect/indieauth',
     ];
 
     $userlog->info('Verifying the authorization code with the IndieAuth server', [

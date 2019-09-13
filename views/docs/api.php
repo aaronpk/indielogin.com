@@ -2,15 +2,15 @@
 
 <div class="container container-narrow api-docs">
 
-  <h1><?= Config::$name ?></h1>
+  <h1><?= get_setting('name') ?></h1>
 
-  <p>If you are building a website and need to sign people in, you can use <?= Config::$name ?> to handle all the complicated parts.</p>
+  <p>If you are building a website and need to sign people in, you can use <?= get_setting('name') ?> to handle all the complicated parts.</p>
 
   <p>Users will identify themselves with their website, and can authenticate using one of the <a href="/setup">supported authentication providers</a> such as Twitter, GitHub, or email. The user ID returned to you will be their website, ensuring that you don't end up creating multiple accounts depending on how the user authenticates.</p>
 
   <h2>1. Create a Web Sign-In form</h2>
 
-  <?php $base = Config::$base; ?>
+  <? $base = get_setting('base'); ?>
   <pre><code><?= e(<<<EOT
 <form action="${base}auth" method="get">
   <label for="url">Web Address:</label>
@@ -26,7 +26,7 @@ EOT
   <h3>Parameters</h3>
 
   <ul>
-    <li><b>action</b>: Set the action of the form to this service (<code><?= Config::$base ?>auth</code>) or <a href="https://github.com/aaronpk/IndieLogin.com">download the source</a> and run your own server.</li>
+    <li><b>action</b>: Set the action of the form to this service (<code><?= get_setting('base') ?>auth</code>) or <a href="https://github.com/aaronpk/IndieLogin.com">download the source</a> and run your own server.</li>
     <li><b>me</b>: (optional) The "me" parameter is the URL that the user enters. If you leave this out, then this website will prompt the user to enter their URL.</li>
     <li><b>client_id</b>: Set the client_id in a hidden field to let this site know the home page of the application the user is signing in to.</li>
     <li><b>redirect_uri</b>: Set the redirect_uri in a hidden field to let this site know where to redirect back to after authentication is complete. It must be on the same domain as the client_id.</li>
@@ -37,7 +37,7 @@ EOT
 
   <h2>2. The user logs in with their domain</h2>
 
-  <p>After the user enters their domain in the sign-in form and submits, <?= Config::$name ?> will scan their website looking for <code>rel="me"</code> links from providers it knows about (see <a href="/setup">Supported Providers</a>).</p>
+  <p>After the user enters their domain in the sign-in form and submits, <?= get_setting('name') ?> will scan their website looking for <code>rel="me"</code> links from providers it knows about (see <a href="/setup">Supported Providers</a>).</p>
 
   <p>They will authenticate using one of the supported providers, such as authenticating with their own IndieAuth server, logging in on GitHub, or verifying a temporary code sent to their email address.</p>
 
@@ -48,11 +48,11 @@ EOT
   <p>If everything is successful, the user will be redirected back to the <code>redirect_uri</code> you specified in the form. You'll see two parameters in the query string, <code>state</code> and <code>code</code>. Check that the state matches the value you set originally before continuing.</p>
 
 
-  <h2>4. Verify the authorization code with <?= Config::$name ?></h2>
+  <h2>4. Verify the authorization code with <?= get_setting('name') ?></h2>
 
-  <p>At this point you need to verify the code which will also return the website of the authenticated user. Make a POST request to <code><?= Config::$base ?>auth</code> with the code, client_id and redirect_uri, and you will get back the full website of the authenticated user.</p>
+  <p>At this point you need to verify the code which will also return the website of the authenticated user. Make a POST request to <code><?= get_setting('base') ?>auth</code> with the code, client_id and redirect_uri, and you will get back the full website of the authenticated user.</p>
 
-  <p><pre>POST <?= Config::$base?>auth HTTP/1.1
+  <p><pre>POST <?= get_setting('base')?>auth HTTP/1.1
 Content-Type: application/x-www-form-urlencoded;charset=UTF-8
 Accept: application/json
 

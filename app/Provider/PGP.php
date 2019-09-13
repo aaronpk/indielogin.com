@@ -57,7 +57,7 @@ trait PGP {
 
     $keytext = $login['keytext'];
 
-    $ch = curl_init(Config::$pgpVerificationAPI.'/verify');
+    $ch = curl_init(get_setting('pgpVerificationAPI').'/verify');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
       'key' => $keytext,
