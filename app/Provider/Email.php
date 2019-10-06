@@ -98,9 +98,30 @@ trait Email {
 
     // Check that the code they entered matches the code that was stored
 
-    if(strtolower($usercode) == strtolower($params['usercode'])) {
+    if(strtolower(str_replace('-','',$usercode)) == strtolower(str_replace('-','',$params['usercode']))) {
       return $this->_finishAuthenticate($response);
     } else {
+      $k = 'indielogin:email:usercode:attempts:'.$params['code'];
+      $current_attempts = (redis()->get($k) ?: 0);
+
+      // Allow only 4 failed attempts, then start over.
+      // This prevents brute forcing the code.      
+      if($current_attempts >= 3) {
+        redis()->del('indielogin:email:usercode:'.$params['code']);
+        redis()->del('indielogin:email:'.$params['code']);
+        redis()->del($k);
+
+        $response->getBody()->write(view('auth/email-error', [
+          'title' => 'Error',
+          'error' => 'The session expired',
+          'client_id' => ($_SESSION['login_request']['client_id'] ?? false)
+        ]));
+        return $response;
+      }
+
+      // Increment the counter of failed attempts
+      redis()->setex($k, EMAIL_TIMEOUT, $current_attempts+1);
+
       $response->getBody()->write(view('auth/email-enter-code', [
         'title' => 'Log In via Email',
         'code' => $params['code'],

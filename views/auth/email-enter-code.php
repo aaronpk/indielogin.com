@@ -14,7 +14,7 @@
       <input type="hidden" id="code" name="code" value="<?= $code ?>">
 
       <div class="form-group">
-        <input type="text" id="usercode" name="usercode" class="form-control" autocomplete="off" maxlength="6">
+        <input type="text" id="usercode" name="usercode" class="form-control" autocomplete="off" maxlength="7">
       </div>
 
       <input type="submit" id="verify-code" value="Verify Code" class="btn btn-primary">
