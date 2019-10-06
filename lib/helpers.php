@@ -139,7 +139,8 @@ function fetch_profile($me) {
         'track_redirects' => true
       ],
       'headers' => [
-        'User-Agent' => Config::$useragent
+        'User-Agent' => Config::$useragent,
+        'Accept'     => 'text/html,*/*'
       ]
     ]);
   } catch(\GuzzleHttp\Exception\ClientException $e) {
