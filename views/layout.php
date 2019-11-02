@@ -54,7 +54,7 @@
   <?php if(!isset($nofooter)): ?>
   <footer class="footer">
     <div class="row">
-      <div class="col-md-3">
+      <div class="col-md-4">
         <ul>
           <li><a href="/">Home</a></li>
           <li><a href="/setup">Setup</a></li>
@@ -63,7 +63,7 @@
           <li><a href="/privacy-policy">Privacy Policy</a></li>
         </ul>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-4">
         <ul>
           <li><a href="https://github.com/aaronpk/IndieLogin.com">Source Code</a></li>
           <li><a href="https://github.com/aaronpk/IndieLogin.com/issues">Issues</a></li>
