@@ -27,10 +27,11 @@ EOT
 
   <ul>
     <li><b>action</b>: Set the action of the form to this service (<code><?= Config::$base ?>auth</code>) or <a href="https://github.com/aaronpk/IndieLogin.com">download the source</a> and run your own server.</li>
-    <li><b>me</b>: The "me" parameter is the URL that the user enters.</li>
+    <li><b>me</b>: (optional) The "me" parameter is the URL that the user enters. If you leave this out, then this website will prompt the user to enter their URL.</li>
     <li><b>client_id</b>: Set the client_id in a hidden field to let this site know the home page of the application the user is signing in to.</li>
     <li><b>redirect_uri</b>: Set the redirect_uri in a hidden field to let this site know where to redirect back to after authentication is complete. It must be on the same domain as the client_id.</li>
     <li><b>state</b>: You should generate a random value that you will check after the user is redirected back, in order to prevent certain attacks.</li>
+    <li><b>prompt=login</b>: (optional) If this parameter is present in the request, this website will not remember the user's previous session and will require that they authenticate from scratch again.</li>
   </ul>
 
 

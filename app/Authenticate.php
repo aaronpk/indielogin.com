@@ -114,6 +114,9 @@ class Authenticate {
       if(isset($params['action']) && $params['action'] == 'logout')
         unset($_SESSION['me']);
 
+      if(isset($params['prompt']) && $params['prompt'] == 'login')
+        unset($_SESSION['me']);
+
       if(isset($_SESSION['me']))
         $_SESSION['expected_me'] = $_SESSION['me'];
 
