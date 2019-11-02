@@ -86,3 +86,6 @@ footer.footer ul {
 footer.footer a {
   color: #D2ECF1;
 }
+footer.footer .row {
+  margin: 0;
+}
