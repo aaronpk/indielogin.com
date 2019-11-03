@@ -3,3 +3,5 @@ vendor/
 lib/config.php
 logs/
 pgp/data/
+data/
+.env

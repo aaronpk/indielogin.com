@@ -1,0 +1,3 @@
+FROM mariadb
+
+COPY schema/schema.sql /docker-entrypoint-initdb.d

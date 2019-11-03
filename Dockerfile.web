@@ -1,0 +1,25 @@
+# Install dependencies
+
+FROM composer AS dependencies
+
+RUN mkdir -p /var/www/html
+WORKDIR /var/www/html
+
+COPY . /var/www/html
+
+RUN composer install
+
+# Serve website
+
+FROM php:apache
+
+RUN mkdir -p /var/www/html
+WORKDIR /var/www/html
+
+COPY --from=dependencies /var/www/html /var/www/html
+
+RUN docker-php-ext-install pdo_mysql mysqli
+RUN a2enmod rewrite
+
+RUN sed -i 's/DocumentRoot \/var\/www\/html/DocumentRoot \/var\/www\/html\/public/' /etc/apache2/sites-available/000-default.conf
+RUN sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf

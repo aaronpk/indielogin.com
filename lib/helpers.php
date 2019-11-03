@@ -64,7 +64,7 @@ function random_user_code() {
 function redis() {
   static $client = false;
   if(!$client)
-    $client = new Predis\Client('tcp://127.0.0.1:6379');
+    $client = new Predis\Client(Config::$redisAPI);
   return $client;
 }
 
