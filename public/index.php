@@ -24,7 +24,7 @@ initdb();
 $route = new League\Route\RouteCollection($container);
 
 $route->map('GET', '/', 'App\\Controller::index');
-
+$route->map('GET', '/health', 'App\\Healthcheck::index');
 $route->map('GET', '/api', 'App\\Controller::api_docs');
 $route->map('GET', '/setup', 'App\\Controller::setup_docs');
 $route->map('GET', '/faq', 'App\\Controller::faq');
