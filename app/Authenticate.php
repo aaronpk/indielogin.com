@@ -65,7 +65,7 @@ class Authenticate {
       if($client_id) {
         $client_host = parse_url($client_id, PHP_URL_HOST);
         $redirect_host = parse_url($redirect_uri, PHP_URL_HOST);
-        // TODO: need to somehow blacklist TLDs like .co.uk from being used as a client_id
+        // TODO: need to somehow prevent TLDs like .co.uk from being used as a client_id
         if(
           ($client_host != $redirect_host)
           &&
