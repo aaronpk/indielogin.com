@@ -15,7 +15,8 @@
         "mailgun/mailgun-php": "^2.5",
         "php-http/guzzle6-adapter": "^1.1",
         "j4mie/idiorm": "^1.5",
-        "michelf/php-markdown": "^1.8"
+        "michelf/php-markdown": "^1.8",
+        "vlucas/phpdotenv": "^4.1"
     },
     "autoload": {
       "psr-4": {

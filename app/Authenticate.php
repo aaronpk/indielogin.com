@@ -104,7 +104,7 @@ class Authenticate {
       $devlog->info('Bad auth request', ['errors' => $errors, 'params' => $params]);
 
       $response->getBody()->write(view('auth/dev-error', [
-        'title' => Config::$name.' Error',
+        'title' => getenv('APP_NAME').' Error',
         'errors' => $errors
       ]));
       return $response;
@@ -122,7 +122,7 @@ class Authenticate {
 
       // If the developer isn't expecting a particular user, use the session user if present
       $response->getBody()->write(view('auth/login-form', [
-        'title' => 'Sign In using '.Config::$name,
+        'title' => 'Sign In using '.getenv('APP_NAME'),
         'me' => $_SESSION['me'] ?? '',
         'client_id' => $client_id,
         'redirect_uri' => $redirect_uri,
@@ -149,7 +149,7 @@ class Authenticate {
         $_SESSION['me_entered'] = $_SESSION['me'];
 
         $response->getBody()->write(view('auth/prompt', [
-          'title' => 'Sign In using '.Config::$name,
+          'title' => 'Sign In using '.getenv('APP_NAME'),
           'me' => $_SESSION['me'],
           'code' => $code,
           'client_id' => $client_id,

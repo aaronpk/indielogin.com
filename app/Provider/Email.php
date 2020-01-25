@@ -53,16 +53,16 @@ trait Email {
 
     redis()->setex('indielogin:email:usercode:'.$params['code'], EMAIL_TIMEOUT, $usercode);
 
-    $login_url = Config::$base.'auth/verify_email_code?'.http_build_query([
+    $login_url = getenv('BASE_URL').'auth/verify_email_code?'.http_build_query([
       'code' => $params['code'],
       'usercode' => $usercode,
     ]);
 
-    $mg = new Mailgun(Config::$mailgun['key']);
-    $result = $mg->sendMessage(Config::$mailgun['domain'], [
-      'from'     => Config::$mailgun['from'],
+    $mg = new Mailgun(getenv('MAILGUN_KEY'));
+    $result = $mg->sendMessage(getenv('MAILGUN_DOMAIN'), [
+      'from'     => getenv('MAILGUN_FROM'),
       'to'       => $login['email'],
-      'subject'  => 'Your '.Config::$name.' Code: '.$usercode,
+      'subject'  => 'Your '.getenv('APP_NAME').' Code: '.$usercode,
       'text'     => "Enter the code below to sign in: \n\n$usercode\n"
     ]);
 

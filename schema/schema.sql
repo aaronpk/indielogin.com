@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS `clients` (
   `user_url` varchar(512) DEFAULT NULL,
   `email` varchar(512) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `client_id` (`client_id`)
+  KEY `client_id` (`client_id`(191))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `redirect_uris` (

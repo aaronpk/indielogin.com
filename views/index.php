@@ -3,7 +3,7 @@
 <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
   <div class="col-md-5 p-lg-5 mx-auto my-5">
 
-    <h1 class="display-4 font-weight-normal"><?= Config::$name ?></h1>
+    <h1 class="display-4 font-weight-normal"><?= getenv('APP_NAME') ?></h1>
 
     <p class="lead font-weight-normal">Sign in with your domain name.</p>
 
@@ -15,8 +15,8 @@
           <input type="url" placeholder="example.com" name="me" class="form-control">
         </div>
 
-        <input type="hidden" name="client_id" value="<?= Config::$base ?>">
-        <input type="hidden" name="redirect_uri" value="<?= Config::$base ?>demo">
+        <input type="hidden" name="client_id" value="<?= getenv('BASE_URL') ?>">
+        <input type="hidden" name="redirect_uri" value="<?= getenv('BASE_URL') ?>demo">
         <input type="hidden" name="state" value="<?= generate_state() ?>">
 
         <button class="btn btn-outline-secondary">Sign In</button>
@@ -33,12 +33,12 @@
 
   <div class="row featurette">
     <div class="col-md-7">
-      <h2 class="featurette-heading">What is <span class="text-muted"><?= Config::$name ?>?</span></h2>
-      <p class="lead"><?= Config::$name ?> makes it easy to add web sign-in to your applications.</p>
+      <h2 class="featurette-heading">What is <span class="text-muted"><?= getenv('APP_NAME') ?>?</span></h2>
+      <p class="lead"><?= getenv('APP_NAME') ?> makes it easy to add web sign-in to your applications.</p>
 
       <p>If you'd like to let your users <b>log in with their own domain name</b> as their identity, you can use IndieLogin.com to handle the details of that for you.</p>
 
-      <p><?= Config::$name ?> supports <a href="https://indieauth.net/">IndieAuth</a>, so users with supported websites will be able to sign in using their own website's login. Otherwise, <?= Config::$name?> will check for links to Twitter, GitHub, an email address or PGP key, and will ask the user to authenticate that way. Regardless of how the user authenticates, the identity provided to the application will always be the user's primary website.</p>
+      <p><?= getenv('APP_NAME') ?> supports <a href="https://indieauth.net/">IndieAuth</a>, so users with supported websites will be able to sign in using their own website's login. Otherwise, <?= getenv('APP_NAME')?> will check for links to Twitter, GitHub, an email address or PGP key, and will ask the user to authenticate that way. Regardless of how the user authenticates, the identity provided to the application will always be the user's primary website.</p>
     </div>
     <div class="col-md-5">
       <img class="featurette-image img-fluid mx-auto" src="/images/web-signin-splash.jpg" alt="Web Sign-In Prompt">

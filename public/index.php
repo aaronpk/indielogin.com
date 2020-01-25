@@ -1,10 +1,5 @@
 <?php
 chdir('..');
-
-if(!file_exists('./lib/config.php')) {
-  die('Please copy lib/config.template.php to lib/config.php and fill in your configuration details');
-}
-
 include('vendor/autoload.php');
 
 use Psr\Http\Message\ResponseInterface;
@@ -47,6 +42,14 @@ $route->map('POST', '/auth/verify_pgp_challenge', 'App\\Authenticate::verify_pgp
 
 
 $templates = new League\Plates\Engine(dirname(__FILE__).'/../views');
+
+// Check for existence of config variables, and show an error page if not set
+if(empty(getenv('APP_NAME')) || empty(getenv('DB_HOST'))) {
+  echo view('setup-error', [
+      'title' => 'Setup Error',
+  ]);
+  die();
+}
 
 try {
   $response = $route->dispatch($container->get('request'), $container->get('response'));

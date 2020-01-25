@@ -4,21 +4,24 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
+use Dotenv\Dotenv;
 
 const LOCAL_FALLBACK_REDIS = 'tcp://127.0.0.1:6379';
 
 date_default_timezone_set('UTC');
 
-if(getenv('ENV')) {
-  require(dirname(__FILE__).'/config.'.getenv('ENV').'.php');
-} else {
-  require(dirname(__FILE__).'/config.php');
+// Load .env file if exists
+$dotenv = Dotenv::createImmutable(__DIR__.'/..');
+if(file_exists(__DIR__.'/../.env')) {
+  $dotenv->load();
 }
 
 function initdb() {
-  ORM::configure('mysql:host=' . Config::$db['host'] . ';dbname=' . Config::$db['database']);
-  ORM::configure('username', Config::$db['username']);
-  ORM::configure('password', Config::$db['password']);
+  if(!empty(getenv('DB_HOST'))) {
+    ORM::configure('mysql:host=' . getenv('DB_HOST') . ';dbname=' . getenv('DB_NAME'));
+    ORM::configure('username', getenv('DB_USER'));
+    ORM::configure('password', getenv('DB_PASS'));
+  }
 }
 
 function make_logger($channel) {
@@ -105,7 +108,7 @@ function login_required(&$response) {
 function http_client() {
   static $http;
   if(!isset($http))
-    $http = new \p3k\HTTP(Config::$useragent);
+    $http = new \p3k\HTTP(getenv('HTTP_USER_AGENT'));
   $http->set_timeout(10);
   return $http;
 }
@@ -146,7 +149,7 @@ function fetch_profile($me) {
         'track_redirects' => true
       ],
       'headers' => [
-        'User-Agent' => Config::$useragent,
+        'User-Agent' => getenv('HTTP_USER_AGENT'),
         'Accept'     => 'text/html,*/*'
       ]
     ]);
