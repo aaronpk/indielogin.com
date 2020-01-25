@@ -13,6 +13,10 @@
         <textarea class="form-control" id="signed" name="signed" rows="3"><?= e($code) ?></textarea>
       </div>
 
+      <div class="form-group">
+        <p style="font-size: 0.9em">The button below will be enabled when a PGP signature is detected in the box above.</p>
+      </div>
+
       <input type="submit" id="submit-challenge" class="btn btn-primary" value="Verify">
     </form>
 
