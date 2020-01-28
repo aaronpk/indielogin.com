@@ -33,6 +33,10 @@ function setupDB($host, $user, $pass, $dbname, $port='') {
   define('DB_SETUP', true);
 }
 
+function installDB() {
+  ORM::raw_execute(file_get_contents('schema/schema.sql'));
+}
+
 function make_logger($channel) {
   $log = new Logger($channel);
   $log->pushHandler(new StreamHandler(dirname(__FILE__).'/../logs/app.log', Logger::DEBUG));
