@@ -44,7 +44,7 @@ $route->map('POST', '/auth/verify_pgp_challenge', 'App\\Authenticate::verify_pgp
 $templates = new League\Plates\Engine(dirname(__FILE__).'/../views');
 
 // Check for existence of config variables, and show an error page if not set
-if(empty(getenv('APP_NAME')) || empty(getenv('DB_HOST'))) {
+if(empty(getenv('APP_NAME')) || !defined('DB_SETUP')) {
   echo view('setup-error', [
       'title' => 'Setup Error',
   ]);

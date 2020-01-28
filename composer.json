@@ -1,5 +1,7 @@
 {
     "require": {
+        "ext-pdo": "*",
+        "ext-redis": "*",
         "league/route": "^3.0",
         "league/plates": "^3.3",
         "guzzlehttp/guzzle": "^6.3",
