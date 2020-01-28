@@ -18,6 +18,9 @@
         "michelf/php-markdown": "^1.8",
         "vlucas/phpdotenv": "^4.1"
     },
+    "require-dev": {
+      "heroku/heroku-buildpack-php": "*"
+    },
     "autoload": {
       "psr-4": {
         "App\\": "app/"
