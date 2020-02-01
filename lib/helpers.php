@@ -17,11 +17,24 @@ if(file_exists(__DIR__.'/../.env')) {
 }
 
 function initdb() {
-  if(!empty(getenv('DB_HOST'))) {
-    ORM::configure('mysql:host=' . getenv('DB_HOST') . ';dbname=' . getenv('DB_NAME'));
-    ORM::configure('username', getenv('DB_USER'));
-    ORM::configure('password', getenv('DB_PASS'));
+  if(!empty(getenv('DATABASE_URL'))) {
+    $mysql = parse_url(current($db_env));
+    setupDB($mysql['host'], $mysql['user'], $mysql['pass'], basename($mysql['path']), @$mysql['port']);
+  } elseif(!empty(getenv('DB_HOST'))) {
+    setupDB(getenv('DB_HOST'), getenv('DB_USER'), getenv('DB_PASS'), getenv('DB_NAME'), getenv('DB_PORT'));
   }
+}
+
+function setupDB($host, $user, $pass, $dbname, $port='') {
+  $portstr = strlen($port) > 0 ? ":${port}" : '';
+  ORM::configure("mysql:host=${host};dbname=${dbname}");
+  ORM::configure('username', $user);
+  ORM::configure('password', $pass);
+  define('DB_SETUP', true);
+}
+
+function installDB() {
+  ORM::raw_execute(file_get_contents('schema/schema.sql'));
 }
 
 function make_logger($channel) {

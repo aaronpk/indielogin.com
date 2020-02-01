@@ -1,0 +1,43 @@
+{
+  "name": "Indielogin",
+  "description": "Deploy Indielogin to heroku",
+  "repository": "https://github.com/aaronpk/indielogin.com",
+  "logo": "https://github.com/aaronpk/indielogin.com/raw/master/public/icons/android-chrome-512x512.png",
+  "website": "https://indielogin.com",
+  "keywords": ["indielogin", "apache", "php", "indieauth"],
+  "addons": [
+    "heroku-redis",
+    {
+      "plan": "cleardb:ignite",
+      "as": "DATABASE"
+    }
+  ],
+  "env": {
+    "APP_NAME": {
+      "description": "Display name for this deployment of IndieLogin",
+      "value": "IndieLogin",
+      "required": true
+    },
+    "BASE_URL": {
+      "description": "URL for this deployment of indielogin",
+      "value": "https://{app_name}.herokuapp.com",
+      "required": true
+    },
+    "LOGGER_PATH": {
+      "description": "File path for logging (defaults to stdin)",
+      "value": "php://stdin",
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "free"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/php"
+    }
+  ]
+}

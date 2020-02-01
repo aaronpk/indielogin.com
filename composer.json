@@ -1,5 +1,7 @@
 {
     "require": {
+        "ext-pdo": "*",
+        "ext-redis": "*",
         "league/route": "^3.0",
         "league/plates": "^3.3",
         "guzzlehttp/guzzle": "^6.3",
@@ -17,6 +19,9 @@
         "j4mie/idiorm": "^1.5",
         "michelf/php-markdown": "^1.8",
         "vlucas/phpdotenv": "^4.1"
+    },
+    "require-dev": {
+      "heroku/heroku-buildpack-php": "*"
     },
     "autoload": {
       "psr-4": {
