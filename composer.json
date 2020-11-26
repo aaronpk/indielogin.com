@@ -3,7 +3,7 @@
         "league/route": "^3.0",
         "league/plates": "^3.3",
         "guzzlehttp/guzzle": "^6.3",
-        "indieauth/client": "^1.0",
+        "indieauth/client": "~1.1",
         "p3k/utils": "^1.2",
         "zendframework/zend-diactoros": "^1.7",
         "p3k/http": "^0.1.7",
