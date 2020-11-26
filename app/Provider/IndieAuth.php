@@ -90,8 +90,10 @@ trait IndieAuth {
         $debug_txt = $debug_obj = $result['body'];
       }
       $userlog->warning('Invalid response from IndieAuth server', ['response' => $debug_obj]);
-      return $this->_userError($response, 'Your IndieAuth server did not return a valid response. Below is the response from your server.', [
-        'response' => $debug_txt
+      return $this->_userError($response, 'Your IndieAuth server did not return a valid response.', [
+        'response' => $debug_txt,
+        'response_code' => $result['code'],
+        'error_description' => $result['error_description'],
       ]);
     }
 

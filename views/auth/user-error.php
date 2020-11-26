@@ -19,8 +19,18 @@
     <p>We got an error trying to connect to <code><?= e($opts['me']) ?></code></p>
   <?php endif ?>
 
-  <?php if(isset($opts['response'])): ?>
+  <?php if(isset($opts['response_code']) && $opts['response_code']): ?>
+    <p>Response Code: <code><?= $opts['response_code'] ?></code></p>
+  <?php endif ?>
+
+  <?php if(isset($opts['response']) && $opts['response']): ?>
+    <p>Response Body</p>
     <pre><?= e($opts['response']) ?></pre>
+  <?php endif ?>
+
+  <?php if(isset($opts['error_description'])): ?>
+    <p>Error Details</p>
+    <pre><?= e($opts['error_description']) ?></pre>
   <?php endif ?>
 
   <p>View the <a href="/setup">setup instructions</a> for more information.</p>
