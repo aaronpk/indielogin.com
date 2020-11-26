@@ -188,6 +188,7 @@ class Authenticate {
 
       // Store the canonical URL of the user
       $_SESSION['expected_me'] = $profile['me'];
+      $_SESSION['me_entered_final'] = $profile['final_url'];
       $login_request['me'] = $profile['me'];
 
       $rels = $profile['rels'];

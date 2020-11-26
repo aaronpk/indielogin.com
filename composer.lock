@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1b6b6fb8d951a7f1bef5dff12fe39417",
+    "content-hash": "dc2fa79239fe75d4661628d9d1aa9e4f",
     "packages": [
         {
             "name": "abraham/twitteroauth",
@@ -327,16 +327,16 @@
         },
         {
             "name": "indieauth/client",
-            "version": "0.4.1",
+            "version": "1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/indieweb/indieauth-client-php.git",
-                "reference": "3e47004ccfccddc5760639f4faf9ed5ceadb460e"
+                "reference": "d551eeb268100b87ebc7a05ae796a858550e700a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/indieweb/indieauth-client-php/zipball/3e47004ccfccddc5760639f4faf9ed5ceadb460e",
-                "reference": "3e47004ccfccddc5760639f4faf9ed5ceadb460e",
+                "url": "https://api.github.com/repos/indieweb/indieauth-client-php/zipball/d551eeb268100b87ebc7a05ae796a858550e700a",
+                "reference": "d551eeb268100b87ebc7a05ae796a858550e700a",
                 "shasum": ""
             },
             "require": {
@@ -365,7 +365,7 @@
                 }
             ],
             "description": "IndieAuth Client Library",
-            "time": "2018-03-13T23:39:55+00:00"
+            "time": "2020-11-26T19:41:45+00:00"
         },
         {
             "name": "indieweb/link-rel-parser",
@@ -1589,12 +1589,12 @@
             "version": "v1.1.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/nrk/predis.git",
+                "url": "https://github.com/predis/predis.git",
                 "reference": "f0210e38881631afeafb56ab43405a92cafd9fd1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nrk/predis/zipball/f0210e38881631afeafb56ab43405a92cafd9fd1",
+                "url": "https://api.github.com/repos/predis/predis/zipball/f0210e38881631afeafb56ab43405a92cafd9fd1",
                 "reference": "f0210e38881631afeafb56ab43405a92cafd9fd1",
                 "shasum": ""
             },
@@ -2062,5 +2062,6 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
 }

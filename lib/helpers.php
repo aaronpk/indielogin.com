@@ -88,6 +88,11 @@ function generate_state() {
   return $_SESSION['state'];
 }
 
+function generate_pkce_code_verifier() {
+  $_SESSION['code_verifier'] = bin2hex(random_bytes(50));
+  return $_SESSION['code_verifier'];
+}
+
 function is_logged_in() {
   return isset($_SESSION) && array_key_exists('me', $_SESSION);
 }
@@ -189,24 +194,15 @@ function fetch_profile($me) {
     ];
   }
 
-  // Check all the redirects to override $me, but stop if a 302/307 is encountered
-  // https://www.w3.org/TR/indieauth/#discovery-by-clients-p-2
   $original_me = $me;
-
-  $new_me = \IndieAuth\Client::normalizeMeURL($me);
-  foreach($redirects as $r) {
-    if($r['code'] == 302 || $r['code'] == 307) {
-      break;
-    }
-    $new_me = \IndieAuth\Client::normalizeMeURL($r['to']);
-  }
-  $me = $new_me;
+  $me = \IndieAuth\Client::normalizeMeURL($me);
 
   // Get the final URL
-  $final_url = $original_me;
+  $final_url = $me;
   if(count($redirects)) {
     $final_url = $redirects[count($redirects)-1]['to'];
   }
+  $final_url = \IndieAuth\Client::normalizeMeURL($final_url);
 
   // Parse the resulting body for rel me/authn/authorization_endpoint
   $body = ''.$res->getBody();

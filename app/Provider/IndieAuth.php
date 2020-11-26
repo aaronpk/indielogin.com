@@ -12,7 +12,14 @@ trait IndieAuth {
 
     // Encode this request's me/redirect_uri/state in the state parameter to avoid a session?
     $state = generate_state();
-    $authorize = \IndieAuth\Client::buildAuthorizationURL($details['authorization_endpoint'], $login_request['me'], getenv('BASE_URL').'redirect/indieauth', getenv('BASE_URL'), $state, '');
+    $code_verifier = generate_pkce_code_verifier();
+    $authorize = \IndieAuth\Client::buildAuthorizationURL($details['authorization_endpoint'], [
+      'me' => $login_request['me'],
+      'redirect_uri' => getenv('BASE_URL').'redirect/indieauth',
+      'client_id' => getenv('BASE_URL'),
+      'state' => $state,
+      'code_verifier' => $code_verifier,
+    ]);
 
     $userlog->info('Beginning IndieAuth login', ['provider' => $details, 'login' => $login_request]);
 
@@ -56,9 +63,10 @@ trait IndieAuth {
       'code' => $query['code'],
       'client_id' => getenv('BASE_URL'),
       'redirect_uri' => getenv('BASE_URL').'redirect/indieauth',
+      'code_verifier' => $_SESSION['code_verifier'],
     ];
 
-    $userlog->info('Verifying the authorization code with the IndieAuth server', [
+    $userlog->info('Exchanging the authorization code at the IndieAuth server', [
       'authorization_endpoint' => $_SESSION['login_request']['authorization_endpoint'],
       'params' => $params,
       'login' => $_SESSION['login_request'],
@@ -87,13 +95,16 @@ trait IndieAuth {
       ]);
     }
 
-    // Make sure "me" returned is on the same domain
-    $expectedHost = parse_url($_SESSION['expected_me'], PHP_URL_HOST);
-    $actualHost = parse_url($auth['me'], PHP_URL_HOST);
+    // Make sure "me" returned matches the original or shares an authorization endpoint
+    if($_SESSION['me_entered_final'] != $auth['me']) {
+      $newAuthorizationEndpoint = \IndieAuth\Client::discoverAuthorizationEndpoint($auth['me']);
 
-    if($expectedHost != $actualHost) {
-      $userlog->warning('IndieAuth user mismatch', ['response' => $auth, 'expected' => $_SESSION['expected_me']]);
-      return $this->_userError($response, 'It looks like a different user signed in. The user <b>'.$auth['me'].'</b> signed in, but we were expecting <b>'.$_SESSION['expected_me'].'</b>');
+      $userlog->info('Entered URL ('.$_SESSION['me_entered_final'].') was different than resulting URL ('.$auth['me'].'), verifying authorization server');
+
+      if($_SESSION['login_request']['authorization_endpoint'] != $newAuthorizationEndpoint) {
+        $userlog->warning('IndieAuth user mismatch', ['response' => $auth, 'expected' => $_SESSION['expected_me']]);
+        return $this->_userError($response, 'It looks like a different user signed in. The user <b>'.$auth['me'].'</b> signed in, but we were expecting <b>'.$_SESSION['expected_me'].'</b>');
+      }
     }
 
     unset($_SESSION['state']);
