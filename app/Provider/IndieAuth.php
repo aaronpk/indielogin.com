@@ -60,6 +60,7 @@ trait IndieAuth {
     }
 
     $params = [
+      'grant_type' => 'authorization_code',
       'code' => $query['code'],
       'client_id' => getenv('BASE_URL'),
       'redirect_uri' => getenv('BASE_URL').'redirect/indieauth',
