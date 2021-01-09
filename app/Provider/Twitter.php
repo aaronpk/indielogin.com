@@ -84,29 +84,33 @@ trait Twitter {
 
       $expanded_url = fetch_profile($expanded_url);
 
-      if(($expanded_url['me'] ?? false) == $_SESSION['expected_me']) {
+      if(($expanded_url['final_url'] ?? false) == $_SESSION['expected_me']) {
         $verified = true;
       }
     }
 
     // If not found in the URL field, check links in the bio
+    $bio_urls = [];
     if(!$verified) {
       if($profile->description) {
-        $bio = $profile->description;
+        $userlog->info('All URLs found in bio: '.json_encode($profile->entities->description->urls));
+
         foreach($profile->entities->description->urls as $url) {
-          $bio = str_replace($url->url, $url->expanded_url, $bio);
-        }
-        if(strpos($bio, $_SESSION['expected_me']) !== false) {
-          $verified = true;
+          $normalized_url = \IndieAuth\Client::normalizeMeURL($url->expanded_url);
+          $bio_expanded_url = fetch_profile($normalized_url);
+          $bio_urls[] = $bio_final_url = ($bio_expanded_url['final_url'] ?? $normalized_url);
+          if($bio_final_url == $_SESSION['expected_me']) {
+            $verified = true;
+          }
         }
       }
     }
 
     if(!$verified) {
-      $userlog->warning('Twitter URL mismatch', ['bio' => $bio, 'website' => $expanded_url, 'expected' => $_SESSION['expected_me']]);
+      $userlog->warning('Twitter URL mismatch', ['bio' => $bio_urls, 'website' => $expanded_url, 'expected' => $_SESSION['expected_me']]);
 
       if($expanded_url)
-        $msg = 'Your Twitter profile linked to <b>'.e($expanded_url['final_url']).'</b> but we were expecting to see <b>'.$_SESSION['expected_me'].'</b>. Make sure you link to <b>'.$_SESSION['expected_me'].'</b> in your Twitter profile.';
+        $msg = 'We found the following URLs in your Twitter profile: <b>'.e($expanded_url['final_url']).'</b>'.($bio_urls ? ' and <b>'.implode(', ', $bio_urls).'</b>' : '').' but we were expecting to see <b>'.$_SESSION['expected_me'].'</b>. Make sure you add <b>'.$_SESSION['expected_me'].'</b> to your Twitter profile or bio.';
       else
         $msg = 'There were no links found in your Twitter profile.';
 

@@ -123,7 +123,7 @@ class Authenticate {
       // If the developer isn't expecting a particular user, use the session user if present
       $response->getBody()->write(view('auth/login-form', [
         'title' => 'Sign In using '.getenv('APP_NAME'),
-        'me' => $_SESSION['me'] ?? '',
+        'me' => $_SESSION['expected_me'] ?? '',
         'client_id' => $client_id,
         'redirect_uri' => $redirect_uri,
         'state' => $state,
@@ -150,7 +150,7 @@ class Authenticate {
 
         $response->getBody()->write(view('auth/prompt', [
           'title' => 'Sign In using '.getenv('APP_NAME'),
-          'me' => $_SESSION['me'],
+          'me' => $_SESSION['expected_me'] ?? '',
           'code' => $code,
           'client_id' => $client_id,
           'redirect_uri' => $redirect_uri,
@@ -187,9 +187,8 @@ class Authenticate {
       }
 
       // Store the canonical URL of the user
-      $_SESSION['expected_me'] = $profile['me'];
-      $_SESSION['me_entered_final'] = $profile['final_url'];
-      $login_request['me'] = $profile['me'];
+      $_SESSION['expected_me'] = $profile['final_url'];
+      $login_request['me'] = $profile['final_url'];
 
       $rels = $profile['rels'];
 

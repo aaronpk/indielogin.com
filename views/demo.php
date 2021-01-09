@@ -4,7 +4,7 @@
 
     <main>
       <h2 class="cover-heading">Congrats!</h2>
-      <p class="lead">You successfully authenticated as <?= $me ?></p>
+      <p class="lead">You successfully authenticated as <b><?= $me ?></b></p>
       <p><a href="/">Back</a></p>
     </main>
 

@@ -99,10 +99,10 @@ trait IndieAuth {
     }
 
     // Make sure "me" returned matches the original or shares an authorization endpoint
-    if($_SESSION['me_entered_final'] != $auth['me']) {
+    if($_SESSION['expected_me'] != $auth['me']) {
       $newAuthorizationEndpoint = \IndieAuth\Client::discoverAuthorizationEndpoint($auth['me']);
 
-      $userlog->info('Entered URL ('.$_SESSION['me_entered_final'].') was different than resulting URL ('.$auth['me'].'), verifying authorization server');
+      $userlog->info('Entered URL ('.$_SESSION['expected_me'].') was different than resulting URL ('.$auth['me'].'), verifying authorization server');
 
       if($_SESSION['login_request']['authorization_endpoint'] != $newAuthorizationEndpoint) {
         $userlog->warning('IndieAuth user mismatch', ['response' => $auth, 'expected' => $_SESSION['expected_me']]);
@@ -114,7 +114,7 @@ trait IndieAuth {
 
     $_SESSION['authorization_endpoint'] = $_SESSION['login_request']['authorization_endpoint'];
 
-    // Override the expected "me" with whatever the IndieAuth server returned, since we know it's on the same domain
+    // Override the expected "me" with whatever the IndieAuth server returned, since we know it's valid now
     $_SESSION['expected_me'] = $auth['me'];
 
     $userlog->info('Successful IndieAuth login', ['me' => $auth['me']]);

@@ -32,6 +32,11 @@ class Controller {
     $login = json_decode($login, true);
 
     $log = ORM::for_table('logins')->where('code', $params['code'])->find_one();
+
+    if(!$log) {
+      return $response->withHeader('Location', '/?error=code_expired')->withStatus(302);
+    }
+
     $log->complete = 1;
     $log->date_complete = date('Y-m-d H:i:s');
     $log->code = '';
