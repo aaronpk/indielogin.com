@@ -123,7 +123,7 @@ class Authenticate {
       // If the developer isn't expecting a particular user, use the session user if present
       $response->getBody()->write(view('auth/login-form', [
         'title' => 'Sign In using '.getenv('APP_NAME'),
-        'me' => $_SESSION['expected_me'] ?? '',
+        'me' => $_SESSION['me'] ?? '',
         'client_id' => $client_id,
         'redirect_uri' => $redirect_uri,
         'state' => $state,
@@ -131,10 +131,23 @@ class Authenticate {
       return $response;
     } else {
 
+      // Verify the "me" parameter is a URL
+      if(!\p3k\url\is_url($params['me'])) {
+        $userlog->info('Invalid "me" entered', ['me' => $params['me']]);
+        return $this->_userError($response, 'You entered something that doesn\'t look like a URL. Please go back and try again.');
+      }
+
+      $_SESSION['me_entered'] = $params['me'];
+
+      // Fetch the user's home page now
+      $profile = fetch_profile($params['me']);
+
       // If the user-entered 'me' is the same as the one in the session, skip authentication and show a prompt
-      // But don't show this prompt to people who have an authorization endpoint
+      // But don't show this prompt to people who have an authorization endpoint or if prompt=login
       if(!isset($_SESSION['authorization_endpoint'])
-        && isset($_SESSION['me']) && $_SESSION['me'] == $params['me']) {
+        && (($_GET['prompt'] ?? false) != 'login')
+        && isset($_SESSION['me']) && $_SESSION['me'] == $profile['final_url']) {
+
         $switch_account = '/auth?'.http_build_query([
           'action' => 'logout',
           'client_id' => $client_id,
@@ -163,16 +176,7 @@ class Authenticate {
       // Otherwise, drop the session 'me' and make the user authenticate again
       unset($_SESSION['me']);
 
-      // Verify the "me" parameter is a URL
-      if(!\p3k\url\is_url($params['me'])) {
-        $userlog->info('Invalid "me" entered', ['me' => $params['me']]);
-        return $this->_userError($response, 'You entered something that doesn\'t look like a URL. Please go back and try again.');
-      }
 
-      $_SESSION['me_entered'] = $params['me'];
-
-      // Fetch the user's home page now
-      $profile = fetch_profile($params['me']);
 
       $errors = [];
 
