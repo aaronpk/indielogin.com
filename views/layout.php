@@ -33,9 +33,11 @@
         <li class="nav-item">
           <a class="nav-link" href="/setup">Setup</a>
         </li>
+        <!--
         <li class="nav-item">
           <a class="nav-link" href="/api">Developers</a>
         </li>
+        -->
         <li class="nav-item">
           <a class="nav-link" href="/faq">FAQ</a>
         </li>
@@ -46,10 +48,9 @@
     </div>
   </nav>
 
-  <div class="alert alert-info" style="margin: 1em;">This site is currently in Beta. Please report any errors <a href="https://github.com/aaronpk/IndieLogin.com">on GitHub</a>.</div>
-
-
   <?= $this->section('content')?>
+
+  <div class="alert alert-info" style="margin: 1em;">If you have any trouble using this service, please open an issue <a href="https://github.com/aaronpk/IndieLogin.com">on GitHub</a>.</div>
 
   <?php if(!isset($nofooter)): ?>
   <footer class="footer">
