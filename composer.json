@@ -16,7 +16,8 @@
         "php-http/guzzle6-adapter": "^1.1",
         "j4mie/idiorm": "^1.5",
         "michelf/php-markdown": "^1.8",
-        "vlucas/phpdotenv": "^4.1"
+        "vlucas/phpdotenv": "^4.1",
+        "masterminds/html5": "^2.7"
     },
     "autoload": {
       "psr-4": {
