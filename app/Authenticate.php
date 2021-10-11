@@ -498,7 +498,7 @@ class Authenticate {
           'username' => $match[1],
           'display' => 'twitter.com/'.$match[1],
         ];
-      } elseif(preg_match('~^mailto:(.+)$~', $url, $match)) {
+      } elseif(preg_match('~^mailto:(.+\@.+?)(\?.*)?$~', $url, $match)) {
         $supported[] = [
           'provider' => 'email',
           'email' => $match[1],
