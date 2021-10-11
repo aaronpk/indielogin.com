@@ -10,19 +10,31 @@
     <p>Instead of making a new account here, we'll take advantage of some accounts you may already have in order to authenticate you. You can always choose the services you use to log in, and the site you're logging in to won't have access to them.</p>
   </div>
 
+  <section id="indieauth" class="h-entry">
+    <h3 class="p-name">IndieAuth</h3>
+
+    <p>If your website supports <a href="https://indieweb.org/IndieAuth">IndieAuth</a>, then this site will use your IndieAuth server automatically! No further setup is needed, and you don't need to add any other social profiles to your site.</p>
+    <p><a href="https://micro.blog/">Micro.blog</a> supports IndieAuth out of the box, no configuration is necessary. Try logging in using your Micro.blog address.</p>
+    <p>If your site is running WordPress, you can install the <a href="https://wordpress.org/plugins/indieauth/">IndieAuth WordPress plugin</a>.</p>
+    <p>If you would like to build IndieAuth support into your own website, the links below will help:
+       <ul>
+         <li><a href="https://aaronparecki.com/2018/07/07/7/oauth-for-the-open-web">IndieAuth: OAuth for the Open Web</a></li>
+         <li><a href="https://indieauth.spec.indieweb.org/">The IndieAuth Spec</a></li>
+      </ul>
+    </p>
+  </section>
 
   <section id="supported-providers" class="h-entry">
     <h2 class="p-name">Add links to your existing profiles</h2>
 
     <div class="e-content">
-      <p>This site supports authenticating using the following providers:</p>
+      <p>If your website is not already an IndieAuth provider, this site can authenticate you using the following providers:</p>
 
       <ul>
         <li><a href="#twitter">Twitter</a></li>
         <li><a href="#github">GitHub</a></li>
         <li><a href="#email">Email Address</a></li>
         <li><a href="#pgp">PGP Key</a></li>
-        <li><a href="#indieauth">Your IndieAuth Server</a></li>
       </ul>
     </div>
   </section>
@@ -65,18 +77,6 @@
     <p>If you don't want to use any existing accounts to authenticate, you can use a PGP key and sign a challenge while logging in instead. You'll just need to link to your PGP key from your website.</p>
 
     <p><pre><?= e('<a href="/key.txt" rel="pgpkey authn">PGP Key</a>') ?></pre></p>
-  </section>
-
-  <section id="indieauth" class="h-entry">
-    <h3 class="p-name">IndieAuth</h3>
-
-    <p>If your website supports <a href="https://indieweb.org/IndieAuth">IndieAuth</a>, then this site will use your IndieAuth server automatically! No further setup is needed, and you don't need to add any other social profiles to your site.</p>
-    <p>What is IndieAuth? These links might help give you an idea:
-       <ul>
-         <li><a href="https://aaronparecki.com/2018/07/07/7/oauth-for-the-open-web">IndieAuth: OAuth for the Open Web</a></li>
-         <li><a href="https://indieauth.spec.indieweb.org/">The IndieAuth Spec</a></li>
-      </ul>
-    </p>
   </section>
 
 
