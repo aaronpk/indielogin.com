@@ -1054,16 +1054,16 @@
         },
         {
             "name": "p3k/http",
-            "version": "0.1.7",
+            "version": "0.1.12",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aaronpk/p3k-http.git",
-                "reference": "1826647c4902a18dea5ec532f21509ba4d51210b"
+                "reference": "cf9c5b7cdbe1800bfb9587a20953ed8d20322e0b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aaronpk/p3k-http/zipball/1826647c4902a18dea5ec532f21509ba4d51210b",
-                "reference": "1826647c4902a18dea5ec532f21509ba4d51210b",
+                "url": "https://api.github.com/repos/aaronpk/p3k-http/zipball/cf9c5b7cdbe1800bfb9587a20953ed8d20322e0b",
+                "reference": "cf9c5b7cdbe1800bfb9587a20953ed8d20322e0b",
                 "shasum": ""
             },
             "require": {
@@ -1088,7 +1088,11 @@
             ],
             "description": "A simple wrapper API around the PHP curl functions",
             "homepage": "https://github.com/aaronpk/p3k-http",
-            "time": "2018-03-04T15:21:58+00:00"
+            "support": {
+                "issues": "https://github.com/aaronpk/p3k-http/issues",
+                "source": "https://github.com/aaronpk/p3k-http/tree/0.1.12"
+            },
+            "time": "2021-10-12T14:12:29+00:00"
         },
         {
             "name": "p3k/utils",
@@ -2138,5 +2142,5 @@
     "prefer-lowest": false,
     "platform": [],
     "platform-dev": [],
-    "plugin-api-version": "2.0.0"
+    "plugin-api-version": "2.1.0"
 }
