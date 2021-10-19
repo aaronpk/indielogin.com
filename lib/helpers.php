@@ -199,10 +199,20 @@ function fetch_profile($me) {
 
   // Get the final URL
   $final_url = $me;
+  $final_profile_url = $me;
   if(count($redirects)) {
+    foreach($redirects as $r) {
+      if($r['code'] == 302) {
+        // Abort on temporary redirects
+        break;
+      } else {
+        $final_profile_url = $r['to'];
+      }
+    }
     $final_url = $redirects[count($redirects)-1]['to'];
   }
   $final_url = \IndieAuth\Client::normalizeMeURL($final_url);
+  $final_profile_url = \IndieAuth\Client::normalizeMeURL($final_profile_url);
 
   // Parse the resulting body for rel me/authn/authorization_endpoint
   $body = ''.$res->getBody();
@@ -225,7 +235,7 @@ function fetch_profile($me) {
     'code' => $res->getStatusCode(),
     'me' => $me,
     'me_entered' => $original_me,
-    'final_url' => $final_url,
+    'final_url' => $final_profile_url,
     'rels' => [
       'me' => $rels['me'] ?? [],
       'authn' => $rels['authn'] ?? [],
