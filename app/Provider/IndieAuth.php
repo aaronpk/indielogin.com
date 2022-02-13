@@ -104,9 +104,14 @@ trait IndieAuth {
 
       $userlog->info('Entered URL ('.$_SESSION['expected_me'].') was different than resulting URL ('.$auth['me'].'), verifying authorization server');
 
+      if(!$newAuthorizationEndpoint) {
+        $userlog->warning('No authorization endpoint found', ['response' => $auth, 'expected' => $_SESSION['expected_me']]);
+        return $this->_userError($response, 'Error verifying the login attempt. Could not find an authorization endpoint at the profile URL returned (<b>'.$auth['me'].'</b>)');
+      }
+
       if($_SESSION['login_request']['authorization_endpoint'] != $newAuthorizationEndpoint) {
         $userlog->warning('IndieAuth user mismatch', ['response' => $auth, 'expected' => $_SESSION['expected_me']]);
-        return $this->_userError($response, 'It looks like a different user signed in. The user <b>'.$auth['me'].'</b> signed in, but we were expecting <b>'.$_SESSION['expected_me'].'</b>');
+        return $this->_userError($response, 'Error verifying the login attempt. The profile URL returned (<b>'.$auth['me'].'</b>) doesn\'t have the same authorization endpoint found at <b>'.$_SESSION['expected_me'].'</b>');
       }
     }
 
