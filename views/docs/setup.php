@@ -42,6 +42,8 @@
   <section id="twitter" class="h-entry">
     <h3>Twitter</h3>
 
+    <div class="alert alert-danger">Twitter logins are disabled now due to Twitter revoking this website's API keys.</div>
+
     <div class="e-content">
       <p>To use Twitter, link to your Twitter profile on your home page.</p>
 
