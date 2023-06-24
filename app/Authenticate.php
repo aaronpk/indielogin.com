@@ -480,25 +480,25 @@ class Authenticate {
     $supported = [];
 
     foreach($rels[$mode] as $url) {
-      if(preg_match('~^https?://(?:www\.)?github\.com/([a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38})$~', $url, $match)) {
+      if(getenv('GITHUB_CLIENT_ID') && preg_match('~^https?://(?:www\.)?github\.com/([a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38})$~', $url, $match)) {
         $supported[] = [
           'provider' => 'github',
           'username' => $match[1],
           'display' => 'github.com/'.$match[1],
         ];
-      } elseif(preg_match('~^https?://(?:www\.)?twitter\.com/([a-zA-Z0-9_]{1,20})$~', $url, $match)) {
+      } elseif(getenv('TWITTER_CLIENT_ID') && preg_match('~^https?://(?:www\.)?twitter\.com/([a-zA-Z0-9_]{1,20})$~', $url, $match)) {
         $supported[] = [
           'provider' => 'twitter',
           'username' => $match[1],
           'display' => 'twitter.com/'.$match[1],
         ];
-      } elseif(preg_match('~https?://(?:www\.)?twitter\.com/intent/user\?screen_name=([a-zA-Z0-9_]{1,20})$~', $url, $match)) {
+      } elseif(getenv('TWITTER_CLIENT_ID') && preg_match('~https?://(?:www\.)?twitter\.com/intent/user\?screen_name=([a-zA-Z0-9_]{1,20})$~', $url, $match)) {
         $supported[] = [
           'provider' => 'twitter',
           'username' => $match[1],
           'display' => 'twitter.com/'.$match[1],
         ];
-      } elseif(preg_match('~^mailto:(.+\@.+?)(\?.*)?$~', $url, $match)) {
+      } elseif(getenv('MAILGUN_KEY') && preg_match('~^mailto:(.+\@.+?)(\?.*)?$~', $url, $match)) {
         $supported[] = [
           'provider' => 'email',
           'email' => $match[1],
