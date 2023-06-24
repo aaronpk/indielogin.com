@@ -480,7 +480,7 @@ class Authenticate {
     $supported = [];
 
     foreach($rels[$mode] as $url) {
-      if(getenv('GITHUB_CLIENT_ID') && preg_match('~^https?://(?:www\.)?github\.com/([a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38})$~', $url, $match)) {
+      if(getenv('GITHUB_CLIENT_ID') && preg_match('~^https?://(?:www\.)?github\.com/([a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38})/?$~', $url, $match)) {
         $supported[] = [
           'provider' => 'github',
           'username' => $match[1],
