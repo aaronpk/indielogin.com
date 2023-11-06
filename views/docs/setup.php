@@ -34,7 +34,7 @@
         <li><a href="#twitter">Twitter</a></li>
         <li><a href="#github">GitHub</a></li>
         <li><a href="#email">Email Address</a></li>
-        <li><a href="#pgp">PGP Key</a></li>
+        <!-- <li><a href="#pgp">PGP Key</a></li> -->
       </ul>
     </div>
   </section>
@@ -75,6 +75,8 @@
 
   <section id="pgp" class="h-entry">
     <h3 class="p-name">PGP Key</h3>
+
+    <div class="alert alert-warning">Sorry, I'm having issues with the PGP method so I'm turning this off for now.</div>
 
     <p>If you don't want to use any existing accounts to authenticate, you can use a PGP key and sign a challenge while logging in instead. You'll just need to link to your PGP key from your website.</p>
 
