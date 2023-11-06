@@ -127,8 +127,8 @@ function get_absolute_uri($href, $url) {
 function urls_are_equivalent($a, $b) {
   $a = parse_url($a);
   $b = parse_url($b);
-  $a = p3k\utils\build_url($a);
-  $b = p3k\utils\build_url($b);
+  $a = p3k\url\build_url($a);
+  $b = p3k\url\build_url($b);
   return $a == $b;
 }
 
