@@ -507,7 +507,7 @@ class Authenticate {
       }
     }
 
-    if(getenv($_ENV['PGP_VERIFICATION_API'])) {
+    if(getenv('PGP_VERIFICATION_API')) {
       foreach($rels['pgpkey'] as $url) {
         if($mode == 'me' || ($mode == 'authn' && in_array($url, $rels['authn']))) {
           $supported[] = [
