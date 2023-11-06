@@ -90,6 +90,12 @@ trait GitHub {
     // Follow redirects on their bio URL in case they link to the non-canonical version of their URL
     $expanded_url = $profile['blog'];
     if($expanded_url) {
+
+      // Assume https if no scheme was entered in their github profile
+      if(!preg_match('/^https?:\/\//', $expanded_url)) {
+        $expanded_url = 'https://'.$expanded_url;
+      }
+
       $expanded_url = fetch_profile($expanded_url);
 
       if(($expanded_url['me'] ?? false) == $_SESSION['expected_me'])
