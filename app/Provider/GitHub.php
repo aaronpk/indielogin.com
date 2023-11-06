@@ -99,7 +99,7 @@ trait GitHub {
       $expanded_url = fetch_profile($expanded_url);
 
       if(!empty($expanded_url['me']))
-        if(urls_are_equivalent($expanded_url['me'], $_SESSION['expected_me'])
+        if(urls_are_equivalent($expanded_url['me'], $_SESSION['expected_me']))
           $verified = true;
     }
 
