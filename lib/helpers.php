@@ -123,6 +123,15 @@ function get_absolute_uri($href, $url) {
   return \Mf2\resolveUrl($url, $href);
 }
 
+// Compare URLs for equality, with case-insensitive hostname checking
+function urls_are_equivalent($a, $b) {
+  $a = parse_url($a);
+  $b = parse_url($b);
+  $a = p3k\utils\build_url($a);
+  $b = p3k\utils\build_url($b);
+  return $a == $b;
+}
+
 function fetch_profile($me) {
 
   $client = new \GuzzleHttp\Client();

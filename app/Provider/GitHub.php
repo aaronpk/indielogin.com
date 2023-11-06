@@ -98,8 +98,9 @@ trait GitHub {
 
       $expanded_url = fetch_profile($expanded_url);
 
-      if(($expanded_url['me'] ?? false) == $_SESSION['expected_me'])
-        $verified = true;
+      if(!empty($expanded_url['me']))
+        if(urls_are_equivalent($expanded_url['me'], $_SESSION['expected_me'])
+          $verified = true;
     }
 
     if(!$verified) {
@@ -116,7 +117,7 @@ trait GitHub {
 
       $social = json_decode($result['body'], true);
       foreach($social as $s) {
-        if($s['url'] == $_SESSION['expected_me'])
+        if(urls_are_equivalent($s['url'], $_SESSION['expected_me']))
           $verified = true;
       }
     }
