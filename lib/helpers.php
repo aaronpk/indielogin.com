@@ -202,7 +202,7 @@ function fetch_profile($me) {
   $final_profile_url = $me;
   if(count($redirects)) {
     foreach($redirects as $r) {
-      if($r['code'] == 302) {
+      if($r['code'] == 302 || $r['code'] == 307) {
         // Abort on temporary redirects
         break;
       } else {
