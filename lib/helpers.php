@@ -123,10 +123,14 @@ function get_absolute_uri($href, $url) {
   return \Mf2\resolveUrl($url, $href);
 }
 
-// Compare URLs for equality, with case-insensitive hostname checking
+// Compare URLs for equality, with case-insensitive hostname checking.
+// We should probably replace this with another library but I couldn't
+// find a good one that I trust right now.
 function urls_are_equivalent($a, $b) {
   $a = parse_url($a);
   $b = parse_url($b);
+  if(!empty($a['host'])) $a['host'] = strtolower($a['host']);
+  if(!empty($b['host'])) $b['host'] = strtolower($b['host']);
   $a = p3k\url\build_url($a);
   $b = p3k\url\build_url($b);
   return $a == $b;
