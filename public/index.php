@@ -1,18 +1,17 @@
 <?php
-chdir('..');
-include('vendor/autoload.php');
+require __DIR__ . '/../vendor/autoload.php';
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 $container = new League\Container\Container;
-$container->share('response', Zend\Diactoros\Response::class);
+$container->share('response', \Laminas\Diactoros\Response::class);
 $container->share('request', function () {
-  return Zend\Diactoros\ServerRequestFactory::fromGlobals(
+  return \Laminas\Diactoros\ServerRequestFactory::fromGlobals(
       $_SERVER, $_GET, $_POST, $_COOKIE, $_FILES
   );
 });
-$container->share('emitter', Zend\Diactoros\Response\SapiEmitter::class);
+$container->share('emitter', \Laminas\HttpHandlerRunner\Emitter\SapiEmitter::class);
 
 initdb();
 
