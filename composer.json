@@ -30,5 +30,11 @@
     },
     "config": {
         "sort-packages": true
+    },
+    "scripts": {
+        "start": [
+            "Composer\\Config::disableProcessTimeout",
+            "php -S localhost:8080 public/index.php public/"
+        ]
     }
 }
