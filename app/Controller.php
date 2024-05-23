@@ -14,6 +14,19 @@ class Controller {
     ]));
     return $response;
   }
+  
+  public function client_metadata(ServerRequestInterface $request, ResponseInterface $response) {
+    $response->getBody()->write(json_encode([
+      'client_id' => getenv('BASE_URL').'id',
+      'client_name' => getenv('APP_NAME'),
+      'client_uri' => getenv('BASE_URL'),
+      'logo_uri' => getenv('BASE_URL').'icons/apple-touch-icon.png',
+      'redirect_uris' => [
+        getenv('BASE_URL').'redirect/indieauth',
+      ],
+    ]));
+    return $response->withHeader('Content-type', 'application/json');
+  }
 
   public function demo(ServerRequestInterface $request, ResponseInterface $response) {
     $params = $request->getQueryParams();
