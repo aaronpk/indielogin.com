@@ -6,7 +6,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Config;
 
 trait IndieAuth {
-
+  
   private function _start_indieauth(&$response, $login_request, $details) {
     $userlog = make_logger('user');
 
@@ -16,7 +16,7 @@ trait IndieAuth {
     $authorize = \IndieAuth\Client::buildAuthorizationURL($details['authorization_endpoint'], [
       'me' => $login_request['me'],
       'redirect_uri' => getenv('BASE_URL').'redirect/indieauth',
-      'client_id' => getenv('BASE_URL'),
+      'client_id' => getenv('BASE_URL').'id',
       'state' => $state,
       'code_verifier' => $code_verifier,
     ]);
@@ -62,7 +62,7 @@ trait IndieAuth {
     $params = [
       'grant_type' => 'authorization_code',
       'code' => $query['code'],
-      'client_id' => getenv('BASE_URL'),
+      'client_id' => getenv('BASE_URL').'id',
       'redirect_uri' => getenv('BASE_URL').'redirect/indieauth',
       'code_verifier' => $_SESSION['code_verifier'],
     ];
