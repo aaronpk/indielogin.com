@@ -26,6 +26,9 @@
   </div>
 </div>
 
+<script src="/assets/fedcm.js"></script>
+
+
 <div class="container container-full marketing">
 
 
