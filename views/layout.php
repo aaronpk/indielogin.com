@@ -14,7 +14,7 @@
   <script src="/assets/bootstrap-4.1.0/js/bootstrap.min.js"></script>
   <script src="/assets/script.js"></script>
 
-  <?php include('views/components/favicon.php') ?>
+  <?php require __DIR__ . '/components/favicon.php' ?>
 
   <title><?= e($title) ?></title>
 </head>
