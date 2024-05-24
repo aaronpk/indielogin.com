@@ -11,6 +11,7 @@ class Authenticate {
   use Provider\GitHub;
   use Provider\Twitter;
   use Provider\IndieAuth;
+  use Provider\FedCM;
   use Provider\Email;
   use Provider\PGP;
 
@@ -430,8 +431,21 @@ class Authenticate {
   }
 
   private function _finishAuthenticate(&$response) {
+    $redirect = $this->_processFinishedAuthentication($response);
+    return $this->_sendFinishRedirect($response, $redirect);
+  }
+
+  private function _finishAuthenticateJSON(&$response) {
+    $redirect = $this->_processFinishedAuthentication($response);
+    $response->getBody()->write(json_encode([
+      'redirect' => $redirect,
+    ]));
+    return $response->withHeader('Content-type', 'application/json')->withStatus(200);
+  }
+
+  private function _processFinishedAuthentication(&$response) {
     if(!isset($_SESSION['login_request'])) {
-      return $response->withHeader('Location', '/')->withStatus(302);
+      return '/';
     }
 
     // Generate a temporary authorization code to store the user details
@@ -439,7 +453,7 @@ class Authenticate {
 
     $params = [
       'code' => $code,
-      'state' => $_SESSION['login_request']['state'],
+      'state' => $_SESSION['login_request']['state'] ?? null,
     ];
 
     $redirect = \p3k\url\add_query_params_to_url($_SESSION['login_request']['redirect_uri'], $params);
@@ -463,7 +477,11 @@ class Authenticate {
     $login->save();
 
     unset($_SESSION['login_request']);
-
+    
+    return $redirect;
+  }
+  
+  private function _sendFinishRedirect(&$response, $redirect) {
     return $response->withHeader('Location', $redirect)->withStatus(302);
   }
 

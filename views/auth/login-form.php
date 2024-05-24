@@ -21,6 +21,7 @@
   </div>
 
 </div>
+<script src="/assets/fedcm.js"></script>
 <script>
 $(function(){
   // Save the URL entered and restore it next time they come back

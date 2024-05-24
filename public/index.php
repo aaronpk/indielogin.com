@@ -26,12 +26,12 @@ $route->map('GET', '/privacy-policy', 'App\\Controller::privacy');
 $route->map('GET', '/debug', 'App\\Controller::debug');
 $route->map('GET', '/demo', 'App\\Controller::demo');
 
+$route->map('GET', '/id', 'App\\Controller::client_metadata'); # IndieAuth client metadata
+
 $route->map('GET', '/auth', 'App\\Authenticate::start')->setStrategy(new App\CORSStrategy);
 $route->map('GET', '/select', 'App\\Authenticate::select');
 $route->map('POST', '/auth', 'App\\Authenticate::verify')->setStrategy(new App\CORSStrategy);
 $route->map('POST', '/select', 'App\\Authenticate::post_select');
-
-$route->map('GET', '/id', 'App\\Controller::client_metadata');
 
 $route->map('GET', '/redirect/github', 'App\\Authenticate::redirect_github');
 $route->map('GET', '/redirect/twitter', 'App\\Authenticate::redirect_twitter');
@@ -40,6 +40,9 @@ $route->map('GET', '/redirect/indieauth', 'App\\Authenticate::redirect_indieauth
 $route->map('POST', '/auth/send_email', 'App\\Authenticate::send_email');
 $route->map('POST', '/auth/verify_email_code', 'App\\Authenticate::verify_email_code');
 $route->map('POST', '/auth/verify_pgp_challenge', 'App\\Authenticate::verify_pgp_challenge');
+
+$route->map('POST', '/fedcm/start', 'App\\Authenticate::fedcm_start');
+$route->map('POST', '/fedcm/login', 'App\\Authenticate::fedcm_login');
 
 
 $templates = new League\Plates\Engine(dirname(__FILE__).'/../views');
