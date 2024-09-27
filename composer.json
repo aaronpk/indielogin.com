@@ -1,4 +1,5 @@
 {
+    "name": "aaronpk/indielogin",
     "require": {
         "abraham/twitteroauth": "^6.2.0",
         "guzzlehttp/guzzle": "^6.3",

@@ -4,3 +4,6 @@ lib/config.php
 .env
 logs/
 pgp/data/
+
+# nix
+/result
