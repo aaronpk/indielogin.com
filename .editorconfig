@@ -1,0 +1,30 @@
+# EditorConfig helps keep your project formatting consistent.
+# See https://EditorConfig.org
+#
+# PHP PSR-2 Coding Standards
+# http://www.php-fig.org/psr/psr-2/
+#
+# Author: Sal Ferrarello (@salcode)
+#
+# You can download this file directly
+# to your project from the command-line with
+# curl -O https://gist.githubusercontent.com/salcode/18eaa8cfa3b097da2f58b582197906d7/raw/.editorconfig
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.php]
+indent_size = 4
+
+[*.(json|lock)]
+indent_size = 4
+
+[*.md]
+trim_trailing_whitespace = false
