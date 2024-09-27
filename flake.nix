@@ -2,13 +2,10 @@
   description = "flake for indielogin";
 
   inputs = {
-    dream2nix.url = "github:nix-community/dream2nix";
-    nixpkgs.follows = "dream2nix/nixpkgs";
+    nixpkgs.url = "nixpkgs/nixpkgs-unstable";
     parts.url = "github:hercules-ci/flake-parts";
     systems.url = "github:nix-systems/x86_64-linux";
     process-compose.url = "github:Platonic-Systems/process-compose-flake";
-    phps.url = "github:fossar/nix-phps";
-    phps.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = inp:
@@ -17,7 +14,9 @@
       imports = [
         inp.process-compose.flakeModule
       ];
-      perSystem = {self', system, pkgs, ...}: {
+      perSystem = {self', pkgs, lib, ...}: let
+        phpPkg = pkgs.php82;
+      in {
         apps = {
           dev = {
             type = "app";
@@ -26,22 +25,23 @@
           default = self'.apps.dev;
         };
         packages = {
-          indielogin = 
-            inp.dream2nix.lib.evalModules {
-              packageSets.nixpkgs = inp.nixpkgs.legacyPackages.${system};
-              modules = [
-                ./default.nix
-                {
-                  paths.projectRoot = ./.;
-                  paths.projectRootFile = "composer.json";
-                  paths.package = ./.;
-                }
-              ];
+          indielogin = phpPkg.buildComposerProject {
+            pname = "indielogin";
+            version = "0.0.1";
+
+            composerStrictValidation = false;
+            src = builtins.path {
+              name = "indielogin-src";
+              path = ./.;
+              # dont add nix stuff to source
+              filter = p: _: ! (lib.hasSuffix ".nix" (baseNameOf p) || baseNameOf p == "flake.lock");
             };
+
+            vendorHash = "sha256-PrqC3RitzEhiul5VXYlvqN/rNb6KizAYVstQzfXRXTo=";
+          };
           default = self'.packages.indielogin;
         };
         process-compose."indielogin-start-dev" = let
-          phpPkg = inp.phps.packages.${system}.php82;
           phpIni = pkgs.writers.writeText "php.ini" ''
             date.timezone = "Europe/Istanbul"
             mbstring.internal_encoding = "UTF-8"
@@ -54,7 +54,7 @@
 
             http://localhost:8080
 
-            root * public
+            root * ${self'.packages.indielogin}/share/php/indielogin/public
             php_fastcgi 127.0.0.1:9000
           '';
         in {
@@ -64,8 +64,6 @@
               runtimeInputs = with pkgs; [coreutils gnused phpPkg phpPkg.packages.composer];
               text = ''
                 set -x
-                # first install composer
-                composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
                 # setup all the paths we will use as variables
                 phpfpmConfigDir="$(mktemp -d)"
                 phpfpmConfig="$phpfpmConfigDir/php-fpm.conf"
@@ -88,10 +86,8 @@
               name = "caddy-dev";
               runtimeInputs = with pkgs; [coreutils caddy];
               text = ''
-                caddyfile="$(mktemp -u)"
-                cp -f --no-preserve=ownership,mode ${caddyfile} "$caddyfile"
-                sed -i "s|public|$(pwd)/public|g" "$caddyfile"
-                exec caddy run --adapter caddyfile --config "$caddyfile"
+                set -x
+                exec caddy run --adapter caddyfile --config ${caddyfile}
               '';
             };
 
