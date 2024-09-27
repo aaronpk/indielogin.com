@@ -40,6 +40,7 @@
                 filter = p: _: !(lib.hasSuffix ".nix" (baseNameOf p) || baseNameOf p == "flake.lock");
               };
 
+              # NOTE: should be updated when composer.lock changes
               vendorHash = "sha256-PrqC3RitzEhiul5VXYlvqN/rNb6KizAYVstQzfXRXTo=";
             };
             default = self'.packages.indielogin-run;
