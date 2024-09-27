@@ -97,6 +97,7 @@
 
                 root * ${indieloginWithDotEnv}/share/php/indielogin/public
                 php_fastcgi 127.0.0.1:9000
+                file_server
               '';
             in
             {
