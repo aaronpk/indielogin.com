@@ -37,26 +37,28 @@
                 name = "indielogin-src";
                 path = ./.;
                 # dont add nix stuff to source
-                filter = let
-                  pathsFilter = [
-                    "README.md"
-                    "flake.nix"
-                    "flake.lock"
-                    "pgp"
-                  ];
-                in
-                  p: _: ! (lib.any (op: baseNameOf p == op) pathsFilter);
+                filter =
+                  let
+                    pathsFilter = [
+                      "README.md"
+                      "flake.nix"
+                      "flake.lock"
+                      "pgp"
+                    ];
+                  in
+                  p: _: !(lib.any (op: baseNameOf p == op) pathsFilter);
               };
 
               # NOTE: should be updated when composer.lock changes
               vendorHash = "sha256-PrqC3RitzEhiul5VXYlvqN/rNb6KizAYVstQzfXRXTo=";
             };
-            pgp = let
-              gems = pkgs.bundlerEnv {
-                name = "pgp";
-                gemdir = ./pgp;
-              };
-            in
+            pgp =
+              let
+                gems = pkgs.bundlerEnv {
+                  name = "pgp";
+                  gemdir = ./pgp;
+                };
+              in
               pkgs.stdenv.mkDerivation {
                 pname = "pgp";
                 version = "0.0.1";
@@ -162,7 +164,11 @@
 
                 pgp-verify.command = pkgs.writeShellApplication {
                   name = "pgp-verify-dev";
-                  runtimeInputs = with pkgs; [coreutils self'.packages.pgp trurl];
+                  runtimeInputs = with pkgs; [
+                    coreutils
+                    self'.packages.pgp
+                    trurl
+                  ];
                   text = ''
                     # source dot env
                     [[ -f "$DOTENV_PATH" ]] && export "$(xargs < "$DOTENV_PATH")"
