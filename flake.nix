@@ -27,13 +27,6 @@
         in
         {
           formatter = pkgs.nixfmt-rfc-style;
-          apps = {
-            dev = {
-              type = "app";
-              program = "${self'.packages.indielogin-start-dev}/bin/indielogin-start-dev";
-            };
-            default = self'.apps.dev;
-          };
           packages = {
             indielogin = phpPkg.buildComposerProject {
               pname = "indielogin";
@@ -49,9 +42,9 @@
 
               vendorHash = "sha256-PrqC3RitzEhiul5VXYlvqN/rNb6KizAYVstQzfXRXTo=";
             };
-            default = self'.packages.indielogin;
+            default = self'.packages.indielogin-run;
           };
-          process-compose."indielogin-start-dev" =
+          process-compose."indielogin-run" =
             let
               phpIni = pkgs.writers.writeText "php.ini" ''
                 date.timezone = "UTC"
@@ -63,7 +56,7 @@
                   auto_https off
                 }
 
-                http://localhost:8080
+                %baseurl%
 
                 root * %rootpath%/public
                 php_fastcgi 127.0.0.1:9000
@@ -71,7 +64,10 @@
               '';
             in
             {
-              settings.environment.DOTENV_PATH = ".env";
+              settings.environment = {
+                DOTENV_PATH = ".env";
+                MYSQL_DATA_PATH = "mysql-data";
+              };
               settings.processes = {
                 php-fpm.command = pkgs.writeShellApplication {
                   name = "php-fpm-dev";
@@ -104,6 +100,7 @@
                   name = "caddy-dev";
                   runtimeInputs = with pkgs; [
                     coreutils
+                    findutils
                     caddy
                   ];
                   text = ''
@@ -116,9 +113,13 @@
                     # copy all the contents we want to serve to new root path
                     cp -r --no-preserve=ownership,mode ${self'.packages.indielogin}/share/php/indielogin/* "$rootpath"
                     # make sure dotenv is present in the rootpath we are serving
-                    [[ -f "$DOTENV_PATH" ]] && cp "$DOTENV_PATH" "$rootpath"
-                    # set root path in caddyfile to our newly created one
+                    # and also source the dotenv while we are at it (also dont log this cause it will have secrets in it)
+                    set +x
+                    [[ -f "$DOTENV_PATH" ]] && (cp "$DOTENV_PATH" "$rootpath" && export "$(xargs < "$DOTENV_PATH")")
+                    set -x
+                    # set root path and base url in caddyfile to our newly created one
                     sed -i "s|%rootpath%|$rootpath|g" "$caddyfile"
+                    sed -i "s|%baseurl%|$BASE_URL|g"  "$caddyfile"
                     # finally run caddy with the caddyfile we modified
                     exec caddy run --adapter caddyfile --config "$caddyfile"
                   '';
@@ -129,10 +130,17 @@
                   runtimeInputs = with pkgs; [
                     coreutils
                     redis
+                    util-linux
                   ];
                   text = ''
+                    # source dot env
+                    [[ -f "$DOTENV_PATH" ]] && export "$(xargs < "$DOTENV_PATH")"
                     set -x
-                    exec redis-server --port 6379 --loglevel notice
+                    [[ -z "$REDIS_URL" ]] && echo "redis url not set, aborting" && exit 1
+                    # split on colon delimeter and choose the latest item which should be our port
+                    port="$(printf '%s' "$REDIS_URL" | rev | cut -d ':' -f 1 | rev)"
+                    # run redis with the port we got
+                    exec redis-server --port "$port" --loglevel notice
                   '';
                 };
 
@@ -144,8 +152,13 @@
                   ];
                   text = ''
                     set -x
-                    mysqlData="$(pwd)/mysql-data"
-                    # only create db if we already didnt create it
+                    mysqlData="$MYSQL_DATA_PATH"
+                    [[ -z "$mysqlData" ]] && echo "mysql data path not set, aborting" && exit 1
+                    # make mysqlData an absolute path if its not already
+                    if [[ "$mysqlData" != /* ]]; then
+                      mysqlData="$(pwd)/$mysqlData"
+                    fi
+                    # only create db if the path requested does not exist
                     [[ -d "$mysqlData" ]] || (mkdir "$mysqlData" && mysql_install_db --ldata="$mysqlData")
                     # we configure mysql so that it uses less memory
                     exec mysqld --console --datadir "$mysqlData" \
