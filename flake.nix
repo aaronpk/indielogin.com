@@ -95,6 +95,15 @@
               '';
             };
 
+            redis.command = pkgs.writeShellApplication {
+              name = "redis-dev";
+              runtimeInputs = with pkgs; [coreutils redis];
+              text = ''
+                set -x
+                exec redis-server --port 6379 --loglevel notice
+              '';
+            };
+
             mysql.command = pkgs.writeShellApplication {
               name = "mysql-dev";
               runtimeInputs = with pkgs; [coreutils mysql];
