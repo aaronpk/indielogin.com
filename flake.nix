@@ -7,6 +7,8 @@
     parts.url = "github:hercules-ci/flake-parts";
     systems.url = "github:nix-systems/x86_64-linux";
     process-compose.url = "github:Platonic-Systems/process-compose-flake";
+    phps.url = "github:fossar/nix-phps";
+    phps.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = inp:
@@ -15,7 +17,7 @@
       imports = [
         inp.process-compose.flakeModule
       ];
-      perSystem = {self', system, pkgs, lib, ...}: {
+      perSystem = {self', system, pkgs, ...}: {
         apps = {
           dev = {
             type = "app";
@@ -27,22 +29,19 @@
           indielogin = 
             inp.dream2nix.lib.evalModules {
               packageSets.nixpkgs = inp.nixpkgs.legacyPackages.${system};
-              modules = let
-                isNixFile = path: lib.any (name: baseNameOf path == name) ["flake.nix" "flake.lock" "default.nix"];
-                filteredSrc = builtins.filterSource (path: type: ! isNixFile path) ./.;
-              in [
+              modules = [
                 ./default.nix
                 {
-                  paths.projectRoot = filteredSrc;
+                  paths.projectRoot = ./.;
                   paths.projectRootFile = "composer.json";
-                  paths.package = filteredSrc;
+                  paths.package = ./.;
                 }
               ];
             };
           default = self'.packages.indielogin;
         };
         process-compose."indielogin-start-dev" = let
-          phpPkg = self'.packages.indielogin.config.deps.php81;
+          phpPkg = inp.phps.packages.${system}.php70;
           phpIni = pkgs.writers.writeText "php.ini" ''
             date.timezone = "Europe/Istanbul"
             mbstring.internal_encoding = "UTF-8"
@@ -53,18 +52,21 @@
               auto_https off
             }
 
-            http://localhost:1334
+            http://localhost:8080
 
-            root * ${self'.packages.indielogin}/lib/vendor/aaronpk/indielogin/public
+            root * public
             php_fastcgi 127.0.0.1:9000
           '';
         in {
           settings.processes = {
             php-fpm.command = pkgs.writeShellApplication {
               name = "php-fpm-dev";
-              runtimeInputs = with pkgs; [coreutils gnused];
+              runtimeInputs = with pkgs; [coreutils gnused phpPkg phpPkg.packages.composer];
               text = ''
                 set -x
+                # first install composer
+                composer update --no-interaction
+                composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
                 # setup all the paths we will use as variables
                 phpfpmConfigDir="$(mktemp -d)"
                 phpfpmConfig="$phpfpmConfigDir/php-fpm.conf"
@@ -79,7 +81,7 @@
                 # create log dir cause php-fpm doesnt do it for us
                 mkdir "$phpfpmConfigDir/log"
                 # finally, run php-fpm (and force it to be in the foreground)
-                exec ${phpPkg}/bin/php-fpm -p "$phpfpmConfigDir" -c ${phpIni} --fpm-config "$phpfpmConfig" -F
+                exec php-fpm -p "$phpfpmConfigDir" -c ${phpIni} --fpm-config "$phpfpmConfig" -F
               '';
             };
 
@@ -87,7 +89,10 @@
               name = "caddy-dev";
               runtimeInputs = with pkgs; [coreutils caddy];
               text = ''
-                exec caddy run --adapter caddyfile --config ${caddyfile}
+                caddyfile="$(mktemp -u)"
+                cp -f --no-preserve=ownership,mode ${caddyfile} "$caddyfile"
+                sed -i "s|public|$(pwd)/public|g" "$caddyfile"
+                exec caddy run --adapter caddyfile --config "$caddyfile"
               '';
             };
 
@@ -113,7 +118,6 @@
                   --join-buffer-size=128K \
                   --thread-stack=196K \
                   --bind-address=127.0.0.1 \
-                  --port=4331 \
                   --unix-socket=off \
                   --socket=""
               '';
