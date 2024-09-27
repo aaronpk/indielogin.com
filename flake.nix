@@ -54,40 +54,10 @@
           process-compose."indielogin-start-dev" =
             let
               phpIni = pkgs.writers.writeText "php.ini" ''
-                date.timezone = "Europe/Istanbul"
+                date.timezone = "UTC"
                 mbstring.internal_encoding = "UTF-8"
                 memory_limit = 128M
               '';
-              # our environment
-              # note: this is only for dev purposes
-              env = {
-                APP_NAME = "IndieLogin.com";
-                BASE_URL = "http://localhost:8080/";
-                HTTP_USER_AGENT = "IndieLogin";
-                DB_HOST = "127.0.0.1";
-                DB_USER = "root";
-                DB_PASS = "";
-                DB_NAME = "indielogin";
-                MAILGUN_KEY = "key-";
-                MAILGUN_DOMAIN = "";
-                MAILGUN_FROM = "";
-                PGP_VERIFICATION_API = "http://127.0.0.1:9009/verify";
-                REDIS_URL = "redis://localhost:6379";
-                GITHUB_CLIENT_ID = "";
-                GITHUB_CLIENT_SECRET = "";
-                TWITTER_CLIENT_ID = "";
-                TWITTER_CLIENT_SECRET = "";
-              };
-              # convert the env to a dotenv file
-              dotEnv = pkgs.writeText ".env" ''
-                ${lib.concatStringsSep "\n" (lib.mapAttrsToList (n: v: "${n}=${v}") env)}
-              '';
-              indieloginWithDotEnv = self'.packages.indielogin.overrideAttrs (old: {
-                # symlink dot env into the indielogin source, otherwise the env vars arent passed for some reason?
-                postInstall = ''
-                  ln -s ${dotEnv} $out/share/php/indielogin/.env
-                '';
-              });
               caddyfile = pkgs.writers.writeText "caddyfile" ''
                 {
                   auto_https off
@@ -95,13 +65,13 @@
 
                 http://localhost:8080
 
-                root * ${indieloginWithDotEnv}/share/php/indielogin/public
+                root * %rootpath%/public
                 php_fastcgi 127.0.0.1:9000
                 file_server
               '';
             in
             {
-              settings.environment = env;
+              settings.environment.DOTENV_PATH = ".env";
               settings.processes = {
                 php-fpm.command = pkgs.writeShellApplication {
                   name = "php-fpm-dev";
@@ -138,7 +108,19 @@
                   ];
                   text = ''
                     set -x
-                    exec caddy run --adapter caddyfile --config ${caddyfile}
+                    # copy caddyfile so we can modify it
+                    caddyfile="$(mktemp -u)"
+                    cp --no-preserve=ownership,mode ${caddyfile} "$caddyfile"
+                    # create a new rootpath
+                    rootpath="$(mktemp -d)"
+                    # copy all the contents we want to serve to new root path
+                    cp -r --no-preserve=ownership,mode ${self'.packages.indielogin}/share/php/indielogin/* "$rootpath"
+                    # make sure dotenv is present in the rootpath we are serving
+                    [[ -f "$DOTENV_PATH" ]] && cp "$DOTENV_PATH" "$rootpath"
+                    # set root path in caddyfile to our newly created one
+                    sed -i "s|%rootpath%|$rootpath|g" "$caddyfile"
+                    # finally run caddy with the caddyfile we modified
+                    exec caddy run --adapter caddyfile --config "$caddyfile"
                   '';
                 };
 
