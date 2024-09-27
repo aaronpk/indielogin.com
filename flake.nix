@@ -154,10 +154,15 @@
 
                 pgp-verify.command = pkgs.writeShellApplication {
                   name = "pgp-verify-dev";
-                  runtimeInputs = with pkgs; [coreutils self'.packages.pgp];
+                  runtimeInputs = with pkgs; [coreutils self'.packages.pgp trurl];
                   text = ''
+                    # source dot env
+                    [[ -f "$DOTENV_PATH" ]] && export "$(xargs < "$DOTENV_PATH")"
                     set -x
-                    exec pgp --host 0.0.0.0 -p 9009
+                    # get host and port from dotenv to use
+                    host="$(trurl "$PGP_VERIFICATION_API" -g '[host]')"
+                    port="$(trurl "$PGP_VERIFICATION_API" -g '[port]')"
+                    exec pgp --host "$host" -p "$port"
                   '';
                 };
 
@@ -167,6 +172,7 @@
                     coreutils
                     redis
                     util-linux
+                    trurl
                   ];
                   text = ''
                     # source dot env
@@ -174,7 +180,7 @@
                     set -x
                     [[ -z "$REDIS_URL" ]] && echo "redis url not set, aborting" && exit 1
                     # split on colon delimeter and choose the latest item which should be our port
-                    port="$(printf '%s' "$REDIS_URL" | rev | cut -d ':' -f 1 | rev)"
+                    port="$(trurl "$REDIS_URL" -g '[port]')"
                     # run redis with the port we got
                     exec redis-server --port "$port" --loglevel notice
                   '';
@@ -187,6 +193,7 @@
                     mysql
                   ];
                   text = ''
+                    [[ -f "$DOTENV_PATH" ]] && export "$(xargs < "$DOTENV_PATH")"
                     set -x
                     mysqlData="$MYSQL_DATA_PATH"
                     [[ -z "$mysqlData" ]] && echo "mysql data path not set, aborting" && exit 1
@@ -209,7 +216,7 @@
                       --read-rnd-buffer-size=512K \
                       --join-buffer-size=128K \
                       --thread-stack=196K \
-                      --bind-address=127.0.0.1 \
+                      --bind-address="$DB_HOST" \
                       --unix-socket=off \
                       --socket=""
                   '';
