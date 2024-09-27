@@ -43,6 +43,32 @@
               # NOTE: should be updated when composer.lock changes
               vendorHash = "sha256-PrqC3RitzEhiul5VXYlvqN/rNb6KizAYVstQzfXRXTo=";
             };
+            pgp = let
+              gems = pkgs.bundlerEnv {
+                name = "pgp";
+                gemdir = ./pgp;
+              };
+            in
+              pkgs.stdenv.mkDerivation {
+                pname = "pgp";
+                version = "0.0.1";
+
+                src = ./pgp;
+
+                installPhase = ''
+                  # install src
+                  mkdir -p $out/share/pgp
+                  cp -r $src $out/share/pgp/src
+                  # add serve bin
+                  mkdir -p $out/bin
+                  echo "#!${pkgs.stdenv.shell}" > $out/bin/pgp
+                  echo "export PATH=\$PATH:${gems}/bin:${gems.wrappedRuby}/bin" >> $out/bin/pgp
+                  #echo "export GEM_HOME=${gems}" >> $out/bin/pgp
+                  echo "cd $out/share/pgp/src/" >> $out/bin/pgp
+                  echo "rackup \$@" >> $out/bin/pgp
+                  chmod +x $out/bin/pgp
+                '';
+              };
             default = self'.packages.indielogin-run;
           };
           process-compose."indielogin-run" =
@@ -123,6 +149,15 @@
                     sed -i "s|%baseurl%|$BASE_URL|g"  "$caddyfile"
                     # finally run caddy with the caddyfile we modified
                     exec caddy run --adapter caddyfile --config "$caddyfile"
+                  '';
+                };
+
+                pgp-verify.command = pkgs.writeShellApplication {
+                  name = "pgp-verify-dev";
+                  runtimeInputs = with pkgs; [coreutils self'.packages.pgp];
+                  text = ''
+                    set -x
+                    exec pgp --host 0.0.0.0 -p 9009
                   '';
                 };
 

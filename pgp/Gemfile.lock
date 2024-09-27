@@ -1,28 +1,33 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    daemons (1.2.6)
+    base64 (0.2.0)
+    daemons (1.4.1)
     eventmachine (1.2.7)
-    gpgme (2.0.16)
-      mini_portile2 (~> 2.3)
-    mini_portile2 (2.3.0)
-    mustermann (1.0.2)
-    rack (2.2.3)
-    rack-protection (2.0.3)
-      rack
-    sinatra (2.0.3)
-      mustermann (~> 1.0)
-      rack (~> 2.0)
-      rack-protection (= 2.0.3)
+    gpgme (2.0.24)
+      mini_portile2 (~> 2.7)
+    mini_portile2 (2.8.7)
+    mustermann (3.0.3)
+      ruby2_keywords (~> 0.0.1)
+    rack (2.2.9)
+    rack-protection (3.2.0)
+      base64 (>= 0.1.0)
+      rack (~> 2.2, >= 2.2.4)
+    ruby2_keywords (0.0.5)
+    sinatra (3.2.0)
+      mustermann (~> 3.0)
+      rack (~> 2.2, >= 2.2.4)
+      rack-protection (= 3.2.0)
       tilt (~> 2.0)
-    thin (1.7.2)
+    thin (1.8.2)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
-    tilt (2.0.8)
+    tilt (2.4.0)
 
 PLATFORMS
   ruby
+  x86_64-linux
 
 DEPENDENCIES
   gpgme
@@ -30,4 +35,4 @@ DEPENDENCIES
   thin
 
 BUNDLED WITH
-   1.16.0
+   2.5.16
