@@ -41,7 +41,7 @@
           default = self'.packages.indielogin;
         };
         process-compose."indielogin-start-dev" = let
-          phpPkg = inp.phps.packages.${system}.php70;
+          phpPkg = inp.phps.packages.${system}.php82;
           phpIni = pkgs.writers.writeText "php.ini" ''
             date.timezone = "Europe/Istanbul"
             mbstring.internal_encoding = "UTF-8"
@@ -65,7 +65,6 @@
               text = ''
                 set -x
                 # first install composer
-                composer update --no-interaction
                 composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
                 # setup all the paths we will use as variables
                 phpfpmConfigDir="$(mktemp -d)"
