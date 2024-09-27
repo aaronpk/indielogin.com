@@ -37,7 +37,15 @@
                 name = "indielogin-src";
                 path = ./.;
                 # dont add nix stuff to source
-                filter = p: _: !(lib.hasSuffix ".nix" (baseNameOf p) || baseNameOf p == "flake.lock");
+                filter = let
+                  pathsFilter = [
+                    "README.md"
+                    "flake.nix"
+                    "flake.lock"
+                    "pgp"
+                  ];
+                in
+                  p: _: ! (lib.any (op: baseNameOf p == op) pathsFilter);
               };
 
               # NOTE: should be updated when composer.lock changes
