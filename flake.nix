@@ -15,22 +15,30 @@
       imports = [
         inp.process-compose.flakeModule
       ];
-      perSystem = {self', pkgs, lib, ...}: {
-        packages = {
-          indielogin = inp.dream2nix.lib.evalModules {
-            packageSets.nixpkgs = pkgs;
-            modules = let
-              isNixFile = path: lib.any (name: baseNameOf path == name) ["flake.nix" "flake.lock" "default.nix"];
-              filteredSrc = builtins.filterSource (path: type: ! isNixFile path) ./.;
-            in [
-              ./default.nix
-              {
-                paths.projectRoot = filteredSrc;
-                paths.projectRootFile = "composer.json";
-                paths.package = filteredSrc;
-              }
-            ];
+      perSystem = {self', system, pkgs, lib, ...}: {
+        apps = {
+          dev = {
+            type = "app";
+            program = "${self'.packages.indielogin-start-dev}/bin/indielogin-start-dev";
           };
+          default = self'.apps.dev;
+        };
+        packages = {
+          indielogin = 
+            inp.dream2nix.lib.evalModules {
+              packageSets.nixpkgs = inp.nixpkgs.legacyPackages.${system};
+              modules = let
+                isNixFile = path: lib.any (name: baseNameOf path == name) ["flake.nix" "flake.lock" "default.nix"];
+                filteredSrc = builtins.filterSource (path: type: ! isNixFile path) ./.;
+              in [
+                ./default.nix
+                {
+                  paths.projectRoot = filteredSrc;
+                  paths.projectRootFile = "composer.json";
+                  paths.package = filteredSrc;
+                }
+              ];
+            };
           default = self'.packages.indielogin;
         };
         process-compose."indielogin-start-dev" = let
@@ -52,13 +60,6 @@
           '';
         in {
           settings.processes = {
-            ponysay.command = ''
-              while true; do
-                ${lib.getExe pkgs.ponysay} "hello world"
-                sleep 2
-              done
-            '';
-            
             php-fpm.command = pkgs.writeShellApplication {
               name = "php-fpm-dev";
               runtimeInputs = with pkgs; [coreutils gnused];
@@ -73,30 +74,48 @@
                 cp -r --no-preserve=ownership,mode ${phpPkg}/etc/php-fpm.d "$phpfpmConfigD"
                 mv "$phpfpmConfigD/www.conf.default" "$phpfpmConfigD/www.conf"
                 # fix include php-fpm.d in config
-                sed '/^include=/d' "$phpfpmConfig" > "$phpfpmConfig.tmp" && mv "$phpfpmConfig.tmp" "$phpfpmConfig"
+                sed -i '/^include=/d' "$phpfpmConfig"
                 echo "include=$phpfpmConfigD/*.conf" >> "$phpfpmConfig"
                 # create log dir cause php-fpm doesnt do it for us
                 mkdir "$phpfpmConfigDir/log"
                 # finally, run php-fpm (and force it to be in the foreground)
-                ${phpPkg}/bin/php-fpm -p "$phpfpmConfigDir" -c ${phpIni} --fpm-config "$phpfpmConfig" -F
+                exec ${phpPkg}/bin/php-fpm -p "$phpfpmConfigDir" -c ${phpIni} --fpm-config "$phpfpmConfig" -F
               '';
             };
-            # we kill this process cause killing the actual php-fpm process just causes it to hang
-            php-fpm.shutdown.command = ''${pkgs.procps}/bin/pkill .php-fpm-wrappe'';
 
             caddy.command = pkgs.writeShellApplication {
               name = "caddy-dev";
-              runtimeInputs = [pkgs.caddy];
-              text = ''caddy run --adapter caddyfile --config ${caddyfile}'';
+              runtimeInputs = with pkgs; [coreutils caddy];
+              text = ''
+                exec caddy run --adapter caddyfile --config ${caddyfile}
+              '';
             };
 
             mysql.command = pkgs.writeShellApplication {
               name = "mysql-dev";
-              runtimeInputs = [pkgs.mysql];
+              runtimeInputs = with pkgs; [coreutils mysql];
               text = ''
                 set -x
-                mysqlData="$(mktemp -d)"
-                mysqld --console --datadir "$mysqlData" --bind-address='127.0.0.1' --socket="" --unix-socket="OFF"
+                mysqlData="$(pwd)/mysql-data"
+                # only create db if we already didnt create it
+                [[ -d "$mysqlData" ]] || (mkdir "$mysqlData" && mysql_install_db --ldata="$mysqlData")
+                # we configure mysql so that it uses less memory
+                exec mysqld --console --datadir "$mysqlData" \
+                  --performance-schema=off \
+                  --innodb-buffer-pool-size=5M \
+                  --innodb-log-buffer-size=2M \
+                  --key-buffer-size=16M \
+                  --tmp-table-size=1M \
+                  --max-connections=25 \
+                  --sort-buffer-size=512K \
+                  --read-buffer-size=256K \
+                  --read-rnd-buffer-size=512K \
+                  --join-buffer-size=128K \
+                  --thread-stack=196K \
+                  --bind-address=127.0.0.1 \
+                  --port=4331 \
+                  --unix-socket=off \
+                  --socket=""
               '';
             };
           };
