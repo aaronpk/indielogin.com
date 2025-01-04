@@ -5,18 +5,13 @@ include('vendor/autoload.php');
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-$container = new League\Container\Container;
-$container->share('response', Zend\Diactoros\Response::class);
-$container->share('request', function () {
-  return Zend\Diactoros\ServerRequestFactory::fromGlobals(
-      $_SERVER, $_GET, $_POST, $_COOKIE, $_FILES
-  );
-});
-$container->share('emitter', Zend\Diactoros\Response\SapiEmitter::class);
+$request = Laminas\Diactoros\ServerRequestFactory::fromGlobals(
+    $_SERVER, $_GET, $_POST, $_COOKIE, $_FILES
+);
+
+$route = new League\Route\Router;
 
 initdb();
-
-$route = new League\Route\RouteCollection($container);
 
 $route->map('GET', '/', 'App\\Controller::index');
 $route->map('GET', '/health', 'App\\Healthcheck::index');
@@ -29,9 +24,9 @@ $route->map('GET', '/demo', 'App\\Controller::demo');
 
 $route->map('GET', '/id', 'App\\Controller::client_metadata'); # IndieAuth client metadata
 
-$route->map('GET', '/auth', 'App\\Authenticate::start')->setStrategy(new App\CORSStrategy);
+$route->map('GET', '/auth', 'App\\Authenticate::start')->middleware(new App\CORSStrategy);
 $route->map('GET', '/select', 'App\\Authenticate::select');
-$route->map('POST', '/auth', 'App\\Authenticate::verify')->setStrategy(new App\CORSStrategy);
+$route->map('POST', '/auth', 'App\\Authenticate::verify')->middleware(new App\CORSStrategy);
 $route->map('POST', '/select', 'App\\Authenticate::post_select');
 
 $route->map('GET', '/redirect/github', 'App\\Authenticate::redirect_github');
@@ -56,16 +51,5 @@ if(empty(getenv('APP_NAME')) || empty(getenv('DB_HOST'))) {
   die();
 }
 
-try {
-  $response = $route->dispatch($container->get('request'), $container->get('response'));
-  $container->get('emitter')->emit($response);
-} catch(League\Route\Http\Exception\NotFoundException $e) {
-  $response = $container->get('response');
-  $response->getBody()->write("Not Found\n");
-  $container->get('emitter')->emit($response->withStatus(404));
-} catch(League\Route\Http\Exception\MethodNotAllowedException $e) {
-  $response = $container->get('response');
-  $response->getBody()->write("Method not allowed\n");
-  $container->get('emitter')->emit($response->withStatus(405));
-}
-
+$response = $route->dispatch($request);
+(new Laminas\HttpHandlerRunner\Emitter\SapiEmitter)->emit($response);

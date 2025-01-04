@@ -3,13 +3,17 @@ namespace App\Provider;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Laminas\Diactoros\Response\HtmlResponse;
+use Laminas\Diactoros\Response\JsonResponse;
+use Laminas\Diactoros\Response;
+
 use Config;
 
 define('PGP_TIMEOUT', 120);
 
 trait PGP {
 
-  private function _start_pgp(&$response, $me, $details) {
+  private function _start_pgp($me, $details) {
 
     $keytext = file_get_contents($details['key']);
 
@@ -18,14 +22,14 @@ trait PGP {
     $code = random_string();
     $details['keytext'] = $keytext;
     redis()->setex('indielogin:pgp:'.$code, PGP_TIMEOUT, json_encode($details));
-    $response->getBody()->write(view('auth/pgp', [
+
+    return new HtmlResponse(view('auth/pgp', [
       'title' => 'Log In via PGP',
       'code' => $code,
     ]));
-    return $response;
   }
 
-  public function verify_pgp_challenge(ServerRequestInterface $request, ResponseInterface $response) {
+  public function verify_pgp_challenge(ServerRequestInterface $request): ResponseInterface {
     session_start();
 
     $params = $request->getParsedBody();
@@ -36,21 +40,19 @@ trait PGP {
     $login = redis()->get('indielogin:pgp:'.$params['code']);
 
     if(!$login) {
-      $response->getBody()->write(view('auth/pgp-error', [
+      return new HtmlResponse(view('auth/pgp-error', [
         'title' => 'Error',
         'error' => 'The session expired',
         'client_id' => ($_SESSION['login_request']['client_id'] ?? false)
       ]));
-      return $response;
     }
 
     if($params['signed'] == $params['code']) {
-      $response->getBody()->write(view('auth/pgp-error', [
+      return new HtmlResponse(view('auth/pgp-error', [
         'title' => 'Error',
         'error' => 'It looks like you did not sign the challenge.',
         'client_id' => ($_SESSION['login_request']['client_id'] ?? false)
       ]));
-      return $response;
     }
 
     $login = json_decode($login, true);
@@ -66,12 +68,11 @@ trait PGP {
     $result = json_decode(curl_exec($ch), true);
 
     if(!$result) {
-      $response->getBody()->write(view('auth/pgp-error', [
+      return new HtmlResponse(view('auth/pgp-error', [
         'title' => 'Error',
         'error' => '<b>Something went wrong!</b> There was an internal error attempting to verify the challenge. Please try a different authentication method.',
         'client_id' => ($_SESSION['login_request']['client_id'] ?? false)
       ]));
-      return $response;
     }
 
     if(isset($result['error'])) {
@@ -84,23 +85,21 @@ trait PGP {
           $description = ''; break;
       }
 
-      $response->getBody()->write(view('auth/pgp-error', [
+      return new HtmlResponse(view('auth/pgp-error', [
         'title' => 'Error',
         'error' => '<b>There was a problem!</b> '.e($description),
         'client_id' => ($_SESSION['login_request']['client_id'] ?? false)
       ]));
-      return $response;
     }
 
     if($result['result'] == 'verified') {
-      return $this->_finishAuthenticate($response);
+      return $this->_finishAuthenticate();
     } else {
-      $response->getBody()->write(view('auth/pgp-error', [
+      return new HtmlResponse(view('auth/pgp-error', [
         'title' => 'Error',
         'error' => '<b>Something went wrong!</b> There was an internal error attempting to verify the challenge.',
         'client_id' => ($_SESSION['login_request']['client_id'] ?? false)
       ]));
-      return $response;
     }
   }
 

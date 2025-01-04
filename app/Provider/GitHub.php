@@ -3,11 +3,15 @@ namespace App\Provider;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Laminas\Diactoros\Response\HtmlResponse;
+use Laminas\Diactoros\Response\JsonResponse;
+use Laminas\Diactoros\Response;
+
 use Config;
 
 trait GitHub {
 
-  private function _start_github(&$response, $login_request, $details) {
+  private function _start_github($login_request, $details) {
     $userlog = make_logger('user');
 
     $state = generate_state();
@@ -25,10 +29,11 @@ trait GitHub {
 
     $userlog->info('Beginning GitHub login', ['provider' => $details, 'login' => $login_request]);
 
+    $response = new Response();
     return $response->withHeader('Location', $authorize)->withStatus(302);
   }
 
-  public function redirect_github(ServerRequestInterface $request, ResponseInterface $response) {
+  public function redirect_github(ServerRequestInterface $request): ResponseInterface {
     session_start();
 
     $userlog = make_logger('user');
@@ -58,7 +63,7 @@ trait GitHub {
 
     if(!isset($token['access_token'])) {
       $userlog->warning('GitHub authorization error', ['response' => $token]);
-      return $this->_userError($response, 'There was a problem verifying the request from GitHub', [
+      return $this->_userError('There was a problem verifying the request from GitHub', [
         'response' => json_encode($token, JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES)
       ]);
     }
@@ -73,7 +78,7 @@ trait GitHub {
 
     if(!isset($profile['login'])) {
       $userlog->warning('Error fetching user profile', ['response' => $profile]);
-      return $this->_userError($response, 'There was a problem with the request to GitHub', [
+      return $this->_userError('There was a problem with the request to GitHub', [
         'response' => json_encode($profile, JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES)
       ]);
     }
@@ -81,7 +86,7 @@ trait GitHub {
     // Verify that the GitHub user that we expected signed in
     if(strtolower($profile['login']) != strtolower($_SESSION['github_expected_user'])) {
       $userlog->warning('GitHub user mismatch', ['profile' => $profile, 'expected' => $_SESSION['github_expected_user']]);
-      return $this->_userError($response, 'You logged in to GitHub as <b>'.$profile['login'].'</b> but your website links to <b>'.$_SESSION['github_expected_user'].'</b>');
+      return $this->_userError('You logged in to GitHub as <b>'.$profile['login'].'</b> but your website links to <b>'.$_SESSION['github_expected_user'].'</b>');
     }
 
     $verified = false;
@@ -130,14 +135,14 @@ trait GitHub {
 
     if(!$verified) {
       $userlog->warning('GitHub URL mismatch', ['profile' => $profile, 'expected' => $_SESSION['expected_me']]);
-      return $this->_userError($response, $linked_to.' Make sure you link to <b>'.$_SESSION['expected_me'].'</b> in your GitHub profile.');
+      return $this->_userError($linked_to.' Make sure you link to <b>'.$_SESSION['expected_me'].'</b> in your GitHub profile.');
     }
 
     $userlog->info('Successful GitHub login', ['username' => $_SESSION['github_expected_user']]);
 
     unset($_SESSION['github_expected_user']);
 
-    return $this->_finishAuthenticate($response);
+    return $this->_finishAuthenticate();
   }
 
 }

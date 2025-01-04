@@ -2,33 +2,22 @@
 namespace App;
 
 use \Exception;
-use League\Route\Http\Exception\MethodNotAllowedException;
-use League\Route\Http\Exception\NotFoundException;
-use League\Route\Middleware\ExecutionChain;
-use League\Route\Route;
-use RuntimeException;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
-class CORSStrategy extends \League\Route\Strategy\ApplicationStrategy {
+class CORSStrategy implements MiddlewareInterface {
 
-    public function getCallable(Route $route, array $vars)
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        return function (ServerRequestInterface $request, ResponseInterface $response, callable $next) use ($route, $vars) {
-            $response = call_user_func_array($route->getCallable(), [$request, $response, $vars]);
+        // Process the request and get the response from the next middleware/handler
+        $response = $handler->handle($request);
 
-            if (! $response instanceof ResponseInterface) {
-                throw new RuntimeException(
-                    'Route callables must return an instance of (Psr\Http\Message\ResponseInterface)'
-                );
-            }
-
-            $response = $response
-              ->withHeader('Access-Control-Allow-Origin', '*')
-              ->withHeader('Access-Control-Allow-Methods', 'GET, POST');
-
-            return $next($request, $response);
-        };
+        // Add CORS headers to the response
+        return $response
+            ->withHeader('Access-Control-Allow-Origin', '*')
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST');
     }
 
 }

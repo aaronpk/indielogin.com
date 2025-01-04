@@ -3,19 +3,22 @@ namespace App;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Laminas\Diactoros\Response\HtmlResponse;
+use Laminas\Diactoros\Response\JsonResponse;
+use Laminas\Diactoros\Response;
+
 use Config;
 use ORM;
 
 class Authenticate {
 
   use Provider\GitHub;
-  use Provider\Twitter;
   use Provider\IndieAuth;
   use Provider\FedCM;
   use Provider\Email;
   use Provider\PGP;
 
-  public function start(ServerRequestInterface $request, ResponseInterface $response) {
+  public function start(ServerRequestInterface $request): ResponseInterface {
     session_start();
 
     $devlog = make_logger('dev');
@@ -23,7 +26,6 @@ class Authenticate {
 
     $params = $request->getQueryParams();
 
-    unset($_SESSION['twitter_expected_user']);
     unset($_SESSION['github_expected_user']);
     unset($_SESSION['expected_me']);
     unset($_SESSION['me_entered']);
@@ -104,11 +106,10 @@ class Authenticate {
     if(count($errors)) {
       $devlog->info('Bad auth request', ['errors' => $errors, 'params' => $params]);
 
-      $response->getBody()->write(view('auth/dev-error', [
+      return new HtmlResponse(view('auth/dev-error', [
         'title' => getenv('APP_NAME').' Error',
         'errors' => $errors
       ]));
-      return $response;
     }
 
     if(!isset($params['me'])) {
@@ -122,14 +123,13 @@ class Authenticate {
         $_SESSION['expected_me'] = $_SESSION['me'];
 
       // If the developer isn't expecting a particular user, use the session user if present
-      $response->getBody()->write(view('auth/login-form', [
+      return new HtmlResponse(view('auth/login-form', [
         'title' => 'Sign In using '.getenv('APP_NAME'),
         'me' => $_SESSION['me'] ?? '',
         'client_id' => $client_id,
         'redirect_uri' => $redirect_uri,
         'state' => $state,
       ]));
-      return $response;
     } else {
 
       // Verify the "me" parameter is a URL
@@ -162,7 +162,7 @@ class Authenticate {
         $_SESSION['expected_me'] = $_SESSION['me'];
         $_SESSION['me_entered'] = $_SESSION['me'];
 
-        $response->getBody()->write(view('auth/prompt', [
+        return new HtmlResponse(view('auth/prompt', [
           'title' => 'Sign In using '.getenv('APP_NAME'),
           'me' => $_SESSION['expected_me'] ?? '',
           'code' => $code,
@@ -171,7 +171,6 @@ class Authenticate {
           'state' => $state,
           'switch_account' => $switch_account
         ]));
-        return $response;
       }
 
       // Otherwise, drop the session 'me' and make the user authenticate again
@@ -209,7 +208,7 @@ class Authenticate {
 
         $login_request['authorization_endpoint'] = $authorization_endpoint;
 
-        return $this->_startAuthenticate($response, $login_request, [
+        return $this->_startAuthenticate($login_request, [
           'provider' => 'indieauth',
           'authorization_endpoint' => $authorization_endpoint,
         ]);
@@ -233,11 +232,11 @@ class Authenticate {
 
         // If there is one rel=authn, redirect now
         if(count($supported) == 1) {
-          return $this->_startAuthenticate($response, $login_request, $supported[0]);
+          return $this->_startAuthenticate($login_request, $supported[0]);
         }
 
         // If there is more than one rel=authn, show the chooser
-        return $this->_showProviderChooser($response, $login_request, $supported);
+        return $this->_showProviderChooser($login_request, $supported);
       }
 
       // Check for any rel=me or rel=pgpkey
@@ -256,16 +255,16 @@ class Authenticate {
 
         // If there is one rel=me, redirect now
         if(count($supported) == 1) {
-          return $this->_startAuthenticate($response, $login_request, $supported[0]);
+          return $this->_startAuthenticate($login_request, $supported[0]);
         }
 
         // If there is more than one rel=me, show the chooser
-        return $this->_showProviderChooser($response, $login_request, $supported);
+        return $this->_showProviderChooser($login_request, $supported);
       }
 
       // Show an error
       $userlog->warning('No rel=me URLs found', ['me' => $params['me']]);
-      return $this->_userError($response, 'We couldn\'t find any way to authenticate you using your website.');
+      return $this->_userError('We couldn\'t find any way to authenticate you using your website.');
     }
   }
 
@@ -314,7 +313,7 @@ class Authenticate {
     $details = json_decode($details, true);
     $_SESSION['login_request'] = $details;
 
-    return $this->_finishAuthenticate($response);
+    return $this->_finishAuthenticate();
   }
 
   public function verify(ServerRequestInterface $request, ResponseInterface $response) {
@@ -422,28 +421,27 @@ class Authenticate {
     return $response;
   }
 
-  private function _startAuthenticate(&$response, $login_request, $details) {
+  private function _startAuthenticate($login_request, $details) {
     $_SESSION['login_request'] = $login_request;
     $_SESSION['login_request']['provider'] = $details['provider'];
 
     $method = '_start_'.$details['provider'];
-    return $this->{$method}($response, $login_request, $details);
+    return $this->{$method}($login_request, $details);
   }
 
-  private function _finishAuthenticate(&$response) {
-    $redirect = $this->_processFinishedAuthentication($response);
-    return $this->_sendFinishRedirect($response, $redirect);
+  private function _finishAuthenticate() {
+    $redirect = $this->_processFinishedAuthentication();
+    return $this->_sendFinishRedirect($redirect);
   }
 
-  private function _finishAuthenticateJSON(&$response) {
-    $redirect = $this->_processFinishedAuthentication($response);
-    $response->getBody()->write(json_encode([
-      'redirect' => $redirect,
-    ]));
-    return $response->withHeader('Content-type', 'application/json')->withStatus(200);
+  private function _finishAuthenticateJSON() {
+    $redirect = $this->_processFinishedAuthentication();
+    return new JsonResponse([
+      'redirect' => $redirect
+    ]);
   }
 
-  private function _processFinishedAuthentication(&$response) {
+  private function _processFinishedAuthentication() {
     if(!isset($_SESSION['login_request'])) {
       return '/';
     }
@@ -481,17 +479,17 @@ class Authenticate {
     return $redirect;
   }
   
-  private function _sendFinishRedirect(&$response, $redirect) {
+  private function _sendFinishRedirect($redirect) {
+    $response = new Response();
     return $response->withHeader('Location', $redirect)->withStatus(302);
   }
 
-  private function _userError(&$response, $error, $opts=[]) {
-    $response->getBody()->write(view('auth/user-error', [
+  private function _userError($error, $opts=[]): ResponseInterface {
+    return new HtmlResponse(view('auth/user-error', [
       'title' => 'Error',
       'error' => $error,
       'opts' => $opts
     ]));
-    return $response;
   }
 
   private function _getSupportedProviders($rels, $mode='me') {
@@ -503,18 +501,6 @@ class Authenticate {
           'provider' => 'github',
           'username' => $match[1],
           'display' => 'github.com/'.$match[1],
-        ];
-      } elseif(getenv('TWITTER_CLIENT_ID') && preg_match('~^https?://(?:www\.)?twitter\.com/([a-zA-Z0-9_]{1,20})$~', $url, $match)) {
-        $supported[] = [
-          'provider' => 'twitter',
-          'username' => $match[1],
-          'display' => 'twitter.com/'.$match[1],
-        ];
-      } elseif(getenv('TWITTER_CLIENT_ID') && preg_match('~https?://(?:www\.)?twitter\.com/intent/user\?screen_name=([a-zA-Z0-9_]{1,20})$~', $url, $match)) {
-        $supported[] = [
-          'provider' => 'twitter',
-          'username' => $match[1],
-          'display' => 'twitter.com/'.$match[1],
         ];
       } elseif(getenv('MAILGUN_KEY') && preg_match('~^mailto:(.+\@.+?)(\?.*)?$~', $url, $match)) {
         $supported[] = [

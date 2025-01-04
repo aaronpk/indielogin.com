@@ -3,20 +3,23 @@ namespace App;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Laminas\Diactoros\Response\HtmlResponse;
+use Laminas\Diactoros\Response\JsonResponse;
+use Laminas\Diactoros\Response;
+
 use Config;
 use ORM;
 
 class Controller {
 
-  public function index(ServerRequestInterface $request, ResponseInterface $response) {
-    $response->getBody()->write(view('index', [
+  public function index(ServerRequestInterface $request): ResponseInterface {
+    return new HtmlResponse(view('index', [
       'title' => getenv('APP_NAME'),
     ]));
-    return $response;
   }
   
-  public function client_metadata(ServerRequestInterface $request, ResponseInterface $response) {
-    $response->getBody()->write(json_encode([
+  public function client_metadata(ServerRequestInterface $request): ResponseInterface {
+    return new JsonResponse([
       'client_id' => getenv('BASE_URL').'id',
       'client_name' => getenv('APP_NAME'),
       'client_uri' => getenv('BASE_URL'),
@@ -24,14 +27,14 @@ class Controller {
       'redirect_uris' => [
         getenv('BASE_URL').'redirect/indieauth',
       ],
-    ]));
-    return $response->withHeader('Content-type', 'application/json');
+    ]);
   }
 
-  public function demo(ServerRequestInterface $request, ResponseInterface $response) {
+  public function demo(ServerRequestInterface $request): ResponseInterface {
     $params = $request->getQueryParams();
 
     if(!isset($params['code'])) {
+      $response = new Response();
       return $response->withHeader('Location', '/')->withStatus(302);
     }
 
@@ -39,6 +42,7 @@ class Controller {
     $login = redis()->get('indielogin:code:'.$params['code']);
 
     if(!$login) {
+      $response = new Response();
       return $response->withHeader('Location', '/?error=code_expired')->withStatus(302);
     }
 
@@ -47,6 +51,7 @@ class Controller {
     $log = ORM::for_table('logins')->where('code', $params['code'])->find_one();
 
     if(!$log) {
+      $response = new Response();
       return $response->withHeader('Location', '/?error=code_expired')->withStatus(302);
     }
 
@@ -55,39 +60,34 @@ class Controller {
     $log->code = '';
     $log->save();
 
-    $response->getBody()->write(view('demo', [
+    return new HtmlResponse(view('demo', [
       'title' => getenv('APP_NAME'),
       'me' => $login['me'],
     ]));
-    return $response;
   }
 
-  public function api_docs(ServerRequestInterface $request, ResponseInterface $response) {
-    $response->getBody()->write(view('docs/api', [
+  public function api_docs(ServerRequestInterface $request): ResponseInterface {
+    return new HtmlResponse(view('docs/api', [
       'title' => getenv('APP_NAME').' API Docs',
     ]));
-    return $response;
   }
 
-  public function setup_docs(ServerRequestInterface $request, ResponseInterface $response) {
-    $response->getBody()->write(view('docs/setup', [
+  public function setup_docs(ServerRequestInterface $request): ResponseInterface {
+    return new HtmlResponse(view('docs/setup', [
       'title' => 'How to Start Using '.getenv('APP_NAME'),
     ]));
-    return $response;
   }
 
-  public function faq(ServerRequestInterface $request, ResponseInterface $response) {
-    $response->getBody()->write(view('docs/faq', [
+  public function faq(ServerRequestInterface $request): ResponseInterface {
+    return new HtmlResponse(view('docs/faq', [
       'title' => getenv('APP_NAME').' FAQ',
     ]));
-    return $response;
   }
 
-  public function privacy(ServerRequestInterface $request, ResponseInterface $response) {
-    $response->getBody()->write(view('docs/privacy', [
+  public function privacy(ServerRequestInterface $request): ResponseInterface {
+    return new HtmlResponse(view('docs/privacy', [
       'title' => 'Privacy Policy',
     ]));
-    return $response;
   }
 
 }

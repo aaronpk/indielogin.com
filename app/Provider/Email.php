@@ -99,7 +99,7 @@ trait Email {
     // Check that the code they entered matches the code that was stored
 
     if(strtolower(str_replace('-','',$usercode)) == strtolower(str_replace('-','',$params['usercode']))) {
-      return $this->_finishAuthenticate($response);
+      return $this->_finishAuthenticate();
     } else {
       $k = 'indielogin:email:usercode:attempts:'.$params['code'];
       $current_attempts = (redis()->get($k) ?: 0);

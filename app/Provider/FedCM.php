@@ -3,11 +3,15 @@ namespace App\Provider;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Laminas\Diactoros\Response\HtmlResponse;
+use Laminas\Diactoros\Response\JsonResponse;
+use Laminas\Diactoros\Response;
+
 use Config;
 
 trait FedCM {
 
-  public function fedcm_start(ServerRequestInterface $request, ResponseInterface $response) {
+  public function fedcm_start(ServerRequestInterface $request): ResponseInterface {
     session_start();
 
     $params = $request->getParsedBody();
@@ -23,14 +27,13 @@ trait FedCM {
     ];
     $_SESSION['login_request'] = $login_request;
 
-    $response->getBody()->write(json_encode([
+    return new JsonResponse([
       'code_challenge' => $code_challenge,
       'client_id' => getenv('BASE_URL').'id',
-    ]));
-    return $response->withHeader('Content-type', 'application/json');
+    ]);
   }
 
-  public function fedcm_login(ServerRequestInterface $request, ResponseInterface $response) {
+  public function fedcm_login(ServerRequestInterface $request): ResponseInterface {
     session_start();
     
     $userlog = make_logger('user');
@@ -43,10 +46,9 @@ trait FedCM {
     $metadata = json_decode($res['body'], true);
 
     if(!$metadata || !isset($metadata['token_endpoint'])) {
-      $response->getBody()->write(json_encode([
-        'error' => 'invalid_indieauth_response',
-      ]));
-      return $response->withHeader('Content-type', 'application/json')->withStatus(400);      
+      return (new JsonResponse([
+              'error' => 'invalid_indieauth_response',
+            ]))->withStatus(400);      
     }
 
     $res = $http->post($metadata['token_endpoint'], [
@@ -59,10 +61,9 @@ trait FedCM {
     
     if(!$userinfo || !isset($userinfo['me'])) {
       $userlog->warning('IndieAuth code exchange failed', ['metadata_endpoint' => $params['metadata_endpoint']]);
-      $response->getBody()->write(json_encode([
-        'error' => 'invalid_indieauth_response',
-      ]));
-      return $response->withHeader('Content-type', 'application/json')->withStatus(400);
+      return (new JsonResponse([
+              'error' => 'invalid_indieauth_response',
+            ]))->withStatus(400);      
     }
 
     $verified = false;
@@ -96,15 +97,14 @@ trait FedCM {
     
     if(!$verified) {
       $userlog->warning('IndieAuth verification failed', ['me' => $userinfo['me'], 'metadata_endpoint' => $params['metadata_endpoint']]);
-      $response->getBody()->write(json_encode([
-        'error' => 'verification_failed',
-      ]));
-      return $response->withHeader('Content-type', 'application/json')->withStatus(400);
+      return (new JsonResponse([
+              'error' => 'verification_failed',
+            ]))->withStatus(400);      
     }
     
     $_SESSION['expected_me'] = $userinfo['me'];
     
-    return $this->_finishAuthenticateJSON($response);
+    return $this->_finishAuthenticateJSON();
   }
   
 }

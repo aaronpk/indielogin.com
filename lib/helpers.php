@@ -67,7 +67,7 @@ function random_user_code() {
 }
 
 function get_redis_url() {
-  return $redisURL = getenv('REDIS_URL') ?? LOCAL_FALLBACK_REDIS;
+  return $redisURL = getenv('REDIS_URL') ?: LOCAL_FALLBACK_REDIS;
 }
 function redis() {
   static $client = false;

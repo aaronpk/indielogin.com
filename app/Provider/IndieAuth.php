@@ -3,11 +3,13 @@ namespace App\Provider;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Laminas\Diactoros\Response;
+
 use Config;
 
 trait IndieAuth {
   
-  private function _start_indieauth(&$response, $login_request, $details) {
+  private function _start_indieauth($login_request, $details) {
     $userlog = make_logger('user');
 
     // Encode this request's me/redirect_uri/state in the state parameter to avoid a session?
@@ -25,10 +27,11 @@ trait IndieAuth {
 
     $_SESSION['login_request']['profile'] = $details['authorization_endpoint'];
 
+    $response = new Response();
     return $response->withHeader('Location', $authorize)->withStatus(302);
   }
 
-  public function redirect_indieauth(ServerRequestInterface $request, ResponseInterface $response) {
+  public function redirect_indieauth(ServerRequestInterface $request): ResponseInterface {
     session_start();
 
     $userlog = make_logger('user');
@@ -38,7 +41,7 @@ trait IndieAuth {
     // Verify the state parameter
     if(!isset($_SESSION['state']) || $_SESSION['state'] != $query['state']) {
       $userlog->warning('IndieAuth server returned an invalid state parameter', ['query' => $query]);
-      return $this->_userError($response, 'Your IndieAuth server did not return a valid state parameter');
+      return $this->_userError('Your IndieAuth server did not return a valid state parameter');
     }
 
     if(!isset($query['code'])) {
@@ -47,7 +50,7 @@ trait IndieAuth {
           'query' => $query,
           'login' => $_SESSION['login_request'],
         ]);
-        return $this->_userError($response, 'Your IndieAuth server returned an error', [
+        return $this->_userError('Your IndieAuth server returned an error', [
           'response' => $query['error']
         ]);
       } else {
@@ -55,7 +58,7 @@ trait IndieAuth {
           'query' => $query,
           'login' => $_SESSION['login_request'],
         ]);
-        return $this->_userError($response, 'Your IndieAuth server returned an invalid response');
+        return $this->_userError('Your IndieAuth server returned an invalid response');
       }
     }
 
@@ -91,7 +94,7 @@ trait IndieAuth {
         $debug_txt = $debug_obj = $result['body'];
       }
       $userlog->warning('Invalid response from IndieAuth server', ['response' => $debug_obj]);
-      return $this->_userError($response, 'Your IndieAuth server did not return a valid response.', [
+      return $this->_userError('Your IndieAuth server did not return a valid response.', [
         'response' => $debug_txt,
         'response_code' => $result['code'],
         'error_description' => $result['error_description'],
@@ -106,12 +109,12 @@ trait IndieAuth {
 
       if(!$newAuthorizationEndpoint) {
         $userlog->warning('No authorization endpoint found', ['response' => $auth, 'expected' => $_SESSION['expected_me']]);
-        return $this->_userError($response, 'Error verifying the login attempt. Could not find an authorization endpoint at the profile URL returned (<b>'.$auth['me'].'</b>)');
+        return $this->_userError('Error verifying the login attempt. Could not find an authorization endpoint at the profile URL returned (<b>'.$auth['me'].'</b>)');
       }
 
       if($_SESSION['login_request']['authorization_endpoint'] != $newAuthorizationEndpoint) {
         $userlog->warning('IndieAuth user mismatch', ['response' => $auth, 'expected' => $_SESSION['expected_me']]);
-        return $this->_userError($response, 'Error verifying the login attempt. The profile URL returned (<b>'.$auth['me'].'</b>) doesn\'t have the same authorization endpoint found at <b>'.$_SESSION['expected_me'].'</b>');
+        return $this->_userError('Error verifying the login attempt. The profile URL returned (<b>'.$auth['me'].'</b>) doesn\'t have the same authorization endpoint found at <b>'.$_SESSION['expected_me'].'</b>');
       }
     }
 
@@ -124,7 +127,7 @@ trait IndieAuth {
 
     $userlog->info('Successful IndieAuth login', ['me' => $auth['me']]);
 
-    return $this->_finishAuthenticate($response);
+    return $this->_finishAuthenticate();
   }
 
 }

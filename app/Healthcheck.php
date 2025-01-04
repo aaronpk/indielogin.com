@@ -3,6 +3,10 @@ namespace App;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Laminas\Diactoros\Response\HtmlResponse;
+use Laminas\Diactoros\Response\JsonResponse;
+use Laminas\Diactoros\Response;
+
 use Config;
 use ORM;
 
@@ -11,7 +15,7 @@ class Healthcheck {
   const OK = 'OK';
   const REDIS_SUCCESSFUL_PING = 'PONG';
 
-  public function index(ServerRequestInterface $request, ResponseInterface $response) {
+  public function index(ServerRequestInterface $request): ResponseInterface {
     $userlog = make_logger('healthcheck');
 
     $services = [
@@ -40,9 +44,7 @@ class Healthcheck {
       );
     }
 
-    // Always
-    $response->getBody()->write(json_encode($services));
-    return $response;
+    return new JsonResponse($services);
   }
 }
 
