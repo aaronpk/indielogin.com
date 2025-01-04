@@ -268,7 +268,7 @@ class Authenticate {
     }
   }
 
-  public function select(ServerRequestInterface $request, ResponseInterface $response) {
+  public function select(ServerRequestInterface $request): ResponseInterface {
     session_start();
 
     $userlog = make_logger('user');
@@ -288,10 +288,10 @@ class Authenticate {
 
     $details = json_decode($details, true);
 
-    return $this->_startAuthenticate($response, $details['login_request'], $details['provider']);
+    return $this->_startAuthenticate($details['login_request'], $details['provider']);
   }
 
-  public function post_select(ServerRequestInterface $request, ResponseInterface $response) {
+  public function post_select(ServerRequestInterface $request): ResponseInterface {
     session_start();
 
     $userlog = make_logger('user');
@@ -338,22 +338,20 @@ class Authenticate {
 
     if(count($errors)) {
       $devlog->info('verify request is missing one or more parameters', ['errors' => $errors, 'params' => $params]);
-      $response->getBody()->write(json_encode([
-        'error' => 'invalid_request',
-        'details' => $errors,
-      ]));
-      return $response->withStatus(400);
+      return (new JsonResponse([
+              'error' => 'invalid_request',
+              'details' => $errors,
+            ]))->withStatus(400);
     }
 
     $login = redis()->get('indielogin:code:'.$params['code']);
 
     if(!$login) {
       $devlog->info('authorization code expired', ['params' => $params]);
-      $response->getBody()->write(json_encode([
-        'error' => 'invalid_request',
-        'error_description' => 'The authorization code expired',
-      ]));
-      return $response->withStatus(400);
+      return (new JsonResponse([
+              'error' => 'invalid_request',
+              'error_description' => 'The authorization code expired',
+            ]))->withStatus(400);
     }
 
     $login = json_decode($login, true);
@@ -361,20 +359,18 @@ class Authenticate {
     // Verify client_id and redirect_uri match
     if($params['client_id'] != $login['client_id']) {
       $devlog->info('client_id mismatch', ['params' => $params, 'login' => $login]);
-      $response->getBody()->write(json_encode([
-        'error' => 'invalid_grant',
-        'error_description' => 'The client_id in the request did not match the client_id the code was issued to',
-      ]));
-      return $response->withStatus(400);
+      return (new JsonResponse([
+              'error' => 'invalid_grant',
+              'error_description' => 'The client_id in the request did not match the client_id the code was issued to',
+            ]))->withStatus(400);
     }
 
     if($params['redirect_uri'] != $login['redirect_uri']) {
       $devlog->info('redirect_uri mismatch', ['params' => $params, 'login' => $login]);
-      $response->getBody()->write(json_encode([
-        'error' => 'invalid_grant',
-        'error_description' => 'The redirect_uri in the request did not match the redirect_uri the code was issued to',
-      ]));
-      return $response->withStatus(400);
+      return (new JsonResponse([
+              'error' => 'invalid_grant',
+              'error_description' => 'The redirect_uri in the request did not match the redirect_uri the code was issued to',
+            ]))->withStatus(400);
     }
 
     $userlog->info('Completed login for user', ['me' => $login['me'], 'details' => $login]);
@@ -387,13 +383,12 @@ class Authenticate {
     $log->code = '';
     $log->save();
 
-    $response->getBody()->write(json_encode([
+    return new JsonResponse([
       'me' => $login['me']
-    ]));
-    return $response->withHeader('Content-type', 'application/json');
+    ]);
   }
 
-  private function _showProviderChooser(&$response, $login_request, $providers) {
+  private function _showProviderChooser($login_request, $providers) {
     $choices = [];
 
     // Generate a temporary code for each provider
@@ -411,14 +406,13 @@ class Authenticate {
     }
 
     // Show the select form
-    $response->getBody()->write(view('auth/select', [
+    return new HtmlResponse(view('auth/select', [
       'title' => 'Authenticate',
       'me' => $login_request['me'],
       'client_id' => $login_request['client_id'],
       'redirect_uri' => $login_request['redirect_uri'],
       'choices' => $choices,
     ]));
-    return $response;
   }
 
   private function _startAuthenticate($login_request, $details) {
