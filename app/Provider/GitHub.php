@@ -98,11 +98,15 @@ trait GitHub {
     // Verify that their GitHub profile links to the website we expected
 
     // Check for the simple case of an exact URL match
-    // if(!empty($profile['blog'])) {
-    //   if(urls_are_equivalent($profile['blog']) && $_SESSION['expected_me']) {
-    //     $verified = true;
-    //   }
-    // }
+    if(!empty($profile['blog'])) {
+      if(urls_are_equivalent($profile['blog'], $_SESSION['expected_me'])) {
+        $verified = true;
+        $userlog->info('GitHub blog URL matched expected URL without fetching', [
+          'blog' => $profile['blog'],
+          'expected' => $_SESSION['expected_me']
+        ]);
+      }
+    }
 
     // Follow redirects on their bio URL in case their github profile has the non-canonical version of their URL
     if(!$verified && !empty($profile['blog'])) {
@@ -118,7 +122,11 @@ trait GitHub {
       if(!empty($expanded_url['me'])) {
         if(urls_are_equivalent($expanded_url['me'], $_SESSION['expected_me'])) {
           $verified = true;
-          $userlog->info('GitHub blog URL matched expected URL');
+          $userlog->info('GitHub blog URL matched expected URL after following redirects', [
+            'blog' => $profile['blog'],
+            'expanded_url' => $expanded_url,
+            'expected' => $_SESSION['expected_me']
+          ]);
         }
       }
     }
@@ -127,7 +135,10 @@ trait GitHub {
       // Allow a URL in the bio to match
       if(strpos($profile['bio'], $_SESSION['expected_me']) !== false) {
         $verified = true;
-          $userlog->info('GitHub URL in bio matched expected URL');
+        $userlog->info('GitHub URL in bio matched expected URL', [
+          'bio' => $profile['bio'],
+          'expected' => $_SESSION['expected_me']
+        ]);
       }
     }
 
@@ -147,7 +158,10 @@ trait GitHub {
       foreach($social as $s) {
         if(urls_are_equivalent($s['url'], $_SESSION['expected_me'])) {
           $verified = true;
-          $userlog->info('GitHub social URL matched expected URL');
+          $userlog->info('GitHub social URL matched expected URL', [
+            'social' => $s['url'],
+            'expected' => $_SESSION['expected_me']
+          ]);
         }
       }
     }
@@ -159,7 +173,10 @@ trait GitHub {
     }
 
     if(!$verified) {
-      $userlog->warning('GitHub URL mismatch', ['profile' => $profile, 'expected' => $_SESSION['expected_me']]);
+      $userlog->warning('GitHub URL mismatch', [
+        'profile' => $profile,
+        'expected' => $_SESSION['expected_me']
+      ]);
       return $this->_userError($linked_to.' Make sure you link to <b>'.$_SESSION['expected_me'].'</b> in your GitHub profile.');
     }
 
