@@ -31,17 +31,14 @@ function make_logger($channel) {
   return $log;
 }
 
-function log_info($msg) {
-  logger()->info($msg);
-}
-
-function log_warning($msg) {
-  logger()->warning($msg);
-}
-
 function view($template, $data=[]) {
   global $templates;
   return $templates->render($template, $data);
+}
+
+function redirect_response($url, $code=302) {
+  $response = new \Laminas\Diactoros\Response();
+  return $response->withHeader('Location', $url)->withStatus($code);
 }
 
 function e($text) {
@@ -83,14 +80,12 @@ function pa($a) {
   echo '</pre>';
 }
 
-function generate_state() {
-  $_SESSION['state'] = bin2hex(random_bytes(12));
-  return $_SESSION['state'];
+function generate_state($prefix=false) {
+  return $_SESSION['state'] = ($prefix ? $prefix.'_' : '').bin2hex(random_bytes(12));
 }
 
 function generate_pkce_code_verifier() {
-  $_SESSION['code_verifier'] = bin2hex(random_bytes(50));
-  return $_SESSION['code_verifier'];
+  return $_SESSION['code_verifier'] = bin2hex(random_bytes(50));
 }
 
 function is_logged_in() {

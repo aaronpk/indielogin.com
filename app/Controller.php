@@ -90,5 +90,46 @@ class Controller {
     ]));
   }
 
+  public function debug(ServerRequestInterface $request): ResponseInterface {
+    return new HtmlResponse(view('debug', [
+      'title' => 'Debug',
+    ]));
+  }
+
+  public function debug_github(ServerRequestInterface $request): ResponseInterface {
+    session_start();
+
+    $state = generate_state('debug');
+
+    $params = [
+      'client_id' => getenv('GITHUB_CLIENT_ID'),
+      'redirect_uri' => getenv('BASE_URL').'redirect/github',
+      'state' => $state,
+      'allow_signup' => 'false',
+    ];
+    $authorize = 'https://github.com/login/oauth/authorize?'.http_build_query($params);
+
+    return redirect_response($authorize, 302);
+  }
+
+  public static function debug_github_callback($profile, $token): ResponseInterface {
+
+    $http = http_client();
+
+    $result = $http->get('https://api.github.com/user/social_accounts', [
+      'Accept: application/vnd.github.v3+json',
+      'Authorization: Bearer '.$token['access_token']
+    ]);
+    $socials = json_decode($result['body'], true);
+
+    $profile = array_intersect_key($profile, array_flip(['blog','bio']));
+
+    return new HtmlResponse(view('debug', [
+      'title' => 'Debug',
+      'github_data' => $profile,
+      'social_accounts' => $socials,
+    ]));
+  }
+
 }
 

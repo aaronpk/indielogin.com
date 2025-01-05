@@ -29,8 +29,10 @@ $route->map('GET', '/api', 'App\\Controller::api_docs');
 $route->map('GET', '/setup', 'App\\Controller::setup_docs');
 $route->map('GET', '/faq', 'App\\Controller::faq');
 $route->map('GET', '/privacy-policy', 'App\\Controller::privacy');
-$route->map('GET', '/debug', 'App\\Controller::debug');
 $route->map('GET', '/demo', 'App\\Controller::demo');
+
+$route->map('GET', '/debug', 'App\\Controller::debug');
+$route->map('GET', '/debug/github', 'App\\Controller::debug_github');
 
 $route->map('GET', '/id', 'App\\Controller::client_metadata'); # IndieAuth client metadata
 
@@ -40,7 +42,6 @@ $route->map('POST', '/auth', 'App\\Authenticate::verify')->middleware(new App\CO
 $route->map('POST', '/select', 'App\\Authenticate::post_select');
 
 $route->map('GET', '/redirect/github', 'App\\Authenticate::redirect_github');
-$route->map('GET', '/redirect/twitter', 'App\\Authenticate::redirect_twitter');
 $route->map('GET', '/redirect/indieauth', 'App\\Authenticate::redirect_indieauth');
 
 $route->map('POST', '/auth/send_email', 'App\\Authenticate::send_email');

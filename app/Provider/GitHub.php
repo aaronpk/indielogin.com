@@ -29,8 +29,7 @@ trait GitHub {
 
     $userlog->info('Beginning GitHub login', ['provider' => $details, 'login' => $login_request]);
 
-    $response = new Response();
-    return $response->withHeader('Location', $authorize)->withStatus(302);
+    return redirect_response($authorize, 302);
   }
 
   public function redirect_github(ServerRequestInterface $request): ResponseInterface {
@@ -77,10 +76,15 @@ trait GitHub {
     $profile = json_decode($result['body'], true);
 
     if(!isset($profile['login'])) {
-      $userlog->warning('Error fetching user profile', ['response' => $profile]);
-      return $this->_userError('There was a problem with the request to GitHub', [
+      $userlog->warning('Error fetching user profile', ['response' => $result, 'useragent' => getenv('HTTP_USER_AGENT')]);
+      $userlog->warning('Github token', ['token' => $token['access_token']]);
+      return $this->_userError('There was a problem with the profile request to GitHub', [
         'response' => json_encode($profile, JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES)
       ]);
+    }
+
+    if(preg_match('/debug_/', $query['state'])) {
+      return \App\Controller::debug_github_callback($profile, $token);
     }
 
     // Verify that the GitHub user that we expected signed in
@@ -92,9 +96,17 @@ trait GitHub {
     $verified = false;
 
     // Verify that their GitHub profile links to the website we expected
-    // Follow redirects on their bio URL in case they link to the non-canonical version of their URL
-    $expanded_url = $profile['blog'];
-    if($expanded_url) {
+
+    // Check for the simple case of an exact URL match
+    // if(!empty($profile['blog'])) {
+    //   if(urls_are_equivalent($profile['blog']) && $_SESSION['expected_me']) {
+    //     $verified = true;
+    //   }
+    // }
+
+    // Follow redirects on their bio URL in case their github profile has the non-canonical version of their URL
+    if(!$verified && !empty($profile['blog'])) {
+      $expanded_url = $profile['blog'];
 
       // Assume https if no scheme was entered in their github profile
       if(!preg_match('/^https?:\/\//', $expanded_url)) {
@@ -103,18 +115,29 @@ trait GitHub {
 
       $expanded_url = fetch_profile($expanded_url);
 
-      if(!empty($expanded_url['me']))
-        if(urls_are_equivalent($expanded_url['me'], $_SESSION['expected_me']))
+      if(!empty($expanded_url['me'])) {
+        if(urls_are_equivalent($expanded_url['me'], $_SESSION['expected_me'])) {
           $verified = true;
-    }
-
-    if(!$verified) {
-      if(strpos($profile['bio'], $_SESSION['expected_me']) !== false) {
-        $verified = true;
+          $userlog->info('GitHub blog URL matched expected URL');
+        }
       }
     }
 
     if(!$verified) {
+      // Allow a URL in the bio to match
+      if(strpos($profile['bio'], $_SESSION['expected_me']) !== false) {
+        $verified = true;
+          $userlog->info('GitHub URL in bio matched expected URL');
+      }
+    }
+
+    if(!$verified) {
+      // Fetch a link to their "social accounts" to find more links
+      $userlog->info('No link found in GitHub profile, fetching social accounts', [
+        'profile' => $profile,
+        'expected' => $_SESSION['expected_me']
+      ]);
+
       $result = $http->get('https://api.github.com/user/social_accounts', [
         'Accept: application/vnd.github.v3+json',
         'Authorization: Bearer '.$token['access_token']
@@ -122,8 +145,10 @@ trait GitHub {
 
       $social = json_decode($result['body'], true);
       foreach($social as $s) {
-        if(urls_are_equivalent($s['url'], $_SESSION['expected_me']))
+        if(urls_are_equivalent($s['url'], $_SESSION['expected_me'])) {
           $verified = true;
+          $userlog->info('GitHub social URL matched expected URL');
+        }
       }
     }
 
