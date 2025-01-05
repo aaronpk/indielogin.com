@@ -106,14 +106,10 @@ function display_date($format, $date) {
   }
 }
 
-function login_required(&$response) {
-  return $response->withHeader('Location', '/?login_required')->withStatus(302);
-}
-
 function http_client() {
   static $http;
   if(!isset($http))
-    $http = new \p3k\HTTP(getenv('HTTP_USER_AGENT'));
+    $http = new \p3k\HTTP(getenv('HTTPCLIENT_USER_AGENT'));
   $http->set_timeout(10);
   return $http;
 }
