@@ -244,6 +244,7 @@ function fetch_profile($me) {
       'me' => $rels['me'] ?? [],
       'authn' => $rels['authn'] ?? [],
       'authorization_endpoint' => $rels['authorization_endpoint'] ?? [],
+      'token_endpoint' => $rels['token_endpoint'] ?? [],
       'pgpkey' => $rels['pgpkey'] ?? [],
     ],
     'redirects' => $redirects,

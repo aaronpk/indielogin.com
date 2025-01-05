@@ -208,9 +208,20 @@ class Authenticate {
 
         $login_request['authorization_endpoint'] = $authorization_endpoint;
 
+        if(isset($rels['token_endpoint'])) {
+          $userlog->info('Found a token endpoint');
+          $token_endpoint = $rels['token_endpoint'][0];
+
+          if(!\p3k\url\is_url($token_endpoint)) {
+            $userlog->warning('Token endpoint does not look like a URL', ['me' => $params['me'], 'token_endpoint' => $token_endpoint]);
+            return $this->_userError($response, 'We found a token_endpoint but it does not look like a URL');
+          }
+
+          $login_request['token_endpoint'] = $token_endpoint;
+        }
+
         return $this->_startAuthenticate($login_request, [
           'provider' => 'indieauth',
-          'authorization_endpoint' => $authorization_endpoint,
         ]);
       }
 

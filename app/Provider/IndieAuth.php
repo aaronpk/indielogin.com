@@ -15,7 +15,7 @@ trait IndieAuth {
     // Encode this request's me/redirect_uri/state in the state parameter to avoid a session?
     $state = generate_state();
     $code_verifier = generate_pkce_code_verifier();
-    $authorize = \IndieAuth\Client::buildAuthorizationURL($details['authorization_endpoint'], [
+    $authorize = \IndieAuth\Client::buildAuthorizationURL($login_request['authorization_endpoint'], [
       'me' => $login_request['me'],
       'redirect_uri' => getenv('BASE_URL').'redirect/indieauth',
       'client_id' => getenv('BASE_URL').'id',
@@ -25,7 +25,7 @@ trait IndieAuth {
 
     $userlog->info('Beginning IndieAuth login', ['provider' => $details, 'login' => $login_request]);
 
-    $_SESSION['login_request']['profile'] = $details['authorization_endpoint'];
+    $_SESSION['login_request']['profile'] = $login_request['authorization_endpoint'];
 
     $response = new Response();
     return $response->withHeader('Location', $authorize)->withStatus(302);
@@ -72,12 +72,20 @@ trait IndieAuth {
 
     $userlog->info('Exchanging the authorization code at the IndieAuth server', [
       'authorization_endpoint' => $_SESSION['login_request']['authorization_endpoint'],
+      'token_endpoint' => $_SESSION['login_request']['token_endpoint'] ?? '',
       'params' => $params,
       'login' => $_SESSION['login_request'],
     ]);
 
+    // Keep old behavior of exchanging at the authorization endpoint for legacy servers
+    if(isset($_SESSION['login_request']['token_endpoint'])) {
+      $auth_code_exchange_endpoint = $_SESSION['login_request']['token_endpoint'];
+    } else {
+      $auth_code_exchange_endpoint = $_SESSION['login_request']['authorization_endpoint'];
+    }
+
     $http = http_client();
-    $result = $http->post($_SESSION['login_request']['authorization_endpoint'], http_build_query($params), [
+    $result = $http->post($auth_code_exchange_endpoint, http_build_query($params), [
       'Accept: application/json'
     ]);
 
