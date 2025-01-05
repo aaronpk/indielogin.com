@@ -4,9 +4,19 @@ include('vendor/autoload.php');
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use League\Route\Http\Exception\NotFoundException;
+use Laminas\Diactoros\Response\HtmlResponse;
+
+// Check for existence of config variables, and show an error page if not set
+if(empty(getenv('APP_NAME')) || empty(getenv('DB_HOST'))) {
+  echo view('setup-error', [
+    'title' => 'Setup Error',
+  ]);
+  die();
+}
 
 $request = Laminas\Diactoros\ServerRequestFactory::fromGlobals(
-    $_SERVER, $_GET, $_POST, $_COOKIE, $_FILES
+  $_SERVER, $_GET, $_POST, $_COOKIE, $_FILES
 );
 
 $route = new League\Route\Router;
@@ -40,16 +50,9 @@ $route->map('POST', '/auth/verify_pgp_challenge', 'App\\Authenticate::verify_pgp
 $route->map('POST', '/fedcm/start', 'App\\Authenticate::fedcm_start');
 $route->map('POST', '/fedcm/login', 'App\\Authenticate::fedcm_login');
 
-
 $templates = new League\Plates\Engine(dirname(__FILE__).'/../views');
 
-// Check for existence of config variables, and show an error page if not set
-if(empty(getenv('APP_NAME')) || empty(getenv('DB_HOST'))) {
-  echo view('setup-error', [
-      'title' => 'Setup Error',
-  ]);
-  die();
-}
+$route->middleware(new App\NotFoundMiddleware());
 
 $response = $route->dispatch($request);
 (new Laminas\HttpHandlerRunner\Emitter\SapiEmitter)->emit($response);
