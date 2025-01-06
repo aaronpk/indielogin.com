@@ -336,7 +336,7 @@ class Authenticate {
     return $this->_finishAuthenticate();
   }
 
-  public function verify(ServerRequestInterface $request, ResponseInterface $response) {
+  public function verify(ServerRequestInterface $request): ResponseInterface {
     $params = $request->getParsedBody();
 
     $devlog = make_logger('dev');
