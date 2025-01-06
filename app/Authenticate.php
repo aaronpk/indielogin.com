@@ -145,7 +145,8 @@ class Authenticate {
 
       // If the user-entered 'me' is the same as the one in the session, skip authentication and show a prompt
       // But don't show this prompt to people who have an authorization endpoint or if prompt=login
-      if(empty($profile['rels']['authorization_endpoint'])
+      if($profile['code'] == 200
+        && empty($profile['rels']['authorization_endpoint'])
         && (($_GET['prompt'] ?? false) != 'login')
         && isset($_SESSION['me']) && $_SESSION['me'] == $profile['final_url']) {
 
@@ -181,12 +182,12 @@ class Authenticate {
       $errors = [];
 
       // Show an error to the user if there was a problem
-      if($profile['code'] != 200 ) {
+      if($profile['code'] != 200) {
         $userlog->warning('Problem connecting to website', ['me' => $params['me'], 'exception' => $profile['exception']]);
 
         return $this->_userError('There was a problem connecting to your website', [
           'me' => $params['me'],
-          'response' => $profile['exception'],
+          'error_description' => $profile['exception'],
         ]);
       }
 
@@ -208,7 +209,7 @@ class Authenticate {
 
         $login_request['authorization_endpoint'] = $authorization_endpoint;
 
-        if(isset($rels['token_endpoint'])) {
+        if(!empty($rels['token_endpoint'])) {
           $userlog->info('Found a token endpoint');
           $token_endpoint = $rels['token_endpoint'][0];
 
@@ -220,8 +221,18 @@ class Authenticate {
           $login_request['token_endpoint'] = $token_endpoint;
         }
 
+        if(!empty($rels['indieauth-metadata'])) {
+          $indieauth_method = 'indieauth-metadata';
+          $login_request['indieauth_issuer'] = $profile['indieauth-issuer'];
+        } elseif(!empty($rels['token_endpoint'])) {
+          $indieauth_method = 'token-endpoint';
+        } else {
+          $indieauth_method = 'authorization-endpoint';
+        }
+
         return $this->_startAuthenticate($login_request, [
           'provider' => 'indieauth',
+          'indieauth_method' => $indieauth_method,
         ]);
       }
 

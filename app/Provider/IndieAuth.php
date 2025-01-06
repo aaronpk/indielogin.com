@@ -25,7 +25,7 @@ trait IndieAuth {
 
     $userlog->info('Beginning IndieAuth login', ['provider' => $details, 'login' => $login_request]);
 
-    $_SESSION['login_request']['profile'] = $login_request['authorization_endpoint'];
+    $_SESSION['login_request']['profile'] = $details['indieauth_method'];
 
     $response = new Response();
     return $response->withHeader('Location', $authorize)->withStatus(302);
@@ -59,6 +59,13 @@ trait IndieAuth {
           'login' => $_SESSION['login_request'],
         ]);
         return $this->_userError('Your IndieAuth server returned an invalid response');
+      }
+    }
+
+    // If an iss parameter is returned, ensure it matches the issuer we were expecting
+    if(!empty($query['iss']) && !empty($_SESSION['login_request']['indieauth_issuer'])) {
+      if($query['iss'] != $_SESSION['login_request']['indieauth_issuer']) {
+        return $this->_userError('The issuer returned in the authorization response did not match the expected issuer');
       }
     }
 
@@ -111,7 +118,7 @@ trait IndieAuth {
 
     // Make sure "me" returned matches the original or shares an authorization endpoint
     if($_SESSION['expected_me'] != $auth['me']) {
-      $newAuthorizationEndpoint = \IndieAuth\Client::discoverAuthorizationEndpoint($auth['me']);
+      $newAuthorizationEndpoint = discover_authorization_endpoint($auth['me']);
 
       $userlog->info('Entered URL ('.$_SESSION['expected_me'].') was different than resulting URL ('.$auth['me'].'), verifying authorization server');
 

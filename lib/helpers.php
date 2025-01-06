@@ -127,28 +127,11 @@ function urls_are_equivalent($a, $b) {
   return $a == $b;
 }
 
-function fetch_profile($me) {
-
-  $client = new \GuzzleHttp\Client();
-
-  // Keep track of redirects in this array
-  $redirects = [];
-
-  $onRedirect = function(
-      RequestInterface $request,
-      ResponseInterface $response,
-      UriInterface $uri
-  ) use(&$redirects) {
-    $redirects[] = [
-      'code' => $response->getStatusCode(),
-      'from' => ''.$request->getUri(),
-      'to' => ''.$uri
-    ];
-  };
+function guzzle_request_get($client, $url, $onRedirect=null) {
 
   try {
     // Fetch the entered URL
-    $res = $client->request('GET', $me, [
+    $res = $client->request('GET', $url, [
       'timeout'         => 10,
       'allow_redirects' => [
         'max'             => 10,
@@ -198,6 +181,34 @@ function fetch_profile($me) {
     ];
   }
 
+  return $res;
+}
+
+function fetch_profile($me) {
+
+  $client = new \GuzzleHttp\Client();
+
+  // Keep track of redirects in this array
+  $redirects = [];
+
+  $onRedirect = function(
+      RequestInterface $request,
+      ResponseInterface $response,
+      UriInterface $uri
+  ) use(&$redirects) {
+    $redirects[] = [
+      'code' => $response->getStatusCode(),
+      'from' => ''.$request->getUri(),
+      'to' => ''.$uri
+    ];
+  };
+
+  $res = guzzle_request_get($client, $me, $onRedirect);
+
+  if(!is_object($res) && isset($res['exception'])) {
+    return $res;
+  }
+
   $original_me = $me;
   $me = \IndieAuth\Client::normalizeMeURL($me);
 
@@ -233,6 +244,48 @@ function fetch_profile($me) {
     if(isset($link_rels['authorization_endpoint'])) {
       $rels['authorization_endpoint'] = $link_rels['authorization_endpoint'];
     }
+    if(isset($link_rels['indieauth-metadata'])) {
+      $rels['indieauth-metadata'] = $link_rels['indieauth-metadata'];
+    }
+  }
+
+  // If IndieAuth metadata was discovered, fetch it and populate the authorization and token endpoint from there
+  if(isset($rels['indieauth-metadata'])) {
+
+    $res = guzzle_request_get($client, $rels['indieauth-metadata'][0]);
+    if(!is_object($res) && isset($res['exception'])) {
+      return $res;
+    }
+
+    $metadata = json_decode(''.$res->getBody(), true);
+
+    if(empty($metadata)) {
+      return [
+        'code' => 0,
+        'exception' => 'IndieAuth server metadata could not be parsed',
+      ];
+    }
+
+    if(empty($metadata['issuer'])) {
+      return [
+        'code' => 0,
+        'exception' => 'IndieAuth metadata is missing an issuer value',
+      ];
+    }
+
+    if(empty($metadata['authorization_endpoint']) || empty($metadata['token_endpoint'])) {
+      return [
+        'code' => 0,
+        'exception' => 'IndieAuth metadata was missing authorization endpoint and/or token endpoint',
+      ];
+    }
+
+    $indieauth_issuer = $metadata['issuer'];
+    $rels['authorization_endpoint'] = [$metadata['authorization_endpoint']];
+    $rels['token_endpoint'] = [$metadata['token_endpoint']];
+
+  } else {
+    $indieauth_issuer = null;
   }
 
   return [
@@ -245,8 +298,25 @@ function fetch_profile($me) {
       'authn' => $rels['authn'] ?? [],
       'authorization_endpoint' => $rels['authorization_endpoint'] ?? [],
       'token_endpoint' => $rels['token_endpoint'] ?? [],
+      'indieauth-metadata' => $rels['indieauth-metadata'] ?? [],
       'pgpkey' => $rels['pgpkey'] ?? [],
     ],
+    'indieauth-issuer' => $indieauth_issuer,
     'redirects' => $redirects,
   ];
+}
+
+function discover_authorization_endpoint($url) {
+
+  $profile = fetch_profile($url);
+
+  if($profile['code'] != 200) {
+    return null;
+  }
+
+  if(empty($profile['rels']['authorization_endpoint'])) {
+    return null;
+  }
+
+  return $profile['rels']['authorization_endpoint'][0];
 }
