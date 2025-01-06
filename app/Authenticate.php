@@ -135,7 +135,7 @@ class Authenticate {
       // Verify the "me" parameter is a URL
       if(!\p3k\url\is_url($params['me'])) {
         $userlog->info('Invalid "me" entered', ['me' => $params['me']]);
-        return $this->_userError($response, 'You entered something that doesn\'t look like a URL. Please go back and try again.');
+        return $this->_userError('You entered something that doesn\'t look like a URL. Please go back and try again.');
       }
 
       $_SESSION['me_entered'] = $params['me'];
@@ -145,7 +145,7 @@ class Authenticate {
 
       // If the user-entered 'me' is the same as the one in the session, skip authentication and show a prompt
       // But don't show this prompt to people who have an authorization endpoint or if prompt=login
-      if(!isset($_SESSION['authorization_endpoint'])
+      if(empty($profile['rels']['authorization_endpoint'])
         && (($_GET['prompt'] ?? false) != 'login')
         && isset($_SESSION['me']) && $_SESSION['me'] == $profile['final_url']) {
 
@@ -184,7 +184,7 @@ class Authenticate {
       if($profile['code'] != 200 ) {
         $userlog->warning('Problem connecting to website', ['me' => $params['me'], 'exception' => $profile['exception']]);
 
-        return $this->_userError($response, 'There was a problem connecting to your website', [
+        return $this->_userError('There was a problem connecting to your website', [
           'me' => $params['me'],
           'response' => $profile['exception'],
         ]);
@@ -203,7 +203,7 @@ class Authenticate {
         // Check that it's a full URL and was not a relative URL.
         if(!\p3k\url\is_url($authorization_endpoint)) {
           $userlog->warning('Authorization endpoint does not look like a URL', ['me' => $params['me'], 'authorization_endpoint' => $authorization_endpoint]);
-          return $this->_userError($response, 'We found an authorization_endpoint but it does not look like a URL');
+          return $this->_userError('We found an authorization_endpoint but it does not look like a URL');
         }
 
         $login_request['authorization_endpoint'] = $authorization_endpoint;
@@ -214,7 +214,7 @@ class Authenticate {
 
           if(!\p3k\url\is_url($token_endpoint)) {
             $userlog->warning('Token endpoint does not look like a URL', ['me' => $params['me'], 'token_endpoint' => $token_endpoint]);
-            return $this->_userError($response, 'We found a token_endpoint but it does not look like a URL');
+            return $this->_userError('We found a token_endpoint but it does not look like a URL');
           }
 
           $login_request['token_endpoint'] = $token_endpoint;
@@ -234,8 +234,7 @@ class Authenticate {
         // If there are none, then error out now since the user explicitly said not to trust rel=mes
         if(count($supported) == 0) {
           $userlog->warning('No supported rel=authn URLs', ['me' => $params['me'], 'relauthn' => $rels['authn']]);
-          return $this->_userError($response,
-            'None of the rel=authn URLs found on your page were recognized as a supported provider', [
+          return $this->_userError('None of the rel=authn URLs found on your page were recognized as a supported provider', [
               'found' => $rels['authn']
             ]
           );
@@ -257,8 +256,7 @@ class Authenticate {
         // If there are no supported rel=me, then show an error
         if(count($supported) == 0) {
           $userlog->warning('No supported rel=me URLs', ['me' => $params['me'], 'relme' => $rels['me']]);
-          return $this->_userError($response,
-            'None of the rel=me URLs found on your page were recognized as a supported provider', [
+          return $this->_userError('None of the rel=me URLs found on your page were recognized as a supported provider', [
               'found' => $rels['me']
             ]
           );
@@ -294,7 +292,7 @@ class Authenticate {
     $details = redis()->get('indielogin:select:'.$params['code']);
     if(!$details) {
       $userlog->warning('Select code expired');
-      return $this->_userError($response, 'The session timed out. Please go back and try again.');
+      return $this->_userError('The session timed out. Please go back and try again.');
     }
 
     $details = json_decode($details, true);
@@ -318,7 +316,7 @@ class Authenticate {
 
     if(!$details) {
       $userlog->warning('Select code expired');
-      return $this->_userError($response, 'The session timed out. Please go back and try again.');
+      return $this->_userError('The session timed out. Please go back and try again.');
     }
 
     $details = json_decode($details, true);
