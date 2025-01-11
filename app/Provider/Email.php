@@ -57,8 +57,8 @@ trait Email {
       'usercode' => $usercode,
     ]);
 
-    $mg = new Mailgun(getenv('MAILGUN_KEY'));
-    $result = $mg->sendMessage(getenv('MAILGUN_DOMAIN'), [
+    $mg = Mailgun::create(getenv('MAILGUN_KEY'));
+    $result = $mg->messages()->send(getenv('MAILGUN_DOMAIN'), [
       'from'     => getenv('MAILGUN_FROM'),
       'to'       => $login['email'],
       'subject'  => 'Your '.getenv('APP_NAME').' Code: '.$usercode,
