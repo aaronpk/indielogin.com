@@ -3,6 +3,7 @@ namespace App\Provider;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Laminas\Diactoros\Response\HtmlResponse;
 use Config;
 use Mailgun\Mailgun;
 
@@ -10,19 +11,18 @@ define('EMAIL_TIMEOUT', 300);
 
 trait Email {
 
-  private function _start_email(&$response, $me, $details) {
+  private function _start_email($me, $details) {
 
     $code = random_string();
     redis()->setex('indielogin:email:'.$code, EMAIL_TIMEOUT, json_encode($details));
 
     $_SESSION['login_request']['profile'] = $details['email'];
 
-    $response->getBody()->write(view('auth/email', [
+    return new HtmlResponse(view('auth/email', [
       'title' => 'Log In via Email',
       'code' => $code,
       'email' => $details['email']
     ]));
-    return $response;
   }
 
   public function send_email(ServerRequestInterface $request, ResponseInterface $response) {
@@ -36,12 +36,11 @@ trait Email {
     $login = redis()->get('indielogin:email:'.$params['code']);
 
     if(!$login) {
-      $response->getBody()->write(view('auth/email-error', [
+      return new HtmlResponse(view('auth/email-error', [
         'title' => 'Error',
         'error' => 'The session expired',
         'client_id' => ($_SESSION['login_request']['client_id'] ?? false)
       ]));
-      return $response;
     }
 
     $login = json_decode($login, true);
@@ -66,11 +65,10 @@ trait Email {
       'text'     => "Enter the code below to sign in: \n\n$usercode\n"
     ]);
 
-    $response->getBody()->write(view('auth/email-enter-code', [
+    return new HtmlResponse(view('auth/email-enter-code', [
       'title' => 'Log In via Email',
       'code' => $params['code'],
     ]));
-    return $response;
   }
 
   public function verify_email_code(ServerRequestInterface $request, ResponseInterface $response) {
@@ -84,12 +82,11 @@ trait Email {
     $login = redis()->get('indielogin:email:'.$params['code']);
 
     if(!$login) {
-      $response->getBody()->write(view('auth/email-error', [
+      return new HtmlResponse(view('auth/email-error', [
         'title' => 'Error',
         'error' => 'The session expired',
         'client_id' => ($_SESSION['login_request']['client_id'] ?? false)
       ]));
-      return $response;
     }
 
     $login = json_decode($login, true);
@@ -111,23 +108,21 @@ trait Email {
         redis()->del('indielogin:email:'.$params['code']);
         redis()->del($k);
 
-        $response->getBody()->write(view('auth/email-error', [
+        return new HtmlResponse(view('auth/email-error', [
           'title' => 'Error',
           'error' => 'The session expired',
           'client_id' => ($_SESSION['login_request']['client_id'] ?? false)
         ]));
-        return $response;
       }
 
       // Increment the counter of failed attempts
       redis()->setex($k, EMAIL_TIMEOUT, $current_attempts+1);
 
-      $response->getBody()->write(view('auth/email-enter-code', [
+      return new HtmlResponse(view('auth/email-enter-code', [
         'title' => 'Log In via Email',
         'code' => $params['code'],
         'error' => 'You entered an incorrect code. Please try again.',
       ]));
-      return $response;
     }
 
   }
