@@ -25,7 +25,7 @@ trait Email {
     ]));
   }
 
-  public function send_email(ServerRequestInterface $request, ResponseInterface $response) {
+  public function send_email(ServerRequestInterface $request): ResponseInterface {
     session_start();
 
     $params = $request->getParsedBody();
@@ -71,7 +71,7 @@ trait Email {
     ]));
   }
 
-  public function verify_email_code(ServerRequestInterface $request, ResponseInterface $response) {
+  public function verify_email_code(ServerRequestInterface $request): ResponseInterface {
     session_start();
 
     $params = $request->getParsedBody();
