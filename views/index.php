@@ -41,7 +41,7 @@
 
       <p>If you'd like to let your users <b>log in with their own domain name</b> as their identity, you can use IndieLogin.com to handle the details of that for you.</p>
 
-      <p><?= getenv('APP_NAME') ?> supports <a href="https://indieauth.net/">IndieAuth</a>, so users with supported websites will be able to sign in using their own website's login. Otherwise, <?= getenv('APP_NAME')?> will check for links to GitHub or an email address, and will ask the user to authenticate that way. Regardless of how the user authenticates, the identity provided to the application will always be the user's primary website.</p>
+      <p><?= getenv('APP_NAME') ?> supports <a href="https://indieauth.net/">IndieAuth</a>, so users with supported websites will be able to sign in using their own website's login. Otherwise, <?= getenv('APP_NAME')?> will check for links to  GitHub, Codeberg, an email address, and will ask the user to authenticate that way. Regardless of how the user authenticates, the identity provided to the application will always be the user's primary website.</p>
     </div>
     <div class="col-md-5">
       <img class="featurette-image img-fluid mx-auto" src="/images/web-signin-splash.jpg" alt="Web Sign-In Prompt">

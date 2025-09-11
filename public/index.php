@@ -33,6 +33,7 @@ $route->map('GET', '/demo', 'App\\Controller::demo');
 
 $route->map('GET', '/debug', 'App\\Controller::debug');
 $route->map('GET', '/debug/github', 'App\\Controller::debug_github');
+$route->map('GET', '/debug/codeberg', 'App\\Controller::debug_codeberg');
 
 $route->map('GET', '/id', 'App\\Controller::client_metadata'); # IndieAuth client metadata
 
@@ -42,6 +43,7 @@ $route->map('POST', '/auth', 'App\\Authenticate::verify')->middleware(new App\CO
 $route->map('POST', '/select', 'App\\Authenticate::post_select');
 
 $route->map('GET', '/redirect/github', 'App\\Authenticate::redirect_github');
+$route->map('GET', '/redirect/codeberg', 'App\\Authenticate::redirect_codeberg');
 $route->map('GET', '/redirect/indieauth', 'App\\Authenticate::redirect_indieauth');
 
 $route->map('POST', '/auth/send_email', 'App\\Authenticate::send_email');
