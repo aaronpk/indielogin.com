@@ -8,10 +8,11 @@
         <?php if(isset($github_data)): ?>
           <pre><?= json_encode($github_data, JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES) ?></pre>
           <pre><?= json_encode($social_accounts, JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES) ?></pre>
-          <a href="/debug/github" class="btn btn-outline-secondary">Debug GitHub profile data</a>
-        <?php else: ?>
-          <a href="/debug/github" class="btn btn-outline-secondary">Debug GitHub profile data</a>
+        <?php elseif(isset($codeberg_data)): ?>
+          <pre><?= json_encode($codeberg_data, JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES) ?></pre>
         <?php endif ?>
+        <a href="/debug/github" class="btn btn-outline-secondary">Debug GitHub profile data</a>
+        <a href="/debug/codeberg" class="btn btn-outline-secondary">Debug Codeberg profile data</a>
       </p>
     </main>
 

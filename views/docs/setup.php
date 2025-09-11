@@ -33,6 +33,7 @@
       <ul>
         <li><a href="#twitter">Twitter</a></li>
         <li><a href="#github">GitHub</a></li>
+        <li><a href="#codeberg">Codeberg</a></li>
         <li><a href="#email">Email Address</a></li>
         <!-- <li><a href="#pgp">PGP Key</a></li> -->
       </ul>
@@ -62,6 +63,18 @@
       <p><pre><?= e('<a href="https://github.com/aaronpk" rel="me">github.com/aaronpk</a>') ?></pre></p>
 
       <p>Make sure your GitHub account has your URL in your profile.</p>
+    </div>
+  </section>
+
+  <section id="codeberg" class="h-entry">
+    <h3 class="p-name">Codeberg</h3>
+
+    <div class="e-content">
+      <p>To use Codeberg, link to your Codeberg profile on your home page.</p>
+
+      <p><pre><?= e('<a href="https://codeberg.org/aaronpk" rel="me">codeberg.org/aaronpk</a>') ?></pre></p>
+
+      <p>Make sure your Codeberg account has your URL in your profile.</p>
     </div>
   </section>
 
@@ -99,7 +112,7 @@
   <section id="multiple-domains" class="h-entry">
     <h3 class="p-name">Multiple Domains</h3>
 
-    <p>If you have multiple domains, or want your Twitter URL to link to something that is not your main website, you can alternatively put one or more URLs in your "bio" field on Twitter and GitHub. This allows you to use one Twitter account to authenticate multiple domains.</p>
+    <p>If you have multiple domains, or want your Twitter URL to link to something that is not your main website, you can alternatively put one or more URLs in your "bio" field on Twitter, GitHub, and Codeberg. This allows you to use one Twitter account to authenticate multiple domains.</p>
   </section>
 
   <section id="choosing-auth-providers" class="h-entry">

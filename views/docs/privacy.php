@@ -16,7 +16,7 @@ $this->layout('layout', ['title' => $title]);
 * the date of the authentication attempt
 * the application identifier
 * the redirect URL of the application
-* the name of the provider used to authenticate (Twitter, GitHub, email, etc)
+* the name of the provider used to authenticate (Twitter, GitHub, Codeberg, email, etc)
 * the profile URL, email address, or PGP key URL used to authenticate
 * the profile URL the user entered
 * the profile URL the user's website returned
@@ -24,7 +24,7 @@ $this->layout('layout', ['title' => $title]);
 
 Things that are not stored or logged in any way:
 
-* users' access tokens from Twitter or GitHub
+* users' access tokens from Twitter, GitHub, or Codeberg
 * user-entered data other than their public website URL
 
 
@@ -34,7 +34,7 @@ Since <?= getenv('APP_NAME') ?> is a service for developers wishing to easily im
 
 After a successful authentication, this website returns the fully resolved profile URL of the user who authenticated to the developer.
 
-If the user authenticates with an OAuth provider such as Twitter or GitHub, the access tokens and profile information from those providers are never shared with the developer. Developers may be able to see which provider and the username at that provider you used to authenticate (e.g. Twitter, GitHub, email), but will not be able to access any information in those accounts.
+If the user authenticates with an OAuth provider such as Twitter, GitHub, or Codeberg, the access tokens and profile information from those providers are never shared with the developer. Developers may be able to see which provider and the username at that provider you used to authenticate (e.g. Twitter, GitHub, Codeberg, email), but will not be able to access any information in those accounts.
 
 
 <?php
