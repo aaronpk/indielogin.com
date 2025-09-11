@@ -131,5 +131,31 @@ class Controller {
     ]));
   }
 
-}
+  public function debug_codeberg(ServerRequestInterface $request): ResponseInterface {
+    session_start();
 
+    $state = generate_state('debug');
+
+    $params = [
+      'client_id' => getenv('CODEBERG_CLIENT_ID'),
+      'redirect_uri' => getenv('BASE_URL').'redirect/codeberg',
+      'state' => $state,
+      'allow_signup' => 'false',
+		'response_type' => 'code',
+    ];
+    $authorize = 'https://codeberg.org/login/oauth/authorize?'.http_build_query($params);
+
+    return redirect_response($authorize, 302);
+  }
+
+  public static function debug_codeberg_callback($profile): ResponseInterface {
+
+    $profile = array_intersect_key($profile, array_flip(['website','description']));
+
+    return new HtmlResponse(view('debug', [
+      'title' => 'Debug',
+      'codeberg_data' => $profile
+    ]));
+  }
+
+}
