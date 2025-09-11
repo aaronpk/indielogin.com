@@ -122,6 +122,8 @@ function urls_are_equivalent($a, $b) {
   $b = parse_url($b);
   if(!empty($a['host'])) $a['host'] = strtolower($a['host']);
   if(!empty($b['host'])) $b['host'] = strtolower($b['host']);
+  if(empty($a['path'])) $a['path'] = '/';
+  if(empty($b['path'])) $b['path'] = '/';
   $a = p3k\url\build_url($a);
   $b = p3k\url\build_url($b);
   return $a == $b;
