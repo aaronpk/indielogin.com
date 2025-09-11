@@ -129,6 +129,14 @@ function urls_are_equivalent($a, $b) {
   return $a == $b;
 }
 
+// Look for URL in string, ignoring the trailing slash on root domains.
+function string_contains_url($str, $url) {
+  $url = parse_url($url);
+  if ($url['path'] == '/') unset($url['path']);
+  $url = p3k\url\build_url($url);
+  return strpos($str, $url) !== false;
+}
+
 function guzzle_request_get($client, $url, $onRedirect=null) {
 
   try {

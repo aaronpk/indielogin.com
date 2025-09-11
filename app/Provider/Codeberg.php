@@ -134,7 +134,7 @@ trait Codeberg {
 
     if(!$verified) {
       // Allow a URL in the bio to match
-      if(strpos($profile['description'], $_SESSION['expected_me']) !== false) {
+      if(string_contains_url($profile['description'], $_SESSION['expected_me'])) {
         $verified = true;
         $userlog->info('Codeberg URL in bio matched expected URL', [
           'description' => $profile['description'],

@@ -132,7 +132,7 @@ trait GitHub {
 
     if(!$verified) {
       // Allow a URL in the bio to match
-      if(strpos($profile['bio'], $_SESSION['expected_me']) !== false) {
+      if(string_contains_url($profile['bio'], $_SESSION['expected_me'])) {
         $verified = true;
         $userlog->info('GitHub URL in bio matched expected URL', [
           'bio' => $profile['bio'],
