@@ -31,25 +31,9 @@
       <p>If your website is not already an IndieAuth provider, this site can authenticate you using the following providers:</p>
 
       <ul>
-        <li><a href="#twitter">Twitter</a></li>
         <li><a href="#github">GitHub</a></li>
         <li><a href="#email">Email Address</a></li>
-        <!-- <li><a href="#pgp">PGP Key</a></li> -->
       </ul>
-    </div>
-  </section>
-
-  <section id="twitter" class="h-entry">
-    <h3>Twitter</h3>
-
-    <div class="alert alert-danger">Twitter logins are disabled now due to Twitter revoking this website's API keys.</div>
-
-    <div class="e-content">
-      <p>To use Twitter, link to your Twitter profile on your home page.</p>
-
-      <p><pre><?= e('<a href="https://twitter.com/aaronpk" rel="me">twitter.com/aaronpk</a>') ?></pre></p>
-
-      <p>Make sure your Twitter account has your URL in your profile.</p>
     </div>
   </section>
 
@@ -73,15 +57,6 @@
     <p><pre><?= e('<a href="mailto:me@example.com" rel="me">me@example.com</a>') ?></pre></p>
   </section>
 
-  <section id="pgp" class="h-entry">
-    <h3 class="p-name">PGP Key</h3>
-
-    <div class="alert alert-warning">Sorry, I'm having issues with the PGP method so I'm turning this off for now.</div>
-
-    <p>If you don't want to use any existing accounts to authenticate, you can use a PGP key and sign a challenge while logging in instead. You'll just need to link to your PGP key from your website.</p>
-
-    <p><pre><?= e('<a href="/key.txt" rel="pgpkey authn">PGP Key</a>') ?></pre></p>
-  </section>
 
 
   <div style="margin-top: 3em;"></div>
@@ -99,7 +74,7 @@
   <section id="multiple-domains" class="h-entry">
     <h3 class="p-name">Multiple Domains</h3>
 
-    <p>If you have multiple domains, or want your Twitter URL to link to something that is not your main website, you can alternatively put one or more URLs in your "bio" field on Twitter and GitHub. This allows you to use one Twitter account to authenticate multiple domains.</p>
+    <p>If you have multiple domains, or want your GitHub profile to link to something that is not your main website, you can alternatively put one or more URLs in your "bio" field on GitHub. This allows you to use one GitHub account to authenticate multiple domains.</p>
   </section>
 
   <section id="choosing-auth-providers" class="h-entry">
