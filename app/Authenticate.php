@@ -13,6 +13,7 @@ use ORM;
 class Authenticate {
 
   use Provider\GitHub;
+  use Provider\GitLab;
   use Provider\Codeberg;
   use Provider\IndieAuth;
   use Provider\FedCM;
@@ -28,6 +29,7 @@ class Authenticate {
     $params = $request->getQueryParams();
 
     unset($_SESSION['github_expected_user']);
+    unset($_SESSION['gitlab_expected_user']);
     unset($_SESSION['codeberg_expected_user']);
     unset($_SESSION['expected_me']);
     unset($_SESSION['me_entered']);
@@ -517,6 +519,12 @@ class Authenticate {
           'provider' => 'github',
           'username' => $match[1],
           'display' => 'github.com/'.$match[1],
+        ];
+      } elseif(getenv('GITLAB_CLIENT_ID') && preg_match('~^https?://(?:www\.)?gitlab\.com/([a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38})/?$~', $url, $match)) {
+        $supported[] = [
+          'provider' => 'gitlab',
+          'username' => $match[1],
+          'display' => 'gitlab.com/'.$match[1],
         ];
       } elseif(getenv('CODEBERG_CLIENT_ID') && preg_match('~^https?://(?:www\.)?codeberg\.org/([a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38})/?$~', $url, $match)) {
         $supported[] = [
