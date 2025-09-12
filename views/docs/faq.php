@@ -10,18 +10,11 @@ $this->layout('layout', ['title' => $title]);
 # <?= getenv('APP_NAME') ?> FAQ
 
 
-### Why does <?= getenv('APP_NAME') ?> ask for permission to read my tweets? {#twitter-permissions}
-
-If you choose to authenticate with Twitter, <?= getenv('APP_NAME') ?> uses the Twitter API to verify your account. The least amount of permissions this site can request from the Twitter API is to read your tweets. This site does not actually read your tweets or access your Twitter account in any way other than to verify your Twitter username after you authenticate. Your Twitter tokens are never stored by this site or provided to the site you're logging in to.
-
-If you are uncomfortable with the permissions requested, you can choose to authenticate using a <a href="/setup">different provider</a> such as your IndieAuth server, GitHub, email, or PGP key.
-
-
 ### Why does <?= getenv('APP_NAME') ?> ask for permission to read my public data in my GitHub account? {#github-permissions}
 
 If you choose to authenticate with GitHub, <?= getenv('APP_NAME') ?> uses the GitHub API to verify your account. The least amount of permissions this site can request from GitHub is accessing your public data. This site does not actually access your GitHub account other than to verify your username. Your GitHub token is never stored by this site or provided to the site you're logging in to.
 
-If you are uncomfortable with the permissions requested, you can choose to authenticate using a <a href="/setup">different provider</a> such as your IndieAuth server, Twitter, email, or PGP key.
+If you are uncomfortable with the permissions requested, you can choose to authenticate using a <a href="/setup">different provider</a> such as your IndieAuth server, email, or PGP key.
 
 
 ### What is the difference between <?= getenv('APP_NAME') ?> and IndieAuth? {#difference-indieauth}
