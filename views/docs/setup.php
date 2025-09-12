@@ -32,6 +32,7 @@
 
       <ul>
         <li><a href="#github">GitHub</a></li>
+        <li><a href="#gitlab">GitLab</a></li>
         <li><a href="#codeberg">Codeberg</a></li>
         <li><a href="#email">Email Address</a></li>
       </ul>
@@ -47,6 +48,18 @@
       <p><pre><?= e('<a href="https://github.com/aaronpk" rel="me">github.com/aaronpk</a>') ?></pre></p>
 
       <p>Make sure your GitHub account has your URL in your profile.</p>
+    </div>
+  </section>
+
+  <section id="gitlab" class="h-entry">
+    <h3 class="p-name">GitLab</h3>
+
+    <div class="e-content">
+      <p>To use GitLab, link to your GitLab profile on your home page.</p>
+
+      <p><pre><?= e('<a href="https://gitlab.com/aaronpk" rel="me">gitlab.com/aaronpk</a>') ?></pre></p>
+
+      <p>Make sure your GitLab account has your URL in your profile.</p>
     </div>
   </section>
 
@@ -87,7 +100,7 @@
   <section id="multiple-domains" class="h-entry">
     <h3 class="p-name">Multiple Domains</h3>
 
-    <p>If you have multiple domains, or want your GitHub/Codeberg profile to link to something that is not your main website, you can alternatively put one or more URLs in your "bio" field on GitHub and Codeberg. This allows you to use one GitHub/Codeberg account to authenticate multiple domains.</p>
+    <p>If you have multiple domains, or want your GitHub/GitLab/Codeberg profile to link to something that is not your main website, you can alternatively put one or more URLs in your "bio" field on GitHub, GitLab, and Codeberg. This allows you to use one GitHub/GitLab/Codeberg account to authenticate multiple domains.</p>
   </section>
 
   <section id="choosing-auth-providers" class="h-entry">

@@ -131,6 +131,34 @@ class Controller {
     ]));
   }
 
+  public function debug_gitlab(ServerRequestInterface $request): ResponseInterface {
+    session_start();
+
+    $state = generate_state('debug');
+
+    $params = [
+      'client_id' => getenv('GITLAB_CLIENT_ID'),
+      'redirect_uri' => getenv('BASE_URL').'redirect/gitlab',
+      'state' => $state,
+      'allow_signup' => 'false',
+		'response_type' => 'code',
+		'scope' => 'read_user',
+    ];
+    $authorize = 'https://gitlab.com/oauth/authorize?'.http_build_query($params);
+
+    return redirect_response($authorize, 302);
+  }
+
+  public static function debug_gitlab_callback($profile): ResponseInterface {
+
+    $profile = array_intersect_key($profile, array_flip(['website_url','bio']));
+
+    return new HtmlResponse(view('debug', [
+      'title' => 'Debug',
+      'gitlab_data' => $profile
+    ]));
+  }
+
   public function debug_codeberg(ServerRequestInterface $request): ResponseInterface {
     session_start();
 
