@@ -12,6 +12,7 @@ use ORM;
 
 class Authenticate {
 
+  use Provider\ATProto;
   use Provider\GitHub;
   use Provider\IndieAuth;
   use Provider\FedCM;
@@ -521,6 +522,12 @@ class Authenticate {
           'provider' => 'email',
           'email' => $match[1],
           'display' => $match[1],
+        ];
+      } elseif(getenv('PLC_HOST') && preg_match('~^https?:\/\/(?:www\.)?(?:bsky\.app|deer\.social)\/profile\/((?:(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,6})$~', $url, $match)) {
+        $supported[] = [
+          'provider' => 'atproto',
+          'handle' => $match[1],
+          'display' => '@'.$match[1],
         ];
       }
     }

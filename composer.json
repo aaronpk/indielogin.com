@@ -1,5 +1,6 @@
 {
     "require": {
+        "danielburger1337/oauth2-dpop": "^1.0",
         "guzzlehttp/guzzle": "^7.9",
         "indieauth/client": "~1.1",
         "indieweb/link-rel-parser": "^0.1.3",
@@ -17,7 +18,10 @@
         "p3k/http": "^0.1.7",
         "p3k/utils": "^1.2",
         "predis/predis": "^2",
-        "vlucas/phpdotenv": "^4.1"
+        "symfony/cache": "^7.3",
+        "symfony/clock": "^7.3",
+        "vlucas/phpdotenv": "^4.1",
+        "web-token/jwt-library": "^4.0"
     },
     "autoload": {
       "psr-4": {
@@ -36,7 +40,7 @@
     "scripts": {
         "start": [
             "Composer\\Config::disableProcessTimeout",
-            "php -S localhost:8080 -t public"
+            "php -S 0.0.0.0:8080 -t public"
         ]
     }
 }

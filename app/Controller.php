@@ -30,6 +30,23 @@ class Controller {
     ]);
   }
 
+  public function atproto_client_metadata(ServerRequestInterface $request): ResponseInterface {
+    return new JsonResponse([
+      'application_type' => 'web',
+      'client_id' => getenv('BASE_URL').'id/atproto',
+      'client_name' => getenv('APP_NAME'),
+      'client_uri' => getenv('BASE_URL'),
+      'dpop_bound_access_tokens' => true,
+      'grant_types' => ['authorization_code', 'refresh_token'],
+      'response_types' => ['code'],
+      'redirect_uris' => [
+        getenv('BASE_URL').'/redirect/atproto',
+      ],
+      'scope' => 'atproto transition:generic',
+      'token_endpoint_auth_method' => 'none',
+    ]);
+  }
+
   public function demo(ServerRequestInterface $request): ResponseInterface {
     $params = $request->getQueryParams();
 
