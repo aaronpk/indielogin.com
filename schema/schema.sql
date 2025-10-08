@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS `clients` (
   `client_id` varchar(512) DEFAULT NULL,
   `user_url` varchar(512) DEFAULT NULL,
   `email` varchar(512) DEFAULT NULL,
+  `date_created` datetime DEFAULT NULL,
+  `date_last_used` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `client_id` (`client_id`(191))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

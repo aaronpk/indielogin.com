@@ -405,6 +405,12 @@ class Authenticate {
     $log->code = '';
     $log->save();
 
+    $client = ORM::for_table('clients')->where('client_id', $login['client_id'])->find_one();
+    if($client) {
+      $client->date_last_used = date('Y-m-d H:i:s');
+      $client->save();
+    }
+
     return new JsonResponse([
       'me' => $login['me']
     ]);
