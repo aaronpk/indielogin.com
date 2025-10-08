@@ -15,11 +15,14 @@ trait GitHub {
     $userlog = make_logger('user');
 
     $state = generate_state();
+    $code_verifier = generate_pkce_code_verifier();
 
     $params = [
       'client_id' => getenv('GITHUB_CLIENT_ID'),
       'redirect_uri' => getenv('BASE_URL').'redirect/github',
       'state' => $state,
+      'code_challenge' => pkce_code_challenge($code_verifier),
+      'code_challenge_method' => 'S256',
       'allow_signup' => 'false',
     ];
     $authorize = 'https://github.com/login/oauth/authorize?'.http_build_query($params);
@@ -50,6 +53,7 @@ trait GitHub {
       'client_id' => getenv('GITHUB_CLIENT_ID'),
       'client_secret' => getenv('GITHUB_CLIENT_SECRET'),
       'code' => $query['code'],
+      'code_verifier' => $_SESSION['code_verifier'],
       'redirect_uri' => getenv('BASE_URL').'redirect/github',
     ];
 

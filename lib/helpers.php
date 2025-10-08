@@ -88,6 +88,14 @@ function generate_pkce_code_verifier() {
   return $_SESSION['code_verifier'] = bin2hex(random_bytes(50));
 }
 
+function pkce_code_challenge($verifier) {
+  return base64_urlencode(hash('sha256', $verifier, true));
+}
+
+function base64_urlencode($string) {
+  return rtrim(strtr(base64_encode($string), '+/', '-_'), '=');
+}
+
 function is_logged_in() {
   return isset($_SESSION) && array_key_exists('me', $_SESSION);
 }
