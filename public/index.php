@@ -38,8 +38,12 @@ $route->map('GET', '/debug/codeberg', 'App\\Controller::debug_codeberg');
 $route->map('GET', '/id', 'App\\Controller::client_metadata'); # IndieAuth client metadata
 
 $route->map('GET', '/auth', 'App\\Authenticate::start')->middleware(new App\CORSStrategy);
-$route->map('GET', '/select', 'App\\Authenticate::select');
 $route->map('POST', '/auth', 'App\\Authenticate::verify')->middleware(new App\CORSStrategy);
+
+$route->map('GET', '/authorize', 'App\\Authenticate::start')->middleware(new App\CORSStrategy);
+$route->map('POST', '/token', 'App\\Authenticate::verify')->middleware(new App\CORSStrategy);
+
+$route->map('GET', '/select', 'App\\Authenticate::select');
 $route->map('POST', '/select', 'App\\Authenticate::post_select');
 
 $route->map('GET', '/redirect/github', 'App\\Authenticate::redirect_github');

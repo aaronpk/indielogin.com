@@ -12,7 +12,7 @@
 
   <?php $base = getenv('BASE_URL'); ?>
   <pre><code><?= e(<<<EOT
-<form action="${base}auth" method="get">
+<form action="{$base}authorize" method="get">
   <label for="url">Web Address:</label>
   <input id="url" type="text" name="me" placeholder="yourdomain.com" />
   <p><button type="submit">Sign In</button></p>
@@ -26,12 +26,12 @@ EOT
   <h3>Parameters</h3>
 
   <ul>
-    <li><b>action</b>: Set the action of the form to this service (<code><?= getenv('BASE_URL') ?>auth</code>) or <a href="https://github.com/aaronpk/IndieLogin.com">download the source</a> and run your own server.</li>
-    <li><b>me</b>: (optional) The "me" parameter is the URL that the user enters. If you leave this out, then this website will prompt the user to enter their URL.</li>
-    <li><b>client_id</b>: Set the client_id in a hidden field to let this site know the home page of the application the user is signing in to.</li>
-    <li><b>redirect_uri</b>: Set the redirect_uri in a hidden field to let this site know where to redirect back to after authentication is complete. It must be on the same domain as the client_id.</li>
-    <li><b>state</b>: You should generate a random value that you will check after the user is redirected back, in order to prevent certain attacks.</li>
-    <li><b>prompt=login</b>: (optional) If this parameter is present in the request, this website will not remember the user's previous session and will require that they authenticate from scratch again.</li>
+    <li><b><code>action</code></b>: Set the action of the form to this service (<code><?= getenv('BASE_URL') ?>auth</code>) or <a href="https://github.com/aaronpk/IndieLogin.com">download the source</a> and run your own server.</li>
+    <li><b><code>me</code></b>: (optional) The <code>me</code> parameter is the URL that the user enters. If you leave this out, then this website will prompt the user to enter their URL.</li>
+    <li><b><code>client_id</code></b>: Set the <code>client_id</code> in a hidden field to let this site know the home page of the application the user is signing in to.</li>
+    <li><b><code>redirect_uri</code></b>: Set the <code>redirect_uri</code> in a hidden field to let this site know where to redirect back to after authentication is complete. It must be on the same domain as the <code>client_id</code>.</li>
+    <li><b><code>state</code></b>: You should generate a random value that you will check after the user is redirected back, in order to prevent certain attacks.</li>
+    <li><b><code>prompt=login</code></b>: (optional) If this parameter is present in the request, this website will not remember the user's previous session and will require that they authenticate from scratch again.</li>
   </ul>
 
 
@@ -43,21 +43,21 @@ EOT
 
   <h2>3. The user is redirected back to your site</h2>
 
-  <p><pre>https://example.com/callback?state=jwiusuerujs&amp;code=gk7n4opsyuUxhvF4</pre></p>
+  <p><pre>https://example.com/redirect?state=jwiusuerujs&amp;code=gk7n4opsyuUxhvF4</pre></p>
 
   <p>If everything is successful, the user will be redirected back to the <code>redirect_uri</code> you specified in the form. You'll see two parameters in the query string, <code>state</code> and <code>code</code>. Check that the state matches the value you set originally before continuing.</p>
 
 
   <h2>4. Verify the authorization code with <?= getenv('APP_NAME') ?></h2>
 
-  <p>At this point you need to verify the code which will also return the website of the authenticated user. Make a POST request to <code><?= getenv('BASE_URL') ?>auth</code> with the code, client_id and redirect_uri, and you will get back the full website of the authenticated user.</p>
+  <p>At this point you need to verify the code which will also return the website of the authenticated user. Make a POST request to <code><?= getenv('BASE_URL') ?>token</code> with the <code>code</code>, <code>client_id</code> and <code>redirect_uri</code>, and you will get back the full website of the authenticated user.</p>
 
-  <p><pre>POST <?= getenv('BASE_URL') ?>auth HTTP/1.1
+  <p><pre>POST <?= getenv('BASE_URL') ?>token HTTP/1.1
 Content-Type: application/x-www-form-urlencoded;charset=UTF-8
 Accept: application/json
 
 code=gk7n4opsyuUxhvF4&amp;
-redirect_uri=https://example.com/callback&amp;
+redirect_uri=https://example.com/redirect&amp;
 client_id=https://example.com/</pre></p>
 
 
