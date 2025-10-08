@@ -34,7 +34,7 @@ EOT
   <h3>Parameters</h3>
 
   <ul>
-    <li><b><code>action</code></b>: Set the action of the form to this service (<code><?= getenv('BASE_URL') ?>auth</code>) or <a href="https://github.com/aaronpk/IndieLogin.com">download the source</a> and run your own server.</li>
+    <li><b><code>action</code></b>: Set the action of the form to this service (<code><?= getenv('BASE_URL') ?>authorize</code>) or <a href="https://github.com/aaronpk/IndieLogin.com">download the source</a> and run your own server.</li>
     <li><b><code>me</code></b>: (optional) The <code>me</code> parameter is the URL that the user enters. If you leave this out, then this website will prompt the user to enter their URL.</li>
     <li><b><code>client_id</code></b>: Set the <code>client_id</code> in a hidden field to let this site know the home page of the application the user is signing in to.</li>
     <li><b><code>redirect_uri</code></b>: Set the <code>redirect_uri</code> in a hidden field to let this site know where to redirect back to after authentication is complete. It must be on the same domain as the <code>client_id</code>.</li>
