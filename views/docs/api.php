@@ -6,7 +6,7 @@
 
   <p>If you are building a website and need to sign people in, you can use <?= getenv('APP_NAME') ?> to handle all the complicated parts.</p>
 
-  <p>Users will identify themselves with their website, and can authenticate using one of the <a href="/setup">supported authentication providers</a> such as Twitter, GitHub, Codeberg, or email. The user ID returned to you will be their website, ensuring that you don't end up creating multiple accounts depending on how the user authenticates.</p>
+  <p>Users will identify themselves with their website, and can authenticate using one of the <a href="/setup">supported authentication providers</a> such as Twitter, GitHub, GitLab, Codeberg, or email. The user ID returned to you will be their website, ensuring that you don't end up creating multiple accounts depending on how the user authenticates.</p>
 
   <h2>1. Create a Web Sign-In form</h2>
 
@@ -85,6 +85,6 @@ Content-Type: application/json
 
   <p>At this point you know the website belonging to the authenticated user.</p>
 
-  <p>You can store the website in a secure session and log the user in as their website identity. You don't need to worry about whether they authenticated with Twitter, Github, Codeberg, or email address, their identity is their website! You won't have to worry about merging duplicate accounts or handling error cases when Twitter is offline.</p>
+  <p>You can store the website in a secure session and log the user in as their website identity. You don't need to worry about whether they authenticated with Twitter, Github, GitLab, Codeberg, or email address, their identity is their website! You won't have to worry about merging duplicate accounts or handling error cases when Twitter is offline.</p>
 
 </div>
