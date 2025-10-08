@@ -85,7 +85,7 @@ function generate_state($prefix=false) {
 }
 
 function generate_pkce_code_verifier() {
-  return $_SESSION['code_verifier'] = bin2hex(random_bytes(50));
+  return $_SESSION['code_verifier'] = bin2hex(random_bytes(28));
 }
 
 function pkce_code_challenge($verifier) {

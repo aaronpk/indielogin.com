@@ -100,10 +100,25 @@ class Authenticate {
       $state = $params['state'];
     }
 
+    $code_challenge = null;
+    if(!empty($params['code_challenge'])) {
+      // Check that the code challenge looks like a S256 hash to early detect common mistakes
+      if(!preg_match('/[a-zA-Z0-9-_]{43}/', $params['code_challenge'])) {
+        $errors[] = 'The PKCE code challenge value is not correct. Check that you are sending a sha256 url-encoded hash.';
+      }
+
+      $code_challenge = $params['code_challenge'];
+    }
+
+    if(isset($params['code_challenge_method']) && $params['code_challenge_method'] != 'S256') {
+      $errors[] = 'Unsupported code_challenge_method';
+    }
+
     $login_request = [
       'client_id' => $client_id,
       'redirect_uri' => $redirect_uri,
       'state' => $state,
+      'code_challenge' => $code_challenge,
     ];
 
 
@@ -133,6 +148,7 @@ class Authenticate {
         'client_id' => $client_id,
         'redirect_uri' => $redirect_uri,
         'state' => $state,
+        'code_challenge' => $code_challenge,
       ]));
     } else {
 
@@ -154,11 +170,12 @@ class Authenticate {
         && (($_GET['prompt'] ?? false) != 'login')
         && isset($_SESSION['me']) && $_SESSION['me'] == $profile['final_url']) {
 
-        $switch_account = '/auth?'.http_build_query([
+        $switch_account = '/authorize?'.http_build_query([
           'action' => 'logout',
           'client_id' => $client_id,
           'redirect_uri' => $redirect_uri,
           'state' => $state,
+          'code_challenge' => $code_challenge,
         ]);
 
         $code = random_string();
@@ -174,6 +191,7 @@ class Authenticate {
           'client_id' => $client_id,
           'redirect_uri' => $redirect_uri,
           'state' => $state,
+          'code_challenge' => $code_challenge,
           'switch_account' => $switch_account
         ]));
       }
@@ -397,6 +415,36 @@ class Authenticate {
             ]))->withStatus(400);
     }
 
+    // If a code_challenge was present in the authorization request, ensure the token request has a code verifier
+    if($login['code_challenge'] && empty($params['code_verifier'])) {
+      $devlog->info('missing code_verifier', ['params' => $params, 'login' => $login]);
+      return (new JsonResponse([
+              'error' => 'invalid_grant',
+              'error_description' => 'The code_verifier is required because the authorization request contained a code_challenge',
+            ]))->withStatus(400);
+    }
+
+    // If a code_challenge was *not* present in the authorization request, ensure the token request does not contain a code_verifier
+    if($login['code_challenge'] == null && !empty($params['code_verifier'])) {
+      $devlog->info('unexpected code_verifier', ['params' => $params, 'login' => $login]);
+      return (new JsonResponse([
+              'error' => 'invalid_grant',
+              'error_description' => 'The authorization request did not contain a code_challenge, but the token request contained a code_verifier',
+            ]))->withStatus(400);
+    }
+
+    // Verify the code_challenge matches the code_verifier
+    if($login['code_challenge']) {
+      $request_code_challenge = pkce_code_challenge($params['code_verifier']);
+      if($login['code_challenge'] != $request_code_challenge) {
+        $devlog->info('invalid code_verifier', ['params' => $params, 'login' => $login]);
+        return (new JsonResponse([
+                'error' => 'invalid_grant',
+                'error_description' => 'The code_verifier in the token request did not match the code_challenge in the authorization request. You can use https://example-app.com/pkce to test your code verifier generation.',
+              ]))->withStatus(400);
+      }
+    }
+
     $userlog->info('Completed login for user', ['me' => $login['me'], 'details' => $login]);
 
     redis()->del('indielogin:code:'.$params['code']);
@@ -476,6 +524,7 @@ class Authenticate {
     $params = [
       'code' => $code,
       'state' => $_SESSION['login_request']['state'] ?? null,
+      'iss' => getenv('BASE_URL'),
     ];
 
     $redirect = \p3k\url\add_query_params_to_url($_SESSION['login_request']['redirect_uri'], $params);

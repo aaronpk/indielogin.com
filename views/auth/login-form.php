@@ -7,7 +7,7 @@
   <div class="login-details">
     <p>Log in to <a href="<?= $client_id ?>"><?= $client_id ?></a></p>
 
-    <form action="/auth" method="get">
+    <form action="/authorize" method="get">
       <div class="form-group">
         <input type="url" placeholder="example.com" name="me" id="me" class="form-control">
       </div>
@@ -15,6 +15,7 @@
       <input type="hidden" name="client_id" value="<?= $client_id ?>">
       <input type="hidden" name="redirect_uri" value="<?= $redirect_uri ?>">
       <input type="hidden" name="state" value="<?= $state ?>">
+      <input type="hidden" name="code_challenge" value="<?= $code_challenge ?>">
 
       <button class="btn btn-primary">Sign In</button>
     </form>
