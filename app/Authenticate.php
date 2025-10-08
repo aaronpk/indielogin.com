@@ -53,7 +53,7 @@ class Authenticate {
     }
 
     $client = false;
-    if($client_id && parse_url($client_id, PHP_URL_HOST) != 'localhost') {
+    if($client_id) {
       $client = ORM::for_table('clients')->where('client_id', $client_id)->find_one();
       if(!$client) {
         $errors[] = 'This client_id is not registered ('.htmlspecialchars($client_id).')';
@@ -112,6 +112,10 @@ class Authenticate {
 
     if(isset($params['code_challenge_method']) && $params['code_challenge_method'] != 'S256') {
       $errors[] = 'Unsupported code_challenge_method';
+    }
+
+    if($client && $client->pkce_required && empty($params['code_challenge'])) {
+      $errors[] = 'PKCE code_challenge is required';
     }
 
     $login_request = [

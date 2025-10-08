@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS `clients` (
   `email` varchar(512) DEFAULT NULL,
   `date_created` datetime DEFAULT NULL,
   `date_last_used` datetime DEFAULT NULL,
+  `pkce_required` TINYINT(4) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   KEY `client_id` (`client_id`(191))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
