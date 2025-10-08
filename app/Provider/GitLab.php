@@ -21,8 +21,8 @@ trait GitLab {
       'redirect_uri' => getenv('BASE_URL').'redirect/gitlab',
       'state' => $state,
       'allow_signup' => 'false',
-		'response_type' => 'code',
-		'scope' => 'read_user',
+      'response_type' => 'code',
+      'scope' => 'read_user',
     ];
     $authorize = 'https://gitlab.com/oauth/authorize?'.http_build_query($params);
 
