@@ -32,8 +32,9 @@ $route->map('GET', '/privacy-policy', 'App\\Controller::privacy');
 $route->map('GET', '/demo_start', 'App\\Controller::demo_start');
 $route->map('GET', '/demo_redirect', 'App\\Controller::demo_redirect');
 
-
-$route->map('GET', '/id', 'App\\Controller::client_metadata'); # IndieAuth client metadata
+# Client ID Metadata Document
+# https://datatracker.ietf.org/doc/draft-parecki-oauth-client-id-metadata-document/
+$route->map('GET', '/id', 'App\\Controller::client_metadata');
 
 $route->map('GET', '/auth', 'App\\Authenticate::start')->middleware(new App\CORSStrategy);
 $route->map('POST', '/auth', 'App\\Authenticate::verify')->middleware(new App\CORSStrategy);
