@@ -30,7 +30,7 @@ class Controller {
 
       # required by bluesky
       'grant_types' => ['authorization_code'],
-      'scope' => ['atproto'],
+      'scope' => ['atproto','rpc:app.bsky.actor.getProfile?aud=did:web:api.bsky.app%23bsky_appview'],
       'response_types' => ['code'],
       'dpop_bound_access_tokens' => true,
     ]);

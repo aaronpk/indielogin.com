@@ -141,6 +141,10 @@ function urls_are_equivalent($a, $b) {
   return $a == $b;
 }
 
+function same_host($a, $b) {
+  return parse_url($a, PHP_URL_HOST) == parse_url($b, PHP_URL_HOST);
+}
+
 // Look for URL in string, ignoring the trailing slash on root domains.
 function string_contains_url($str, $url) {
   $url = parse_url($url);

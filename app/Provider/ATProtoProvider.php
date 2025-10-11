@@ -19,7 +19,6 @@ trait ATProtoProvider {
     $at->initialize($details['atproto']['handle'], $details['atproto']['did']);
     $authorize = $at->start_oauth();
 
-    $_SESSION['atproto.did'] = $details['atproto']['did'];
     $at->save_state();
 
     $userlog->info('Beginning ATProto login', ['provider' => $details, 'login' => $login_request]);
@@ -37,11 +36,24 @@ trait ATProtoProvider {
     $at = ATProto::restore_from_session();
 
     try {
-      $at->finish_oauth($query);
+      $did = $at->finish_oauth($query);
     } catch(ATProtoException $e) {
       return $this->_userError($e->getMessage());
     }
 
+    // If no exception was thrown, the OAuth flow completed successfully and the user ID (`did`) was returned and matches the starting `did`
+
+    // If they entered a website that linked to an ATProto URL with rel=me, verify the profile links back to their website.
+    // Check for this condition by checking if the hostname of the entered URL matches the hostname of their ATProto handle.
+    if(!same_host($_SESSION['expected_me'], $_SESSION['atproto.handle'])) {
+      $profile = $at->fetch_profile();
+      if(empty($profile)) {
+        return $this->_userError('Error fetching BlueSky profile');
+      }
+      if(!string_contains_url($profile['description'], $_SESSION['expected_me'])) {
+        return $this->_userError('Ensure your BlueSky profile contains a link to your website');
+      }
+    }
 
     return $this->_finishAuthenticate();
   }
