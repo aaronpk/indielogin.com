@@ -603,6 +603,17 @@ class Authenticate {
           'display' => $match[1],
           'icon' => 'fa-solid fa-envelope',
         ];
+      } elseif(in_array($url, $rels['atproto'])) {
+        $handle = parse_url($url, PHP_URL_HOST);
+        $did = ATProto::handle_to_did($handle);
+        if($did) {
+          $supported[] = [
+            'provider' => 'atproto',
+            'atproto' => ['did' => $did, 'handle' => $handle],
+            'display' => $handle,
+            'icon' => 'fa-brands fa-bluesky',
+          ];
+        }
       }
     }
 
@@ -627,30 +638,6 @@ class Authenticate {
         'display' => $rels['atproto_did']['handle'],
         'icon' => 'fa-brands fa-bluesky',
       ];
-    }
-
-    // This is when they enter a domain that has a rel=atproto link
-    if(!empty($rels['atproto'])) {
-      // If we are looking for rel=authn links, ensure the rel=atproto link also has rel=authn
-      if($mode == 'authn') {
-        $supported_rels = array_intersect($rels['atproto'], $rels['authn']);
-        $atproto = array_shift($supported_rels);
-        $continue = in_array($atproto, $rels['authn']);
-      } else {
-        $continue = true;
-      }
-      if($continue) {
-        $handle = parse_url($rels['atproto'][0], PHP_URL_HOST);
-        $did = ATProto::handle_to_did($handle);
-        if($did) {
-          $supported[] = [
-            'provider' => 'atproto',
-            'atproto' => ['did' => $did, 'handle' => $handle],
-            'display' => $handle,
-            'icon' => 'fa-brands fa-bluesky',
-          ];
-        }
-      }
     }
 
     return $supported;
