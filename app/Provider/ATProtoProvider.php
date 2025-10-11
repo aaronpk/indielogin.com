@@ -62,9 +62,15 @@ trait ATProtoProvider {
       if(empty($profile['description']) || !string_contains_url($profile['description'], $_SESSION['expected_me'])) {
         return $this->_userError('Ensure your BlueSky profile contains a link to your website');
       }
+      $_SESSION['login_request']['provider'] = 'atproto_rel'; // Just for logging purposes at this point, everything else is done
     }
 
-    $_SESSION['login_request']['profile'] = $did;
+    $_SESSION['login_request']['profile'] = json_encode([
+      'did' => $did,
+      'atproto_handle' => $_SESSION['atproto.handle'],
+    ]);
+
+    $at->clear_state();
 
     return $this->_finishAuthenticate();
   }
