@@ -64,6 +64,8 @@ trait ATProtoProvider {
       }
     }
 
+    $_SESSION['login_request']['profile'] = $did;
+
     return $this->_finishAuthenticate();
   }
 
