@@ -29,7 +29,8 @@ $route->map('GET', '/api', 'App\\Controller::api_docs');
 $route->map('GET', '/setup', 'App\\Controller::setup_docs');
 $route->map('GET', '/faq', 'App\\Controller::faq');
 $route->map('GET', '/privacy-policy', 'App\\Controller::privacy');
-$route->map('GET', '/demo', 'App\\Controller::demo');
+$route->map('GET', '/demo_start', 'App\\Controller::demo_start');
+$route->map('GET', '/demo_redirect', 'App\\Controller::demo_redirect');
 
 
 $route->map('GET', '/id', 'App\\Controller::client_metadata'); # IndieAuth client metadata

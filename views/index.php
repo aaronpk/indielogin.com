@@ -10,16 +10,10 @@
     <div>
       <p class="lead">Try it!</p>
 
-      <form action="/authorize" method="get">
+      <form action="/demo_start" method="get">
         <div class="form-group">
           <input type="url" placeholder="example.com" name="me" class="form-control">
         </div>
-
-        <input type="hidden" name="client_id" value="<?= getenv('BASE_URL') ?>">
-        <input type="hidden" name="redirect_uri" value="<?= getenv('BASE_URL') ?>demo">
-        <input type="hidden" name="state" value="<?= generate_state() ?>">
-        <input type="hidden" name="code_challenge" value="<?= generate_pkce_code_verifier() ?>">
-
         <button class="btn btn-outline-secondary">Sign In</button>
       </form>
 

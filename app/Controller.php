@@ -30,7 +30,23 @@ class Controller {
     ]);
   }
 
-  public function demo(ServerRequestInterface $request): ResponseInterface {
+  public function demo_start(ServerRequestInterface $request): ResponseInterface {
+    $query = $request->getQueryParams();
+
+    $params = [
+      'client_id' => getenv('BASE_URL'),
+      'redirect_uri' => getenv('BASE_URL').'demo_redirect',
+      'state' => generate_state('demo'),
+      'code_challenge' => generate_pkce_code_verifier(),
+      'me' => $query['me'],
+    ];
+
+    $authorize_url = '/authorize?'.http_build_query($params);
+
+    return redirect_response($authorize_url, 302);
+  }
+
+  public function demo_redirect(ServerRequestInterface $request): ResponseInterface {
     $params = $request->getQueryParams();
 
     if(!isset($params['code'])) {
