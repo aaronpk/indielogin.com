@@ -200,7 +200,7 @@ class ATProto {
       'state' => $state,
       'code_challenge' => pkce_code_challenge($code_verifier),
       'code_challenge_method' => 'S256',
-      #'login_hint' => $this->_handle,
+      'login_hint' => $this->_handle,
     ];
     $headers = [
       'DPoP: '.$this->create_dpop_proof('POST', $url),
