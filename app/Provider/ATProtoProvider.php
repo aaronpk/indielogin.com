@@ -49,12 +49,17 @@ trait ATProtoProvider {
 
     // If they entered a website that linked to an ATProto URL with rel=me, verify the profile links back to their website.
     // Check for this condition by checking if the hostname of the entered URL matches the hostname of their ATProto handle.
-    if(!same_host($_SESSION['expected_me'], $_SESSION['atproto.handle'])) {
+    if(!same_host($_SESSION['expected_me'], 'https://'.$_SESSION['atproto.handle'])) {
       $profile = $at->fetch_profile();
       if(empty($profile)) {
         return $this->_userError('Error fetching BlueSky profile');
       }
-      if(!string_contains_url($profile['description'], $_SESSION['expected_me'])) {
+      $userlog->debug('Got different handle than entered', [
+        'expected' => $_SESSION['expected_me'],
+        'atproto' => $_SESSION['atproto.handle'],
+        'profile' => $profile,
+      ]);
+      if(empty($profile['description']) || !string_contains_url($profile['description'], $_SESSION['expected_me'])) {
         return $this->_userError('Ensure your BlueSky profile contains a link to your website');
       }
     }
