@@ -31,10 +31,6 @@ $route->map('GET', '/faq', 'App\\Controller::faq');
 $route->map('GET', '/privacy-policy', 'App\\Controller::privacy');
 $route->map('GET', '/demo', 'App\\Controller::demo');
 
-$route->map('GET', '/debug', 'App\\Controller::debug');
-$route->map('GET', '/debug/github', 'App\\Controller::debug_github');
-$route->map('GET', '/debug/gitlab', 'App\\Controller::debug_gitlab');
-$route->map('GET', '/debug/codeberg', 'App\\Controller::debug_codeberg');
 
 $route->map('GET', '/id', 'App\\Controller::client_metadata'); # IndieAuth client metadata
 
