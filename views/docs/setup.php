@@ -10,8 +10,8 @@
     <p>Instead of making a new account here, we'll take advantage of some accounts you may already have in order to authenticate you. You can always choose the services you use to log in, and the site you're logging in to won't have access to them.</p>
   </div>
 
-  <section id="indieauth" class="h-entry">
-    <h3 class="p-name">IndieAuth</h3>
+  <section id="indieauth">
+    <h3>IndieAuth</h3>
 
     <p>If your website supports <a href="https://indieweb.org/IndieAuth">IndieAuth</a>, then this site will use your IndieAuth server automatically! No further setup is needed, and you don't need to add any other social profiles to your site.</p>
     <p><a href="https://micro.blog/">Micro.blog</a> supports IndieAuth out of the box, no configuration is necessary. Try logging in using your Micro.blog address.</p>
@@ -24,10 +24,10 @@
     </p>
   </section>
 
-  <section id="supported-providers" class="h-entry">
-    <h2 class="p-name">Add links to your existing profiles</h2>
+  <section id="supported-providers">
+    <h2>Add links to your existing profiles</h2>
 
-    <div class="e-content">
+    <div>
       <p>If your website is not already an IndieAuth provider, this site can authenticate you using the following providers:</p>
 
       <ul>
@@ -39,10 +39,10 @@
     </div>
   </section>
 
-  <section id="github" class="h-entry">
-    <h3 class="p-name">GitHub</h3>
+  <section id="github">
+    <h3>GitHub</h3>
 
-    <div class="e-content">
+    <div>
       <p>To use GitHub, link to your GitHub profile on your home page.</p>
 
       <p><pre><?= e('<a href="https://github.com/aaronpk" rel="me">github.com/aaronpk</a>') ?></pre></p>
@@ -51,10 +51,10 @@
     </div>
   </section>
 
-  <section id="gitlab" class="h-entry">
-    <h3 class="p-name">GitLab</h3>
+  <section id="gitlab">
+    <h3 >GitLab</h3>
 
-    <div class="e-content">
+    <div>
       <p>To use GitLab, link to your GitLab profile on your home page.</p>
 
       <p><pre><?= e('<a href="https://gitlab.com/aaronpk" rel="me">gitlab.com/aaronpk</a>') ?></pre></p>
@@ -63,10 +63,10 @@
     </div>
   </section>
 
-  <section id="codeberg" class="h-entry">
-    <h3 class="p-name">Codeberg</h3>
+  <section id="codeberg">
+    <h3>Codeberg</h3>
 
-    <div class="e-content">
+    <div>
       <p>To use Codeberg, link to your Codeberg profile on your home page.</p>
 
       <p><pre><?= e('<a href="https://codeberg.org/aaronpk" rel="me">codeberg.org/aaronpk</a>') ?></pre></p>
@@ -75,7 +75,7 @@
     </div>
   </section>
 
-  <section id="email" class="h-entry">
+  <section id="email">
     <h3 class="p-name">Email</h3>
 
     <p>To use your email address to authenticate, you'll receive a short code you'll have to enter while signing in. Just link to your email address from your home page.</p>
@@ -89,22 +89,22 @@
 
   <h2 id="advanced">Advanced Options</h2>
 
-  <section id="hidden-links" class="h-entry">
-    <h3 class="p-name">Hidden Links</h3>
+  <section id="hidden-links">
+    <h3>Hidden Links</h3>
 
     <p>If you don't want visible links to your profiles, you can use an invisible <code>&lt;link&gt;</code> tag instead. For example:</p>
 
     <p><pre><?= e('<link href="https://github.com/aaronpk" rel="me">') ?></pre></p>
   </section>
 
-  <section id="multiple-domains" class="h-entry">
-    <h3 class="p-name">Multiple Domains</h3>
+  <section id="multiple-domains">
+    <h3>Multiple Domains</h3>
 
     <p>If you have multiple domains, or want your GitHub/GitLab/Codeberg profile to link to something that is not your main website, you can alternatively put one or more URLs in your "bio" field on GitHub, GitLab, and Codeberg. This allows you to use one GitHub/GitLab/Codeberg account to authenticate multiple domains.</p>
   </section>
 
-  <section id="choosing-auth-providers" class="h-entry">
-    <h3 class="p-name">Explicitly Choosing Auth Providers</h3>
+  <section id="choosing-auth-providers">
+    <h3>Explicitly Choosing Auth Providers</h3>
 
     <p>If you don't want <?= getenv('APP_NAME') ?> to consider <i>all</i> your <code>rel="me"</code> links as possible authentication options, you can choose which ones specifically by using <code>rel="me authn"</code> instead. This allows you to, for example, only use providers that support two-factor authorization, while still linking to your existing profiles using <code>rel="me"</code>.</p>
 
