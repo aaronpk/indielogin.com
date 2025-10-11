@@ -48,6 +48,7 @@ $route->map('POST', '/select', 'App\\Authenticate::post_select');
 $route->map('GET', '/redirect/github', 'App\\Authenticate::redirect_github');
 $route->map('GET', '/redirect/gitlab', 'App\\Authenticate::redirect_gitlab');
 $route->map('GET', '/redirect/codeberg', 'App\\Authenticate::redirect_codeberg');
+$route->map('GET', '/redirect/atproto', 'App\\Authenticate::redirect_atproto');
 $route->map('GET', '/redirect/indieauth', 'App\\Authenticate::redirect_indieauth');
 
 $route->map('POST', '/auth/send_email', 'App\\Authenticate::send_email');

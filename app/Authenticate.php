@@ -9,6 +9,7 @@ use Laminas\Diactoros\Response;
 
 use Config;
 use ORM;
+use ATProto;
 
 class Authenticate {
 
@@ -19,6 +20,7 @@ class Authenticate {
   use Provider\FedCM;
   use Provider\Email;
   use Provider\PGP;
+  use Provider\ATProtoProvider;
 
   public function start(ServerRequestInterface $request): ResponseInterface {
     session_start();
@@ -286,8 +288,8 @@ class Authenticate {
         return $this->_showProviderChooser($login_request, $supported);
       }
 
-      // Check for any rel=me or rel=pgpkey
-      if(count($rels['me']) || count($rels['pgpkey'])) {
+      // Check for any rel=me or rel=atproto
+      if(count($rels['me']) || $rels['atproto_did']) {
         $supported = $this->_getSupportedProviders($rels, 'me');
 
         // If there are no supported rel=me, then show an error
@@ -614,6 +616,30 @@ class Authenticate {
             'icon' => 'fa-solid fa-key',
           ];
         }
+      }
+    }
+
+    // This is when they enter a domain that directly points to an ATProto PDS in DNS
+    if(!empty($rels['atproto_did'])) {
+      $supported[] = [
+        'provider' => 'atproto',
+        'atproto' => $rels['atproto_did'],
+        'display' => $rels['atproto_did']['handle'],
+        'icon' => 'fa-brands fa-bluesky',
+      ];
+    }
+
+    // This is when they enter a domain that has a rel=atproto link
+    if(!empty($rels['atproto'])) {
+      $handle = parse_url($rels['atproto'][0], PHP_URL_HOST);
+      $did = ATProto::handle_to_did($handle);
+      if($did) {
+        $supported[] = [
+          'provider' => 'atproto',
+          'atproto' => ['did' => $did, 'handle' => $handle],
+          'display' => $handle,
+          'icon' => 'fa-brands fa-bluesky',
+        ];
       }
     }
 

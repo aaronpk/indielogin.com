@@ -310,6 +310,18 @@ function fetch_profile($me) {
     $indieauth_issuer = null;
   }
 
+  // If no IndieAuth server was found, check for an ATProto DNS record
+  if(empty($rels['authorization_endpoint'])) {
+    $handle = parse_url($original_me, PHP_URL_HOST);
+    $did = ATProto::handle_to_did($handle);
+    if($did) {
+      $rels['atproto_did'] = [
+        'did' => $did,
+        'handle' => $handle,
+      ];
+    }
+  }
+
   return [
     'code' => $res->getStatusCode(),
     'me' => $me,
@@ -322,6 +334,8 @@ function fetch_profile($me) {
       'token_endpoint' => $rels['token_endpoint'] ?? [],
       'indieauth-metadata' => $rels['indieauth-metadata'] ?? [],
       'pgpkey' => $rels['pgpkey'] ?? [],
+      'atproto_did' => $rels['atproto_did'] ?? null,
+      'atproto' => $rels['atproto'] ?? [],
     ],
     'indieauth-issuer' => $indieauth_issuer,
     'redirects' => $redirects,

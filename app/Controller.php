@@ -27,6 +27,12 @@ class Controller {
       'redirect_uris' => [
         getenv('BASE_URL').'redirect/indieauth',
       ],
+
+      # required by bluesky
+      'grant_types' => ['authorization_code'],
+      'scope' => ['atproto'],
+      'response_types' => ['code'],
+      'dpop_bound_access_tokens' => true,
     ]);
   }
 
