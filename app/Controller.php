@@ -26,12 +26,14 @@ class Controller {
       'logo_uri' => getenv('BASE_URL').'icons/apple-touch-icon.png',
       'redirect_uris' => [
         getenv('BASE_URL').'redirect/indieauth',
+        getenv('BASE_URL').'redirect/atproto',
       ],
 
       # required by bluesky
       'grant_types' => ['authorization_code'],
       'scope' => 'atproto rpc:app.bsky.actor.getProfile?aud=did:web:api.bsky.app%23bsky_appview',
       'response_types' => ['code'],
+      'token_endpoint_auth_method' => 'none',
       'dpop_bound_access_tokens' => true,
     ]);
   }
