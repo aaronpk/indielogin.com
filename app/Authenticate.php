@@ -578,24 +578,28 @@ class Authenticate {
           'provider' => 'github',
           'username' => $match[1],
           'display' => 'github.com/'.$match[1],
+          'icon' => 'fa-brands fa-github',
         ];
       } elseif(getenv('GITLAB_CLIENT_ID') && preg_match('~^https?://(?:www\.)?gitlab\.com/([a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38})/?$~', $url, $match)) {
         $supported[] = [
           'provider' => 'gitlab',
           'username' => $match[1],
           'display' => 'gitlab.com/'.$match[1],
+          'icon' => 'fa-brands fa-gitlab',
         ];
       } elseif(getenv('CODEBERG_CLIENT_ID') && preg_match('~^https?://(?:www\.)?codeberg\.org/([a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38})/?$~', $url, $match)) {
         $supported[] = [
           'provider' => 'codeberg',
           'username' => $match[1],
           'display' => 'codeberg.org/'.$match[1],
+          'icon' => 'fa-solid fa-mountain',
         ];
       } elseif(getenv('MAILGUN_KEY') && preg_match('~^mailto:(.+\@.+?)(\?.*)?$~', $url, $match)) {
         $supported[] = [
           'provider' => 'email',
           'email' => $match[1],
           'display' => $match[1],
+          'icon' => 'fa-solid fa-envelope',
         ];
       }
     }
@@ -607,6 +611,7 @@ class Authenticate {
             'provider' => 'pgp',
             'key' => $url,
             'display' => $url,
+            'icon' => 'fa-solid fa-key',
           ];
         }
       }

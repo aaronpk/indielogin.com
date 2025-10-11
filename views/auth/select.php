@@ -8,7 +8,12 @@
 
   <ul>
   <?php foreach($choices as $choice): ?>
-    <li><a class="btn btn-info" href="/select?code=<?= $choice['code'] ?>" role="button"><?= $choice['provider']['display'] ?></a></li>
+    <li>
+      <a class="btn btn-info" href="/select?code=<?= $choice['code'] ?>" role="button">
+        <i class="<?= $choice['provider']['icon'] ?>"></i>
+        <?= $choice['provider']['display'] ?>
+      </a>
+    </li>
   <?php endforeach ?>
   </ul>
 
