@@ -81,7 +81,11 @@ function pa($a) {
 }
 
 function generate_state($prefix=false) {
-  return $_SESSION['state'] = ($prefix ? $prefix.'_' : '').bin2hex(random_bytes(12));
+  $userlog = make_logger('user');
+  $state = bin2hex(random_bytes(12));
+  $key = $prefix ? $prefix . '.state' : 'state';
+  $userlog->warning('Generating STATE parameter: ' . $key . '=' . $state);
+  return $_SESSION[$key] = $state;
 }
 
 function generate_pkce_code_verifier() {
