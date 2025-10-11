@@ -212,6 +212,8 @@ function guzzle_request_get($client, $url, $onRedirect=null) {
 
 function fetch_profile($me) {
 
+  $userlog = make_logger('user');
+
   $client = new \GuzzleHttp\Client();
 
   // Keep track of redirects in this array
@@ -231,87 +233,98 @@ function fetch_profile($me) {
 
   $res = guzzle_request_get($client, $me, $onRedirect);
 
-  if(!is_object($res) && isset($res['exception'])) {
-    return $res;
-  }
-
   $original_me = $me;
   $me = \IndieAuth\Client::normalizeMeURL($me);
-
-  // Get the final URL
   $final_url = $me;
   $final_profile_url = $me;
-  if(count($redirects)) {
-    foreach($redirects as $r) {
-      if($r['code'] == 302 || $r['code'] == 307) {
-        // Abort on temporary redirects
-        break;
-      } else {
-        $final_profile_url = $r['to'];
-      }
-    }
-    $final_url = $redirects[count($redirects)-1]['to'];
-  }
-  $final_url = \IndieAuth\Client::normalizeMeURL($final_url);
-  $final_profile_url = \IndieAuth\Client::normalizeMeURL($final_profile_url);
 
-  // Parse the resulting body for rel me/authn/authorization_endpoint
-  $body = ''.$res->getBody();
+  $indieauth_issuer = null;
 
-  $parsed = \Mf2\parse($body, $final_url);
-  $rels = $parsed['rels'];
-  $relURLs = $parsed['rel-urls'];
+  if(!is_object($res) && isset($res['exception'])) {
 
-  // If the header includes a rel=authorization_endpoint, use that instead of from the body
-  // https://www.w3.org/TR/indieauth/#discovery-by-clients-p-3
-  if($res->getHeaderLine('Link')) {
-    $link = 'Link: '.$res->getHeaderLine('Link');
-    $link_rels = \IndieWeb\http_rels($link, $final_url);
-    if(isset($link_rels['authorization_endpoint'])) {
-      $rels['authorization_endpoint'] = $link_rels['authorization_endpoint'];
-    }
-    if(isset($link_rels['indieauth-metadata'])) {
-      $rels['indieauth-metadata'] = $link_rels['indieauth-metadata'];
-    }
-  }
-
-  // If IndieAuth metadata was discovered, fetch it and populate the authorization and token endpoint from there
-  if(isset($rels['indieauth-metadata'])) {
-
-    $res = guzzle_request_get($client, $rels['indieauth-metadata'][0]);
-    if(!is_object($res) && isset($res['exception'])) {
-      return $res;
-    }
-
-    $metadata = json_decode(''.$res->getBody(), true);
-
-    if(empty($metadata)) {
-      return [
-        'code' => 0,
-        'exception' => 'IndieAuth server metadata could not be parsed',
-      ];
-    }
-
-    if(empty($metadata['issuer'])) {
-      return [
-        'code' => 0,
-        'exception' => 'IndieAuth metadata is missing an issuer value',
-      ];
-    }
-
-    if(empty($metadata['authorization_endpoint']) || empty($metadata['token_endpoint'])) {
-      return [
-        'code' => 0,
-        'exception' => 'IndieAuth metadata was missing authorization endpoint and/or token endpoint',
-      ];
-    }
-
-    $indieauth_issuer = $metadata['issuer'];
-    $rels['authorization_endpoint'] = [$metadata['authorization_endpoint']];
-    $rels['token_endpoint'] = [$metadata['token_endpoint']];
+    $statusCode = -1;
+    $error = $res;
+    $userlog->error('Error fetching profile '.$me, [
+      'error' => $error,
+    ]);
+    $exception = $res['exception']; // store the exception in case we need to return it
+    $rels = [];
 
   } else {
-    $indieauth_issuer = null;
+
+    $statusCode = $res->getStatusCode();
+
+    // Get the final URL
+    if(count($redirects)) {
+      foreach($redirects as $r) {
+        if($r['code'] == 302 || $r['code'] == 307) {
+          // Abort on temporary redirects
+          break;
+        } else {
+          $final_profile_url = $r['to'];
+        }
+      }
+      $final_url = $redirects[count($redirects)-1]['to'];
+    }
+    $final_url = \IndieAuth\Client::normalizeMeURL($final_url);
+    $final_profile_url = \IndieAuth\Client::normalizeMeURL($final_profile_url);
+
+    // Parse the resulting body for rel me/authn/authorization_endpoint
+    $body = ''.$res->getBody();
+
+    $parsed = \Mf2\parse($body, $final_url);
+    $rels = $parsed['rels'];
+    $relURLs = $parsed['rel-urls'];
+
+    // If the header includes a rel=authorization_endpoint, use that instead of from the body
+    // https://www.w3.org/TR/indieauth/#discovery-by-clients-p-3
+    if($res->getHeaderLine('Link')) {
+      $link = 'Link: '.$res->getHeaderLine('Link');
+      $link_rels = \IndieWeb\http_rels($link, $final_url);
+      if(isset($link_rels['authorization_endpoint'])) {
+        $rels['authorization_endpoint'] = $link_rels['authorization_endpoint'];
+      }
+      if(isset($link_rels['indieauth-metadata'])) {
+        $rels['indieauth-metadata'] = $link_rels['indieauth-metadata'];
+      }
+    }
+
+    // If IndieAuth metadata was discovered, fetch it and populate the authorization and token endpoint from there
+    if(isset($rels['indieauth-metadata'])) {
+
+      $res = guzzle_request_get($client, $rels['indieauth-metadata'][0]);
+      if(!is_object($res) && isset($res['exception'])) {
+        return $res;
+      }
+
+      $metadata = json_decode(''.$res->getBody(), true);
+
+      if(empty($metadata)) {
+        return [
+          'code' => 0,
+          'exception' => 'IndieAuth server metadata could not be parsed',
+        ];
+      }
+
+      if(empty($metadata['issuer'])) {
+        return [
+          'code' => 0,
+          'exception' => 'IndieAuth metadata is missing an issuer value',
+        ];
+      }
+
+      if(empty($metadata['authorization_endpoint']) || empty($metadata['token_endpoint'])) {
+        return [
+          'code' => 0,
+          'exception' => 'IndieAuth metadata was missing authorization endpoint and/or token endpoint',
+        ];
+      }
+
+      $indieauth_issuer = $metadata['issuer'];
+      $rels['authorization_endpoint'] = [$metadata['authorization_endpoint']];
+      $rels['token_endpoint'] = [$metadata['token_endpoint']];
+
+    }
   }
 
   // If no IndieAuth server was found, check for an ATProto DNS record
@@ -319,6 +332,7 @@ function fetch_profile($me) {
     $handle = parse_url($original_me, PHP_URL_HOST);
     $did = ATProto::handle_to_did($handle);
     if($did) {
+      $statusCode = 200;
       $rels['atproto_did'] = [
         'did' => $did,
         'handle' => $handle,
@@ -326,8 +340,16 @@ function fetch_profile($me) {
     }
   }
 
+  // If we still haven't found anything, return an exception
+  if($statusCode == -1) {
+    return [
+      'code' => -1,
+      'exception' => $exception,
+    ];
+  }
+
   return [
-    'code' => $res->getStatusCode(),
+    'code' => $statusCode,
     'me' => $me,
     'me_entered' => $original_me,
     'final_url' => $final_profile_url,
