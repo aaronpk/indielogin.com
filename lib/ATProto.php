@@ -73,14 +73,26 @@ class ATProto {
   public static function handle_to_did($handle) {
     $dns_record = dns_get_record('_atproto.'.$handle, DNS_TXT);
 
-    if(count($dns_record) != 1) {
-      return null;
-    }
+    if(count($dns_record) >= 1) {
 
-    $dns_record = $dns_record[0];
+      $dns_record = $dns_record[0];
 
-    if(preg_match('/did=(did:plc:.+)/', $dns_record['txt'], $match)) {
-      return $match[1];
+      if(preg_match('/did=(did:plc:.+)/', $dns_record['txt'], $match)) {
+        return $match[1];
+      }
+
+    } else {
+
+      // Fallback to HTTP lookup for bsky.social subdomains
+      if(preg_match('/\.bsky.social/', $handle)) {
+        $http = http_client();
+        $response = $http->get('https://'.$handle.'/.well-known/atproto-did');
+        $body = trim($response['body']);
+        if(is_string($body) && preg_match('/^did:plc:.+$/', $body)) {
+          return $body;
+        }
+      }
+
     }
 
     return null;
