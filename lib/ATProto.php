@@ -314,6 +314,8 @@ class ATProto {
     if(!$this->_access_token)
       return null;
 
+    // First make a request without a DPoP nonce which will fail and return a nonce in the headers.
+    // We can't reuse the previous nonce because this request is going to the resource server, not the authorization server.
     $url = $this->_pds . '/xrpc/app.bsky.actor.getProfile?'.http_build_query([
       'actor' => $this->_did,
     ]);
@@ -323,10 +325,12 @@ class ATProto {
     ];
     $result = $this->_http()->get($url, $headers);
 
+    // Store the DPoP nonce
     if(!empty($result['headers']['Dpop-Nonce'])) {
       $this->_dpop_nonce = $result['headers']['Dpop-Nonce'];
     }
 
+    // Try the request again, this time with the new DPoP nonce
     $headers = [
       'Authorization: DPoP '.$this->_access_token,
       'DPoP: '.$this->create_dpop_proof('GET', $url, ['nonce' => $this->_dpop_nonce, 'access_token' => $this->_access_token]),
