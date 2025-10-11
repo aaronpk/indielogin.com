@@ -37,6 +37,10 @@ trait ATProtoProvider {
 
     $query = $request->getQueryParams();
 
+    if(isset($query['error'])) {
+      return $this->_userError($query['error_description']);
+    }
+
     $at = ATProto::restore_from_session();
 
     try {
