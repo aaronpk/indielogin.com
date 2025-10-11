@@ -24,11 +24,22 @@
     </p>
   </section>
 
+  <section id="atproto">
+    <h3>BlueSky / ATProto</h3>
+
+    <p>There are two ways to use BlueSky or a compatible ATProto server to authenticate.</p>
+    <p>If you have a custom domain on BlueSky, you can <b>enter it directly</b> in the login form. You will be redirected to BlueSky to log in.</p>
+    <p>Alternatively, you can link to your BlueSky handle from your website, similar to how you would link to a GitHub or other external profile.</p>
+    <p><pre><?= e('<a href="https://aaronpk.bsky.social" rel="me atproto">aaronpk.bsky.social</a>') ?></pre></p>
+    <p>Make sure you add <code>rel="me atproto"</code> to the link. You will also need to link back to your website in your BlueSky profile.</p>
+
+  </section>
+
   <section id="supported-providers">
     <h2>Add links to your existing profiles</h2>
 
     <div>
-      <p>If your website is not already an IndieAuth provider, this site can authenticate you using the following providers:</p>
+      <p>If your website is not already an IndieAuth provider or custom BlueSky handle, this site can authenticate you using the following providers:</p>
 
       <ul>
         <li><a href="#github">GitHub</a></li>
