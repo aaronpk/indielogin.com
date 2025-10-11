@@ -173,6 +173,10 @@ class ATProto {
   public function start_oauth() {
     $userlog = make_logger('user');
 
+    if(empty($this->_as_metadata)) {
+      throw new ATProtoException('Could not fetch ATProto OAuth config for handle '.$this->_handle);
+    }
+
     $url = $this->_as_metadata['pushed_authorization_request_endpoint'];
     $state = generate_state('atproto');
     $code_verifier = generate_pkce_code_verifier();

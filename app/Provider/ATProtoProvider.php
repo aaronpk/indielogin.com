@@ -17,7 +17,11 @@ trait ATProtoProvider {
 
     $at = new ATProto();
     $at->initialize($details['atproto']['handle'], $details['atproto']['did']);
-    $authorize = $at->start_oauth();
+    try {
+      $authorize = $at->start_oauth();
+    } catch(ATProtoException $e) {
+      return $this->_userError($e->getMessage());
+    }
 
     $at->save_state();
 
