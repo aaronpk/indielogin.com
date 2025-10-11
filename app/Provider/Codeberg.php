@@ -14,14 +14,14 @@ trait Codeberg {
   private function _start_codeberg($login_request, $details) {
     $userlog = make_logger('user');
 
-    $state = generate_state();
+    $state = generate_state('codeberg');
 
     $params = [
       'client_id' => getenv('CODEBERG_CLIENT_ID'),
       'redirect_uri' => getenv('BASE_URL').'redirect/codeberg',
       'state' => $state,
       'allow_signup' => 'false',
-		'response_type' => 'code',
+      'response_type' => 'code',
     ];
     $authorize = 'https://codeberg.org/login/oauth/authorize?'.http_build_query($params);
 
@@ -41,11 +41,11 @@ trait Codeberg {
     $query = $request->getQueryParams();
 
     // Verify the state parameter
-    if(!isset($_SESSION['state']) || $_SESSION['state'] != $query['state']) {
+    if(!isset($_SESSION['codeberg.state']) || $_SESSION['codeberg.state'] != $query['state']) {
       die('Invalid state parameter from Codeberg');
     }
 
-    unset($_SESSION['state']);
+    unset($_SESSION['codeberg.state']);
 
     $params = [
       'client_id' => getenv('CODEBERG_CLIENT_ID'),

@@ -14,7 +14,7 @@ trait GitHub {
   private function _start_github($login_request, $details) {
     $userlog = make_logger('user');
 
-    $state = generate_state();
+    $state = generate_state('github');
     $code_verifier = generate_pkce_code_verifier();
 
     $params = [
@@ -43,11 +43,11 @@ trait GitHub {
     $query = $request->getQueryParams();
 
     // Verify the state parameter
-    if(!isset($_SESSION['state']) || $_SESSION['state'] != $query['state']) {
+    if(!isset($_SESSION['github.state']) || $_SESSION['github.state'] != $query['state']) {
       die('Invalid state parameter from GitHub');
     }
 
-    unset($_SESSION['state']);
+    unset($_SESSION['github.state']);
 
     $params = [
       'client_id' => getenv('GITHUB_CLIENT_ID'),

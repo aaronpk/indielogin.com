@@ -12,8 +12,7 @@ trait IndieAuth {
   private function _start_indieauth($login_request, $details) {
     $userlog = make_logger('user');
 
-    // Encode this request's me/redirect_uri/state in the state parameter to avoid a session?
-    $state = generate_state();
+    $state = generate_state('indieauth');
     $code_verifier = generate_pkce_code_verifier();
     $authorize = \IndieAuth\Client::buildAuthorizationURL($login_request['authorization_endpoint'], [
       'me' => $login_request['me'],
@@ -39,8 +38,8 @@ trait IndieAuth {
     $query = $request->getQueryParams();
 
     // Verify the state parameter
-    if(!isset($_SESSION['state']) || $_SESSION['state'] != $query['state']) {
-      $userlog->warning('IndieAuth server returned an invalid state parameter', ['query' => $query]);
+    if(!isset($_SESSION['indieauth.state']) || $_SESSION['indieauth.state'] != $query['state']) {
+      $userlog->warning('IndieAuth server returned an invalid state parameter', ['query' => $query, 'expected_state' => ($_SESSION['indieauth.state'] ?? null), 'session' => $_SESSION]);
       return $this->_userError('Your IndieAuth server did not return a valid state parameter');
     }
 

@@ -14,7 +14,7 @@ trait GitLab {
   private function _start_gitlab($login_request, $details) {
     $userlog = make_logger('user');
 
-    $state = generate_state();
+    $state = generate_state('gitlab');
 
     $params = [
       'client_id' => getenv('GITLAB_CLIENT_ID'),
@@ -42,11 +42,11 @@ trait GitLab {
     $query = $request->getQueryParams();
 
     // Verify the state parameter
-    if(!isset($_SESSION['state']) || $_SESSION['state'] != $query['state']) {
+    if(!isset($_SESSION['gitlab.state']) || $_SESSION['gitlab.state'] != $query['state']) {
       die('Invalid state parameter from GitLab');
     }
 
-    unset($_SESSION['state']);
+    unset($_SESSION['gitlab.state']);
 
     $params = [
       'client_id' => getenv('GITLAB_CLIENT_ID'),
