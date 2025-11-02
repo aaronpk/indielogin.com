@@ -20,6 +20,7 @@ trait IndieAuth {
       'client_id' => getenv('BASE_URL').'id',
       'state' => $state,
       'code_verifier' => $code_verifier,
+      'scope' => 'profile',
     ]);
 
     $userlog->info('Beginning IndieAuth login', ['provider' => $details, 'login' => $login_request]);
