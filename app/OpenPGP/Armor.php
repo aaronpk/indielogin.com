@@ -23,7 +23,13 @@ class Armor {
       throw new OpenPGPException('No OpenPGP armored data was found');
 
     $label = $match[1][0];
+
+    // Drop the newline that ends the BEGIN line, so that the first element
+    // below is the first armor header rather than an empty string that would
+    // read as the blank line terminating them
     $body = substr($normalized, $match[0][1] + strlen($match[0][0]));
+    if(str_starts_with($body, "\n"))
+      $body = substr($body, 1);
 
     $base64 = '';
     $checksum = null;
@@ -40,7 +46,7 @@ class Armor {
           $inHeaders = false;
           continue;
         }
-        if(preg_match('/^[A-Za-z][A-Za-z0-9-]*: /', $line))
+        if(preg_match('/^[A-Za-z][A-Za-z0-9-]*:/', $line))
           continue;
         $inHeaders = false;
       }

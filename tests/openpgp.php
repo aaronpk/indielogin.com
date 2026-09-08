@@ -121,6 +121,18 @@ accepts('A.6 v6 cleartext signed message', vector('rfc9580/a3-v6-ed25519.key'), 
 accepts('A.7 v6 inline signed message', vector('rfc9580/a3-v6-ed25519.key'), vector('rfc9580/a7-v6-inline.asc'), $groceries);
 
 
+echo "\nArmor headers\n";
+
+// GnuPG 2.4 emits no armor headers, but GPGTools, older GnuPG and others put
+// a Version or Comment line after BEGIN. Those must not be read as base64.
+accepts('key block with Version and Comment headers',
+  vector('armor-headers/key.asc'), vector('cleartext/ed25519.SHA256.asc'), $challenge);
+accepts('signature block with Version and Comment headers',
+  vector('keys/ed25519.key'), vector('armor-headers/signature.asc'), $challenge);
+accepts('headers on both blocks',
+  vector('armor-headers/key.asc'), vector('armor-headers/signature.asc'), $challenge);
+
+
 echo "\nRevocation\n";
 
 // The same signature, checked against the certificate before and after its
