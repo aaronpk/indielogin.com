@@ -78,7 +78,7 @@ trait Codeberg {
     $profile = json_decode($result['body'], true);
 
     if(!isset($profile['login'])) {
-      $userlog->warning('Error fetching user profile', ['response' => $result, 'useragent' => getenv('HTTP_USER_AGENT')]);
+      $userlog->warning('Error fetching user profile', ['response' => $result, 'useragent' => getenv('HTTPCLIENT_USER_AGENT')]);
       return $this->_userError('There was a problem with the profile request to Codeberg', [
         'response' => json_encode($profile, JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES)
       ]);

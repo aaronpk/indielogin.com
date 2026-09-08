@@ -155,52 +155,48 @@ function string_contains_url($str, $url) {
 
 function guzzle_request_get($client, $url, $onRedirect=null) {
 
+  // Guzzle rejects a non-string header value, so only send the user agent
+  // when one is actually configured
+  $headers = ['Accept' => 'text/html,*/*'];
+  if($user_agent = getenv('HTTPCLIENT_USER_AGENT'))
+    $headers['User-Agent'] = $user_agent;
+
+  // Likewise, on_redirect has to be left out entirely when there is no
+  // callback rather than passed as null
+  $allow_redirects = [
+    'max'             => 10,
+    'strict'          => true,
+    'referer'         => true,
+    'track_redirects' => true,
+  ];
+  if(is_callable($onRedirect))
+    $allow_redirects['on_redirect'] = $onRedirect;
+
   try {
     // Fetch the entered URL
     $res = $client->request('GET', $url, [
       'timeout'         => 10,
-      'allow_redirects' => [
-        'max'             => 10,
-        'strict'          => true,
-        'referer'         => true,
-        'on_redirect'     => $onRedirect,
-        'track_redirects' => true
-      ],
-      'headers' => [
-        'User-Agent' => getenv('HTTP_USER_AGENT'),
-        'Accept'     => 'text/html,*/*'
-      ]
+      'allow_redirects' => $allow_redirects,
+      'headers'         => $headers,
     ]);
-  } catch(\GuzzleHttp\Exception\ClientException $e) {
-    if($e->hasResponse()) {
-      $response = $e->getResponse();
-      return [
-        'code' => $response->getStatusCode(),
-        'exception' => $e->getMessage(),
-      ];
-    } else {
-      return [
-        'code' => 0,
-        'exception' => $e->getMessage(),
-      ];
-    }
+  // Guzzle groups its failures by whether a response ever arrived, so these
+  // three catches cover everything it can throw. Order matters, because
+  // TooManyRedirectsException is itself a ResponseException.
   } catch(\GuzzleHttp\Exception\TooManyRedirectsException $e) {
+    // We were bounced around and never landed anywhere usable
     return [
       'code' => 0,
       'exception' => $e->getMessage(),
     ];
-  } catch(\GuzzleHttp\Exception\ServerException $e) {
-    $response = $e->getResponse();
+  } catch(\GuzzleHttp\Exception\ResponseException $e) {
+    // Response headers were received, so there is a status code to report
     return [
-      'code' => $response->getStatusCode(),
+      'code' => $e->getResponse()->getStatusCode(),
       'exception' => $e->getMessage(),
     ];
-  } catch(\GuzzleHttp\Exception\RequestException $e) {
-    return [
-      'code' => 0,
-      'exception' => $e->getMessage(),
-    ];
-  } catch(\GuzzleHttp\Exception\ConnectException $e) {
+  } catch(\GuzzleHttp\Exception\TransferException $e) {
+    // Connection refused, DNS failure, timeout, or anything else that
+    // produced no response at all
     return [
       'code' => 0,
       'exception' => $e->getMessage(),

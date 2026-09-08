@@ -1,6 +1,6 @@
 {
     "require": {
-        "guzzlehttp/guzzle": "^7.9",
+        "guzzlehttp/guzzle": "^8.2",
         "indieauth/client": "~1.1",
         "indieweb/link-rel-parser": "^0.1.3",
         "j4mie/idiorm": "^1.5",
@@ -8,7 +8,7 @@
         "laminas/laminas-httphandlerrunner": "^2.11",
         "league/container": "^4.2",
         "league/plates": "^3.3",
-        "league/route": "^5.1",
+        "league/route": "^6.2",
         "mailgun/mailgun-php": "^4.3",
         "masterminds/html5": "^2.7",
         "mf2/mf2": "^0.4.6",

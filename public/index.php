@@ -4,7 +4,6 @@ include('vendor/autoload.php');
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use League\Route\Http\Exception\NotFoundException;
 use Laminas\Diactoros\Response\HtmlResponse;
 
 // Check for existence of config variables, and show an error page if not set
@@ -60,7 +59,17 @@ $route->map('POST', '/fedcm/login', 'App\\Authenticate::fedcm_login');
 
 $templates = new League\Plates\Engine(dirname(__FILE__).'/../views');
 
-$route->middleware(new App\NotFoundMiddleware());
+try {
+  $response = $route->dispatch($request);
+} catch(League\Route\Http\Exception $e) {
+  // The router raises these for an unmatched path or a method that is not
+  // allowed, and it does so ahead of any middleware of ours, so they have to
+  // be turned into a response here
+  $response = new HtmlResponse(view('http-error', [
+    'title' => $e->getStatusCode().' '.$e->getMessage(),
+    'status' => $e->getStatusCode(),
+    'message' => $e->getMessage(),
+  ]), $e->getStatusCode(), $e->getHeaders());
+}
 
-$response = $route->dispatch($request);
 (new Laminas\HttpHandlerRunner\Emitter\SapiEmitter)->emit($response);

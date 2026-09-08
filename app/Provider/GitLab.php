@@ -79,7 +79,7 @@ trait GitLab {
     $profile = json_decode($result['body'], true);
 
     if(!isset($profile['username'])) {
-      $userlog->warning('Error fetching user profile', ['response' => $result, 'useragent' => getenv('HTTP_USER_AGENT')]);
+      $userlog->warning('Error fetching user profile', ['response' => $result, 'useragent' => getenv('HTTPCLIENT_USER_AGENT')]);
       return $this->_userError('There was a problem with the profile request to GitLab', [
         'response' => json_encode($profile, JSON_PRETTY_PRINT+JSON_UNESCAPED_SLASHES)
       ]);
