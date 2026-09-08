@@ -18,6 +18,13 @@ trait Email {
 
     $_SESSION['login_request']['profile'] = $details['email'];
 
+    // Bind the code to this session and to the identity it was issued for,
+    // so that it cannot be carried over into a login attempt for someone else
+    $_SESSION['email_challenge'] = [
+      'code' => $code,
+      'me' => $_SESSION['expected_me'] ?? null,
+    ];
+
     return new HtmlResponse(view('auth/email', [
       'title' => 'Log In via Email',
       'code' => $code,
@@ -32,6 +39,15 @@ trait Email {
 
     $devlog = make_logger('dev');
     $userlog = make_logger('user');
+
+    if(!$this->_email_code_matches_session($params['code'] ?? '')) {
+      $userlog->warning('Email code did not match the one issued for this session');
+      return new HtmlResponse(view('auth/email-error', [
+        'title' => 'Error',
+        'error' => 'The session expired',
+        'client_id' => ($_SESSION['login_request']['client_id'] ?? false)
+      ]));
+    }
 
     $login = redis()->get('indielogin:email:'.$params['code']);
 
@@ -71,6 +87,16 @@ trait Email {
     ]));
   }
 
+  private function _email_code_matches_session($code) {
+    $challenge = $_SESSION['email_challenge'] ?? null;
+
+    if(!is_array($challenge) || !is_string($code) || !is_string($challenge['code'] ?? null))
+      return false;
+
+    return hash_equals($challenge['code'], $code)
+      && ($challenge['me'] ?? null) === ($_SESSION['expected_me'] ?? null);
+  }
+
   public function verify_email_code(ServerRequestInterface $request): ResponseInterface {
     session_start();
 
@@ -78,6 +104,15 @@ trait Email {
 
     $devlog = make_logger('dev');
     $userlog = make_logger('user');
+
+    if(!$this->_email_code_matches_session($params['code'] ?? '')) {
+      $userlog->warning('Email code did not match the one issued for this session');
+      return new HtmlResponse(view('auth/email-error', [
+        'title' => 'Error',
+        'error' => 'The session expired',
+        'client_id' => ($_SESSION['login_request']['client_id'] ?? false)
+      ]));
+    }
 
     $login = redis()->get('indielogin:email:'.$params['code']);
 
@@ -93,15 +128,19 @@ trait Email {
 
     $usercode = redis()->get('indielogin:email:usercode:'.$params['code']);
 
-    // Check that the code they entered matches the code that was stored
+    // Check that the code they entered matches the code that was stored.
+    // The stored code has to be checked for emptiness first: if no code has
+    // been sent yet then $usercode is null, and submitting an empty code
+    // would otherwise compare equal to it.
 
-    if($usercode !== false && $usercode !== null
-       && ($params['usercode'] ?? '') !== ''
-       && hash_equals(
-            strtolower(str_replace('-','',$usercode)),
-            strtolower(str_replace('-','',$params['usercode']))
-         )) {
-        return $this->_finishAuthenticate();
+    $submitted = is_string($params['usercode'] ?? null) ? $params['usercode'] : '';
+    $normalize = fn($code) => strtolower(str_replace('-', '', $code));
+
+    if($usercode && hash_equals($normalize($usercode), $normalize($submitted))) {
+      redis()->del('indielogin:email:usercode:'.$params['code']);
+      redis()->del('indielogin:email:'.$params['code']);
+      unset($_SESSION['email_challenge']);
+      return $this->_finishAuthenticate();
     } else {
       $k = 'indielogin:email:usercode:attempts:'.$params['code'];
       $current_attempts = (redis()->get($k) ?: 0);

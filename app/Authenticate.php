@@ -35,6 +35,8 @@ class Authenticate {
     unset($_SESSION['codeberg_expected_user']);
     unset($_SESSION['expected_me']);
     unset($_SESSION['me_entered']);
+    unset($_SESSION['pgp_challenge']);
+    unset($_SESSION['email_challenge']);
 
     // Check that the application provided all the necessary parameters
 
@@ -617,16 +619,14 @@ class Authenticate {
       }
     }
 
-    if(getenv('PGP_VERIFICATION_API')) {
-      foreach($rels['pgpkey'] as $url) {
-        if($mode == 'me' || ($mode == 'authn' && in_array($url, $rels['authn']))) {
-          $supported[] = [
-            'provider' => 'pgp',
-            'key' => $url,
-            'display' => $url,
-            'icon' => 'fa-solid fa-key',
-          ];
-        }
+    foreach($rels['pgpkey'] as $url) {
+      if($mode == 'me' || ($mode == 'authn' && in_array($url, $rels['authn']))) {
+        $supported[] = [
+          'provider' => 'pgp',
+          'key' => $url,
+          'display' => $url,
+          'icon' => 'fa-solid fa-key',
+        ];
       }
     }
 
