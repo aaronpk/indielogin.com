@@ -23,6 +23,18 @@ composer start
 4. Open your web browser to `http://localhost:8080`
 
 
+## Client registration
+
+Applications have to have their `client_id` registered before they can sign
+anyone in. Developers can do that themselves at `/developers` by signing in
+with their own website.
+
+To run an instance where only you can add applications, set
+`CLIENT_REGISTRATION=false` in `.env`. The developer area then disappears and
+client IDs have to be inserted into the `clients` table by hand. Set
+`clients.active` to `0` to stop an application from signing anyone in.
+
+
 ## PGP
 
 Signing in with a `rel="pgpkey"` link is handled entirely in PHP, in

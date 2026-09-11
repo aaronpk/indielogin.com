@@ -33,11 +33,9 @@
         <li class="nav-item">
           <a class="nav-link" href="/setup">Setup</a>
         </li>
-        <!--
         <li class="nav-item">
-          <a class="nav-link" href="/api">Developers</a>
+          <a class="nav-link" href="/developers">Developers</a>
         </li>
-        -->
         <li class="nav-item">
           <a class="nav-link" href="/faq">FAQ</a>
         </li>
@@ -59,7 +57,7 @@
         <ul>
           <li><a href="/">Home</a></li>
           <li><a href="/setup">Setup</a></li>
-          <li><a href="/api">Developers</a></li>
+          <li><a href="/developers">Developers</a></li>
           <li><a href="/faq">FAQ</a></li>
           <li><a href="/privacy-policy">Privacy Policy</a></li>
         </ul>

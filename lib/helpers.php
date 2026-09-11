@@ -104,6 +104,33 @@ function is_logged_in() {
   return isset($_SESSION) && array_key_exists('me', $_SESSION);
 }
 
+// Self-service client registration is on unless a deployment turns it off.
+// Absent means enabled, so that existing installs keep working after an
+// upgrade without having to add anything to their .env.
+function client_registration_enabled() {
+  $value = getenv('CLIENT_REGISTRATION');
+
+  if($value === false || trim($value) === '')
+    return true;
+
+  return !in_array(strtolower(trim($value)), ['0', 'false', 'no', 'off', 'disabled'], true);
+}
+
+// A CSRF token for the developer area, the only place on this site with
+// session-authenticated forms that change something. Requires session_start().
+function csrf_token() {
+  if(empty($_SESSION['csrf_token']))
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
+  return $_SESSION['csrf_token'];
+}
+
+function csrf_valid($token) {
+  return !empty($_SESSION['csrf_token'])
+    && is_string($token)
+    && hash_equals($_SESSION['csrf_token'], $token);
+}
+
 function display_date($format, $date) {
   try {
     $d = new DateTime($date);

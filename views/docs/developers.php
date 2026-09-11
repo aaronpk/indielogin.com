@@ -8,6 +8,33 @@
 
   <p>Users will identify themselves with their website, and can authenticate using one of the <a href="/setup">supported authentication providers</a> such as Twitter, GitHub, GitLab, Codeberg, or email. The user ID returned to you will be their website, ensuring that you don't end up creating multiple accounts depending on how the user authenticates.</p>
 
+  <section id="register">
+    <h2>Before you begin: register your application</h2>
+
+    <?php if($error): ?>
+      <div class="alert alert-warning"><?= $error ?></div>
+    <?php endif ?>
+
+    <p>Every application that signs people in with <?= getenv('APP_NAME') ?> needs its <code>client_id</code> registered here first. A sign-in request from an unregistered <code>client_id</code> is rejected.</p>
+
+    <p>Your <code>client_id</code> is the URL of your application, the same way a <a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-client-id-metadata-document/">Client ID Metadata Document</a> describes it. Your <code>redirect_uri</code> then has to be on that same domain.</p>
+
+    <?php if(!$registration_enabled): ?>
+      <p>This installation does not offer self-service registration. Contact whoever runs it to have your <code>client_id</code> added.</p>
+    <?php elseif($user): ?>
+      <p>You are signed in as <b><?= e(\p3k\url\display_url($user->url)) ?></b>.</p>
+      <p><a class="btn btn-primary" href="/developers/clients">Your applications</a></p>
+    <?php else: ?>
+      <p>To register one, sign in with your own website. You will need a website set up for <a href="/setup">web sign-in</a>, and an email address so we have a way to contact you about your applications.</p>
+
+      <form action="/developers/login" method="get" class="form-inline">
+        <label class="sr-only" for="me">Your website</label>
+        <input id="me" type="url" name="me" class="form-control mr-2" placeholder="yourdomain.com" required>
+        <button type="submit" class="btn btn-primary">Sign In</button>
+      </form>
+    <?php endif ?>
+  </section>
+
   <h2>1. Create a Web Sign-In form</h2>
 
   <?php
@@ -97,5 +124,19 @@ Content-Type: application/json
   <p>At this point you know the website belonging to the authenticated user.</p>
 
   <p>You can store the website in a secure session and log the user in as their website identity. You don't need to worry about whether they authenticated with Twitter, Github, GitLab, Codeberg, or email address, their identity is their website! You won't have to worry about merging duplicate accounts or managing OAuth credentials at these platforms.</p>
+
+  <hr>
+
+  <section id="terms">
+    <h2>Terms of Use</h2>
+
+    <p><?= getenv('APP_NAME') ?> is provided as a free service, as-is and with no warranty of any kind. There is no uptime guarantee, no service level agreement, and no support commitment. The service may be slow, unavailable, or changed or discontinued at any time, with or without notice.</p>
+
+    <p>If your application depends on being able to sign people in, you are strongly encouraged to <a href="https://github.com/aaronpk/IndieLogin.com">run your own copy of the software</a>. It is open source, and you can point the <code>action</code> of your sign-in form at your own installation instead. Running your own copy means you control the uptime, the logs, and the set of providers you support, and your users aren't depending on a service you don't operate.</p>
+
+    <p>Registered <code>client_id</code>s and developer accounts may be removed if an application is abusive, is used to send unsolicited email, or otherwise causes problems for this service or for the authentication providers it relies on.</p>
+
+    <p>Use of this service is also subject to the <a href="/privacy-policy">Privacy Policy</a>.</p>
+  </section>
 
 </div>

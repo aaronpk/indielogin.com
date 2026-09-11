@@ -24,7 +24,17 @@ initdb();
 
 $route->map('GET', '/', 'App\\Controller::index');
 $route->map('GET', '/health', 'App\\Healthcheck::index');
-$route->map('GET', '/api', 'App\\Controller::api_docs');
+# /api was the old address of the developer docs
+$route->map('GET', '/api', function() { return redirect_response('/developers', 301); });
+
+$route->map('GET', '/developers', 'App\\Developers::docs');
+$route->map('GET', '/developers/login', 'App\\Developers::login');
+$route->map('GET', '/developers/redirect', 'App\\Developers::redirect');
+$route->map('POST', '/developers/logout', 'App\\Developers::logout');
+$route->map('GET', '/developers/clients', 'App\\Developers::clients');
+$route->map('POST', '/developers/clients', 'App\\Developers::register');
+$route->map('POST', '/developers/clients/delete', 'App\\Developers::delete');
+$route->map('POST', '/developers/profile', 'App\\Developers::profile');
 $route->map('GET', '/setup', 'App\\Controller::setup_docs');
 $route->map('GET', '/faq', 'App\\Controller::faq');
 $route->map('GET', '/privacy-policy', 'App\\Controller::privacy');

@@ -25,7 +25,18 @@ $this->layout('layout', ['title' => $title]);
 Things that are not stored or logged in any way:
 
 * users' access tokens from Twitter, GitHub, GitLab, or Codeberg
-* user-entered data other than their public website URL
+* user-entered data other than their public website URL and, for developers who register an application, the details below
+
+
+### Developer Accounts
+
+Developers who register an application at [/developers](/developers) sign in with their own website, and the following is stored for them:
+
+* the website URL they signed in with
+* the email address they provide, which is used only to contact them about the applications they have registered
+* the URL of each application they register, and the dates it was registered and last used
+
+This information is not shared with anyone, and is not shown to the users who sign in to those applications.
 
 
 ### Data Provided to Developers

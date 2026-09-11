@@ -90,12 +90,6 @@ class Controller {
     ]));
   }
 
-  public function api_docs(ServerRequestInterface $request): ResponseInterface {
-    return new HtmlResponse(view('docs/api', [
-      'title' => getenv('APP_NAME').' API Docs',
-    ]));
-  }
-
   public function setup_docs(ServerRequestInterface $request): ResponseInterface {
     return new HtmlResponse(view('docs/setup', [
       'title' => 'How to Start Using '.getenv('APP_NAME'),

@@ -60,7 +60,12 @@ class Authenticate {
     if($client_id) {
       $client = ORM::for_table('clients')->where('client_id', $client_id)->find_one();
       if(!$client) {
-        $errors[] = 'This client_id is not registered ('.htmlspecialchars($client_id).')';
+        $errors[] = 'This client_id is not registered ('.htmlspecialchars($client_id).')'
+          .(client_registration_enabled()
+            ? '. The developer can register it at '.getenv('BASE_URL').'developers'
+            : '');
+      } elseif(!$client->active) {
+        $errors[] = 'This client_id has been deactivated ('.htmlspecialchars($client_id).')';
       }
     }
 
@@ -77,10 +82,13 @@ class Authenticate {
         $client_host = parse_url($client_id, PHP_URL_HOST);
         $redirect_host = parse_url($redirect_uri, PHP_URL_HOST);
         // TODO: need to somehow prevent TLDs like .co.uk from being used as a client_id
+        // The second test has to be a suffix match, not a substring match:
+        // client_id example.com would otherwise accept a redirect_uri on
+        // foo.example.com.evil.net, because that host contains ".example.com"
         if(
           ($client_host != $redirect_host)
           &&
-          (strpos($redirect_host, '.'.$client_host) === false)
+          !str_ends_with($redirect_host, '.'.$client_host)
         ) {
           if($client) {
             // If the client_id and redirect_uri have a different domain, ensure it's registered
