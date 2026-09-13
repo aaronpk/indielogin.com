@@ -1,0 +1,13 @@
+# Front-controller rewrite for Apache.
+#
+# The app serves from public/. Static files (assets, images, icons) are served
+# directly; anything else falls through to index.php, which owns all routes.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Don't rewrite favicons, robots, and other existing real files
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    RewriteRule ^ index.php [L]
+</IfModule>

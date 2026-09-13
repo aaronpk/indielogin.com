@@ -1,0 +1,122 @@
+services:
+  # PHP app (IndieLogin.com)
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: indielogin:local
+    container_name: indielogin-app
+    # NOTE: no env_file here. We deliberately do NOT pre-export the app's
+    # variables (esp. BASE_URL) into the container env: the app loads .env via
+    # Dotenv::createImmutable(), which refuses to overwrite an already-set real
+    # env var. So the coordinator must own BASE_URL through the mounted .env,
+    # and nothing else may export it.
+    environment:
+      # Tunnel discovery contract (see docker/entrypoint.sh). Default is "log":
+      # the coordinator waits for the quick-tunnel URL in the shared log file and
+      # sets BASE_URL from it. Swap TUNNEL_DISCOVERY to plug in another backend.
+      TUNNEL_DISCOVERY: ${TUNNEL_DISCOVERY:-log}
+      TUNNEL_PUBLIC_URL: ${BASE_URL:-}            # static/named tunnels
+      TUNNEL_URL_FILE: /shared/public-url          # file discovery
+      TUNNEL_URL_ENDPOINT: ${TUNNEL_URL_ENDPOINT:-} # http discovery
+      TUNNEL_API_URL: ${TUNNEL_API_URL:-}           # ngrok discovery
+      TUNNEL_LOG_FILE: /shared/tunnel.log           # log discovery (quick tunnels)
+      TUNNEL_READY_ENDPOINT: ${TUNNEL_READY_ENDPOINT:-}
+      # Point DB/Redis at the container network names, not localhost. The app
+      # DB credentials are provided here (docker-consistent) rather than read
+      # from .env: unlike BASE_URL, exporting these into the container env is
+      # fine, and it guarantees the app uses the same user/password that the
+      # mysql service actually creates.
+      DB_HOST: mysql
+      DB_NAME: ${MYSQL_DATABASE:-indielogin}
+      DB_USER: ${MYSQL_APP_USER:-indielogin}
+      DB_PASS: ${MYSQL_APP_PASSWORD:-indieloginpass}
+      REDIS_URL: tcp://redis:6379
+    volumes:
+      # .env mounted read-write so the coordinator can set BASE_URL and the app
+      # reads it. The file must exist before `up` (see README).
+      - ./.env:/var/www/html/.env
+      - tunnel_share:/shared
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - internal
+    ports:
+      # Expose direct for local, non-tunnel debugging. TLS comes from
+      # the tunnel, so there is no HTTPS listener here.
+      - "8080:80"
+
+  # MySQL database — schema auto-loaded on first boot.
+  mysql:
+    image: mysql:8.4
+    container_name: indielogin-db
+    environment:
+      # A dedicated regular app user (never root). MYSQL_USER/PASSWORD are for
+      # the non-root app account; root is controlled by MYSQL_ROOT_PASSWORD.
+      # These same values are passed to the php service as DB_USER/DB_PASS so
+      # the app authenticates against the account mysql actually creates.
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-indielogin}
+      MYSQL_USER: ${MYSQL_APP_USER:-indielogin}
+      MYSQL_PASSWORD: ${MYSQL_APP_PASSWORD:-indieloginpass}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Runs schema + migration files in order on first start.
+      - ./schema:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-rootpass}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - internal
+
+  # Redis — backend for the temporary authorization-code store.
+  redis:
+    image: redis:7-alpine
+    container_name: indielogin-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - internal
+
+  # Cloudflare Tunnel — a "quick tunnel" that needs no pre-provisioned
+  # hostname: cloudflared opens an ephemeral public URL (
+  # https://<id>.trycloudflare.com) and writes it to the shared log file, which
+  # the php coordinator reads to set BASE_URL. There is no compose healthcheck
+  # here because cloudflared runs as a distroless image with no shell/curl/wget;
+  # readiness is handled by the php coordinator (below), which waits for the
+  # trycloudflare URL in the log. Swap this block for a token/named tunnel if
+  # you later want a stable hostname instead.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: indielogin-tunnel
+    command: tunnel --url http://php:80 --logfile /shared/tunnel.log --loglevel info
+    environment:
+      TUNNEL_METRICS: 0.0.0.0:2000
+    volumes:
+      - tunnel_share:/shared
+    depends_on:
+      - php
+    restart: unless-stopped
+    networks:
+      - internal
+
+volumes:
+  mysql_data:
+  redis_data:
+  tunnel_share:
+
+networks:
+  internal:
+
+
