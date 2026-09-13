@@ -109,7 +109,7 @@ trait IndieAuth {
         $debug_txt = $debug_obj = $result['body'];
       }
       $userlog->warning('Invalid response from IndieAuth server', ['response' => $debug_obj]);
-      return $this->_userError('Your IndieAuth server did not return a valid response.', [
+      return $this->_userError('Your IndieAuth endpoint '.$auth_code_exchange_endpoint.' did not return a valid response.', [
         'response' => $debug_txt,
         'response_code' => $result['code'],
         'error_description' => $result['error_description'],
