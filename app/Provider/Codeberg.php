@@ -143,10 +143,14 @@ trait Codeberg {
       }
     }
 
+    // The URL as they wrote it, so that someone with an internationalized
+    // domain is not told to go and link to its punycode spelling
+    $expected = e(display_url_host($_SESSION['expected_me']));
+
     if($profile['website']) {
-      $linked_to = 'Your Codeberg profile linked to <b>'.e($profile['website']).'</b> but we were expecting to see <b>'.$_SESSION['expected_me'].'</b>.';
+      $linked_to = 'Your Codeberg profile linked to <b>'.e($profile['website']).'</b> but we were expecting to see <b>'.$expected.'</b>.';
     } else {
-      $linked_to = 'We were unable to find a link to '.$_SESSION['expected_me'].' in your Codeberg profile.';
+      $linked_to = 'We were unable to find a link to '.$expected.' in your Codeberg profile.';
     }
 
     if(!$verified) {
@@ -154,7 +158,7 @@ trait Codeberg {
         'profile' => $profile,
         'expected' => $_SESSION['expected_me']
       ]);
-      return $this->_userError($linked_to.' Make sure you link to <b>'.$_SESSION['expected_me'].'</b> in your Codeberg profile.');
+      return $this->_userError($linked_to.' Make sure you link to <b>'.$expected.'</b> in your Codeberg profile.');
     }
 
     $userlog->info('Successful Codeberg login', ['username' => $_SESSION['codeberg_expected_user']]);

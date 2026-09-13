@@ -169,10 +169,14 @@ trait GitHub {
       }
     }
 
+    // The URL as they wrote it, so that someone with an internationalized
+    // domain is not told to go and link to its punycode spelling
+    $expected = e(display_url_host($_SESSION['expected_me']));
+
     if($profile['blog']) {
-      $linked_to = 'Your GitHub profile linked to <b>'.e($profile['blog']).'</b> but we were expecting to see <b>'.$_SESSION['expected_me'].'</b>.';
+      $linked_to = 'Your GitHub profile linked to <b>'.e($profile['blog']).'</b> but we were expecting to see <b>'.$expected.'</b>.';
     } else {
-      $linked_to = 'We were unable to find a link to '.$_SESSION['expected_me'].' in your GitHub profile.';
+      $linked_to = 'We were unable to find a link to '.$expected.' in your GitHub profile.';
     }
 
     if(!$verified) {
@@ -180,7 +184,7 @@ trait GitHub {
         'profile' => $profile,
         'expected' => $_SESSION['expected_me']
       ]);
-      return $this->_userError($linked_to.' Make sure you link to <b>'.$_SESSION['expected_me'].'</b> in your GitHub profile.');
+      return $this->_userError($linked_to.' Make sure you link to <b>'.$expected.'</b> in your GitHub profile.');
     }
 
     $userlog->info('Successful GitHub login', ['username' => $_SESSION['github_expected_user']]);

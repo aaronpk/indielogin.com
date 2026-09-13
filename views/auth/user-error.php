@@ -16,7 +16,7 @@
   <?php endif ?>
 
   <?php if(isset($opts['me'])): ?>
-    <p>We got an error trying to connect to <code><?= e($opts['me']) ?></code></p>
+    <p>We got an error trying to connect to <code><?= e(display_url_host($opts['me'])) ?></code></p>
   <?php endif ?>
 
   <?php if(isset($opts['response_code']) && $opts['response_code']): ?>

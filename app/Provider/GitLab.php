@@ -144,10 +144,14 @@ trait GitLab {
       }
     }
 
+    // The URL as they wrote it, so that someone with an internationalized
+    // domain is not told to go and link to its punycode spelling
+    $expected = e(display_url_host($_SESSION['expected_me']));
+
     if($profile['website_url']) {
-      $linked_to = 'Your GitLab profile linked to <b>'.e($profile['website_url']).'</b> but we were expecting to see <b>'.$_SESSION['expected_me'].'</b>.';
+      $linked_to = 'Your GitLab profile linked to <b>'.e($profile['website_url']).'</b> but we were expecting to see <b>'.$expected.'</b>.';
     } else {
-      $linked_to = 'We were unable to find a link to '.$_SESSION['expected_me'].' in your GitLab profile.';
+      $linked_to = 'We were unable to find a link to '.$expected.' in your GitLab profile.';
     }
 
     if(!$verified) {
@@ -155,7 +159,7 @@ trait GitLab {
         'profile' => $profile,
         'expected' => $_SESSION['expected_me']
       ]);
-      return $this->_userError($linked_to.' Make sure you link to <b>'.$_SESSION['expected_me'].'</b> in your GitLab profile.');
+      return $this->_userError($linked_to.' Make sure you link to <b>'.$expected.'</b> in your GitLab profile.');
     }
 
     $userlog->info('Successful GitLab login', ['username' => $_SESSION['gitlab_expected_user']]);

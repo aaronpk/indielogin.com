@@ -2,7 +2,7 @@
 
 <div class="container container-narrow choose-profile">
 
-  <p>Log in as <a href="<?= $me ?>"><?= $me ?></a></p>
+  <p>Log in as <a href="<?= e($me) ?>"><?= e(display_url_host($me)) ?></a></p>
 
   <p>Choose an authentication provider to continue logging in.</p>
 

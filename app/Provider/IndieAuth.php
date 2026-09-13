@@ -116,6 +116,16 @@ trait IndieAuth {
       ]);
     }
 
+    // Canonicalize what the server sent back before it is compared with, or
+    // becomes, the URL we hand to the application. An IndieAuth server is
+    // free to answer with either spelling of an internationalized domain.
+    $auth['me'] = normalize_me_url($auth['me']);
+
+    if($auth['me'] === false) {
+      $userlog->warning('IndieAuth server returned an unusable profile URL', ['response' => $auth]);
+      return $this->_userError('Your IndieAuth endpoint returned a profile URL we can\'t use.');
+    }
+
     // Make sure "me" returned matches the original or shares an authorization endpoint
     if($_SESSION['expected_me'] != $auth['me']) {
       $newAuthorizationEndpoint = discover_authorization_endpoint($auth['me']);
@@ -124,12 +134,12 @@ trait IndieAuth {
 
       if(!$newAuthorizationEndpoint) {
         $userlog->warning('No authorization endpoint found', ['response' => $auth, 'expected' => $_SESSION['expected_me']]);
-        return $this->_userError('Error verifying the login attempt. Could not find an authorization endpoint at the profile URL returned (<b>'.$auth['me'].'</b>)');
+        return $this->_userError('Error verifying the login attempt. Could not find an authorization endpoint at the profile URL returned (<b>'.e(display_url_host($auth['me'])).'</b>)');
       }
 
       if($_SESSION['login_request']['authorization_endpoint'] != $newAuthorizationEndpoint) {
         $userlog->warning('IndieAuth user mismatch', ['response' => $auth, 'expected' => $_SESSION['expected_me']]);
-        return $this->_userError('Error verifying the login attempt. The profile URL returned (<b>'.$auth['me'].'</b>) doesn\'t have the same authorization endpoint found at <b>'.$_SESSION['expected_me'].'</b>');
+        return $this->_userError('Error verifying the login attempt. The profile URL returned (<b>'.e(display_url_host($auth['me'])).'</b>) doesn\'t have the same authorization endpoint found at <b>'.e(display_url_host($_SESSION['expected_me'])).'</b>');
       }
     }
 
