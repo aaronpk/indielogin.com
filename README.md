@@ -8,6 +8,9 @@ IndieLogin enables users to sign in with their domain name by linking their doma
 
 ## Development
 
+Needs PHP with the `intl` extension, which is what converts an
+internationalized domain name to the punycode form everything else works in.
+
 To run a local copy for development:
 
 1. Copy `.env.example` to `.env` and fill out the details
@@ -46,4 +49,25 @@ Run its tests with:
 
 ```sh
 php tests/openpgp.php
+```
+
+
+## Internationalized domain names
+
+Someone can sign in with either spelling of an internationalized domain, the
+Unicode `https://bücher.example/` or the punycode
+`https://xn--bcher-kva.example/`. The punycode form is canonical: it is what
+gets fetched, compared against the URL on someone's provider profile, stored,
+and returned to the application as `me`. The Unicode form is what they are
+shown. `lib/helpers.php` holds the conversion, in `normalize_me_url()` and the
+`idn_*` helpers around it.
+
+Note that PHP's `parse_url()` cannot be used to pull the host out of one of
+these URLs -- it replaces every byte in the C1 range with an underscore, which
+corrupts most non-Latin domains. Use `split_url_host()` instead.
+
+Run its tests with:
+
+```sh
+php tests/idn.php
 ```

@@ -3,7 +3,7 @@
 <div class="container container-narrow">
 
   <div class="login-details">
-    <p>Log in as <a href="<?= $me ?>"><?= $me ?></a></p>
+    <p>Log in as <a href="<?= e($me) ?>"><?= e(display_url_host($me)) ?></a></p>
 
     <form action="/select" method="post">
       <input type="hidden" name="code" value="<?= $code ?>">

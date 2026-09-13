@@ -288,7 +288,7 @@ class Developers {
   private function _findOrCreateUser($url) {
     // Match the form the existing client owners were migrated as, so that
     // clients registered by hand before this existed show up straight away
-    $url = \IndieAuth\Client::normalizeMeURL($url);
+    $url = normalize_me_url($url);
 
     $user = ORM::for_table('users')->where('url', $url)->find_one();
 

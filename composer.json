@@ -1,5 +1,6 @@
 {
     "require": {
+        "ext-intl": "*",
         "guzzlehttp/guzzle": "^8.2",
         "indieauth/client": "~1.1",
         "indieweb/link-rel-parser": "^0.1.3",

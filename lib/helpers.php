@@ -153,10 +153,136 @@ function get_absolute_uri($href, $url) {
   return \Mf2\resolveUrl($url, $href);
 }
 
+// The A-label ("xn--") spelling of a host name. That is the ASCII form that
+// DNS, Guzzle's request host validation, and a byte-for-byte comparison
+// against whatever a provider has on file can all agree on, so it is the
+// spelling everything below the user interface works in. A host that is
+// already ASCII comes back untouched, which leaves IP literals, existing
+// A-labels and every ordinary domain exactly as they are.
+function idn_host($host) {
+  if($host === null || $host === '' || preg_match('/\A[\x21-\x7E]*\z/D', $host))
+    return $host;
+
+  return idn_to_ascii($host, IDNA_NONTRANSITIONAL_TO_ASCII, INTL_IDNA_VARIANT_UTS46) ?: $host;
+}
+
+// Split a URL into the part before the host, the host itself, and everything
+// from the port onwards.
+//
+// This exists because parse_url() cannot be trusted with an internationalized
+// host: it replaces every byte in the C1 range with an underscore, which
+// quietly corrupts the UTF-8 of most non-Latin domains -- all of CJK, most of
+// Cyrillic, and the "o" with a macron in the domain from issue #122. So the
+// host is cut out of the raw string here, and parse_url() only ever sees a
+// URL whose host has already been reduced to ASCII.
+//
+// Returns false if there is no host to be found.
+function split_url_host($url) {
+  if(!is_string($url))
+    return false;
+
+  if(!preg_match('~\A([a-z][a-z0-9+.\-]*://)([^/?#]*)(.*)\z~is', $url, $match))
+    return false;
+
+  list(, $scheme, $authority, $rest) = $match;
+
+  // Userinfo can itself contain an "@", so the host starts after the last one
+  $at = strrpos($authority, '@');
+  if($at !== false) {
+    $scheme .= substr($authority, 0, $at + 1);
+    $authority = substr($authority, $at + 1);
+  }
+
+  // A colon only introduces a port if it comes after the brackets around an
+  // IPv6 literal, which are full of colons themselves
+  $colon = strrpos($authority, ':');
+  $bracket = strrpos($authority, ']');
+  if($colon !== false && ($bracket === false || $colon > $bracket)) {
+    $rest = substr($authority, $colon).$rest;
+    $authority = substr($authority, 0, $colon);
+  }
+
+  if($authority === '')
+    return false;
+
+  return [$scheme, $authority, $rest];
+}
+
+// Rewrite a URL so that its host is an A-label, leaving the rest of it alone.
+// Returns false if there is no host, or if the host is still not ASCII
+// afterwards -- a URL like that is one nothing downstream can handle.
+function idn_normalize_url_host($url) {
+  $parts = split_url_host($url);
+
+  if($parts === false)
+    return false;
+
+  $host = idn_host($parts[1]);
+
+  if(!preg_match('/\A[\x21-\x7E]*\z/D', $host))
+    return false;
+
+  return $parts[0].$host.$parts[2];
+}
+
+// The Unicode spelling of a URL's host, for showing someone their own domain
+// the way they wrote it. Display only: every request we make and every
+// comparison we do uses the A-label. A spelling that does not convert
+// straight back to the host we started with is not one we can vouch for, so
+// it is left as it is.
+function display_url_host($url) {
+  $parts = split_url_host($url);
+
+  if($parts === false || strpos($parts[1], 'xn--') === false)
+    return $url;
+
+  $host = idn_to_utf8($parts[1], IDNA_NONTRANSITIONAL_TO_UNICODE, INTL_IDNA_VARIANT_UTS46);
+
+  if($host === false || idn_host($host) !== $parts[1])
+    return $url;
+
+  return $parts[0].$host.$parts[2];
+}
+
+// Input: anything someone might type into the sign-in form
+// Output: the canonical URL we fetch, store, compare, and hand back to the
+//         application, or false if it is not a URL we can use
+function normalize_me_url($url) {
+  if(!is_string($url))
+    return false;
+
+  $url = trim($url);
+
+  if($url === '')
+    return false;
+
+  // No scheme, so assume https. That is what the sign-in form already assumes
+  // in the browser and what the developer area assumes for a client ID; the
+  // library call below would otherwise default it to http.
+  if(!preg_match('/\A[a-z][a-z0-9+.\-]*:/i', $url))
+    $url = 'https://'.$url;
+
+  // Reduce the host to ASCII before handing the URL to anything built on
+  // parse_url(), which normalizeMeURL() is
+  $url = idn_normalize_url_host($url);
+
+  if($url === false)
+    return false;
+
+  $url = \IndieAuth\Client::normalizeMeURL($url);
+
+  return $url === false ? false : $url;
+}
+
 // Compare URLs for equality, with case-insensitive hostname checking.
 // We should probably replace this with another library but I couldn't
 // find a good one that I trust right now.
 function urls_are_equivalent($a, $b) {
+  // Both spellings of an internationalized domain have to compare equal. The
+  // one on someone's provider profile and the one they signed in with are
+  // typed separately, so there is no reason for them to match byte for byte.
+  $a = idn_normalize_url_host($a) ?: $a;
+  $b = idn_normalize_url_host($b) ?: $b;
   $a = parse_url($a);
   $b = parse_url($b);
   if(!empty($a['host'])) $a['host'] = strtolower($a['host']);
@@ -169,18 +295,40 @@ function urls_are_equivalent($a, $b) {
 }
 
 function same_host($a, $b) {
-  return parse_url($a, PHP_URL_HOST) == parse_url($b, PHP_URL_HOST);
+  $a = idn_normalize_url_host($a) ?: $a;
+  $b = idn_normalize_url_host($b) ?: $b;
+  return strtolower(''.parse_url($a, PHP_URL_HOST))
+      == strtolower(''.parse_url($b, PHP_URL_HOST));
 }
 
 // Look for URL in string, ignoring the trailing slash on root domains.
 function string_contains_url($str, $url) {
-  $url = parse_url($url);
-  if ($url['path'] == '/') unset($url['path']);
-  $url = p3k\url\build_url($url);
-  return strpos($str, $url) !== false;
+  if(!is_string($str))
+    return false;
+
+  $url = idn_normalize_url_host($url) ?: $url;
+
+  // A bio is free text, so there is nothing to normalize it to the way there
+  // is for a URL. Look for either spelling of an internationalized domain
+  // instead, since someone may well have written the Unicode one.
+  foreach(array_unique([$url, display_url_host($url)]) as $candidate) {
+    $candidate = preg_replace('~\A([a-z][a-z0-9+.\-]*://[^/?#]+)/\z~i', '$1', $candidate);
+
+    if($candidate !== '' && strpos($str, $candidate) !== false)
+      return true;
+  }
+
+  return false;
 }
 
 function guzzle_request_get($client, $url, $onRedirect=null) {
+
+  // Guzzle refuses to send a request whose host is not printable ASCII, so
+  // an internationalized domain has to be in A-label form before it gets
+  // here. Doing it at the one place every Guzzle fetch goes through covers
+  // the URLs we pick up from someone's page as well as the one they typed.
+  if($ascii = idn_normalize_url_host($url))
+    $url = $ascii;
 
   // Guzzle rejects a non-string header value, so only send the user agent
   // when one is actually configured
@@ -254,10 +402,20 @@ function fetch_profile($me) {
     ];
   };
 
+  // Normalize before fetching rather than after, so that the URL we ask for
+  // is the same one we go on to compare against
+  $original_me = $me;
+  $me = normalize_me_url($me);
+
+  if($me === false) {
+    return [
+      'code' => 0,
+      'exception' => 'That does not look like a URL we can fetch',
+    ];
+  }
+
   $res = guzzle_request_get($client, $me, $onRedirect);
 
-  $original_me = $me;
-  $me = \IndieAuth\Client::normalizeMeURL($me);
   $final_url = $me;
   $final_profile_url = $me;
 
@@ -289,8 +447,17 @@ function fetch_profile($me) {
       }
       $final_url = $redirects[count($redirects)-1]['to'];
     }
-    $final_url = \IndieAuth\Client::normalizeMeURL($final_url);
-    $final_profile_url = \IndieAuth\Client::normalizeMeURL($final_profile_url);
+    $final_url = normalize_me_url($final_url);
+    $final_profile_url = normalize_me_url($final_profile_url);
+
+    // Where we ended up has to be a URL we can canonicalize, because it is
+    // the one we go on to treat as this person's identity
+    if($final_url === false || $final_profile_url === false) {
+      return [
+        'code' => 0,
+        'exception' => 'We were redirected to a URL we can\'t use',
+      ];
+    }
 
     // Parse the resulting body for rel me/authn/authorization_endpoint
     $body = ''.$res->getBody();
@@ -352,7 +519,9 @@ function fetch_profile($me) {
 
   // If no IndieAuth server was found, check for an ATProto DNS record
   if(empty($rels['authorization_endpoint'])) {
-    $handle = parse_url($original_me, PHP_URL_HOST);
+    // The normalized host, not the one that was typed: a DNS lookup needs the
+    // A-label
+    $handle = parse_url($me, PHP_URL_HOST);
     $did = ATProto::handle_to_did($handle);
     if($did) {
       $statusCode = 200;

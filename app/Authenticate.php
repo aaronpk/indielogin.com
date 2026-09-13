@@ -168,16 +168,22 @@ class Authenticate {
       ]));
     } else {
 
-      // Verify the "me" parameter is a URL
-      if(!\p3k\url\is_url($params['me'])) {
+      // Verify the "me" parameter is a URL. Normalize it first, so that the
+      // check sees the same canonical, A-label form we are about to fetch:
+      // is_url() only recognizes an ASCII host, so an internationalized
+      // domain has to be converted before it gets here.
+      $me = normalize_me_url($params['me']);
+
+      if($me === false || !\p3k\url\is_url($me)) {
         $userlog->info('Invalid "me" entered', ['me' => $params['me']]);
         return $this->_userError('You entered something that doesn\'t look like a URL. Please go back and try again.');
       }
 
+      // Keep what was actually typed for the record
       $_SESSION['me_entered'] = $params['me'];
 
       // Fetch the user's home page now
-      $profile = fetch_profile($params['me']);
+      $profile = fetch_profile($me);
 
       // If the user-entered 'me' is the same as the one in the session, skip authentication and show a prompt
       // But don't show this prompt to people who have an authorization endpoint or if prompt=login
@@ -221,10 +227,10 @@ class Authenticate {
 
       // Show an error to the user if there was a problem
       if($profile['code'] != 200) {
-        $userlog->warning('Problem connecting to website', ['me' => $params['me'], 'exception' => $profile['exception']]);
+        $userlog->warning('Problem connecting to website', ['me' => $me, 'exception' => $profile['exception']]);
 
         return $this->_userError('There was a problem connecting to your website', [
-          'me' => $params['me'],
+          'me' => $me,
           'error_description' => $profile['exception'],
         ]);
       }
@@ -241,7 +247,7 @@ class Authenticate {
 
         // Check that it's a full URL and was not a relative URL.
         if(!\p3k\url\is_url($authorization_endpoint)) {
-          $userlog->warning('Authorization endpoint does not look like a URL', ['me' => $params['me'], 'authorization_endpoint' => $authorization_endpoint]);
+          $userlog->warning('Authorization endpoint does not look like a URL', ['me' => $me, 'authorization_endpoint' => $authorization_endpoint]);
           return $this->_userError('We found an authorization_endpoint but it does not look like a URL');
         }
 
@@ -252,7 +258,7 @@ class Authenticate {
           $token_endpoint = $rels['token_endpoint'][0];
 
           if(!\p3k\url\is_url($token_endpoint)) {
-            $userlog->warning('Token endpoint does not look like a URL', ['me' => $params['me'], 'token_endpoint' => $token_endpoint]);
+            $userlog->warning('Token endpoint does not look like a URL', ['me' => $me, 'token_endpoint' => $token_endpoint]);
             return $this->_userError('We found a token_endpoint but it does not look like a URL');
           }
 
@@ -282,7 +288,7 @@ class Authenticate {
 
         // If there are none, then error out now since the user explicitly said not to trust rel=mes
         if(count($supported) == 0) {
-          $userlog->warning('No supported rel=authn URLs', ['me' => $params['me'], 'relauthn' => $rels['authn']]);
+          $userlog->warning('No supported rel=authn URLs', ['me' => $me, 'relauthn' => $rels['authn']]);
           return $this->_userError('None of the rel=authn URLs found on your page were recognized as a supported provider', [
               'found' => $rels['authn']
             ]
@@ -304,7 +310,7 @@ class Authenticate {
 
         // If there are no supported rel=me, then show an error
         if(count($supported) == 0) {
-          $userlog->warning('No supported rel=me URLs', ['me' => $params['me'], 'relme' => $rels['me']]);
+          $userlog->warning('No supported rel=me URLs', ['me' => $me, 'relme' => $rels['me']]);
           return $this->_userError('None of the rel=me URLs found on your page were recognized as a supported provider', [
               'found' => $rels['me']
             ]
@@ -321,7 +327,7 @@ class Authenticate {
       }
 
       // Show an error
-      $userlog->warning('No rel=me URLs found', ['me' => $params['me']]);
+      $userlog->warning('No rel=me URLs found', ['me' => $me]);
       return $this->_userError('We couldn\'t find any way to authenticate you using your website.');
     }
   }

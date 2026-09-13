@@ -66,10 +66,21 @@ trait FedCM {
             ]))->withStatus(400);      
     }
 
+    // Canonicalize before comparing or storing, so an internationalized
+    // domain ends up in the same form here as everywhere else
+    $userinfo['me'] = normalize_me_url($userinfo['me']);
+
+    if($userinfo['me'] === false) {
+      $userlog->warning('IndieAuth code exchange returned an unusable profile URL', ['metadata_endpoint' => $params['metadata_endpoint']]);
+      return (new JsonResponse([
+              'error' => 'invalid_indieauth_response',
+            ]))->withStatus(400);
+    }
+
     $verified = false;
 
     // If the hostname of 'me' matches hostname of the metadata endpoint, we're done
-    if(parse_url($userinfo['me'], PHP_URL_HOST) == parse_url($params['metadata_endpoint'], PHP_URL_HOST)) {
+    if(same_host($userinfo['me'], $params['metadata_endpoint'])) {
       $userlog->info('FedCM verified with matching hostname');
       $verified = true;
     }
