@@ -8,21 +8,16 @@
 
   <p>
     Your website's <code>authorization_endpoint</code> points at indieauth.com. It still works, and
-    this sign-in will go through as usual — but that service is being retired, so at some point you
+    this sign-in will go through as usual — but that service is being retired, so at some point soon you
     will want to move your site to another IndieAuth server.
   </p>
 
   <?php if($replacement): ?>
     <p>
       <a href="<?= e($replacement['url']) ?>"><?= e($replacement['name']) ?></a> is its replacement for
-      websites like yours. Moving is one edit to your home page, and you can keep your existing tags
-      while you do it.
+      websites like yours. Moving is one edit to your home page.
     </p>
   <?php endif ?>
-
-  <p>
-    You will be given plenty of notice before indieauth.com shuts down.
-  </p>
 
   <form method="post" action="/continue">
     <input type="hidden" name="code" value="<?= e($code) ?>">
