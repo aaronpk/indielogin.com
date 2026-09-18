@@ -116,6 +116,41 @@ function client_registration_enabled() {
   return !in_array(strtolower(trim($value)), ['0', 'false', 'no', 'off', 'disabled'], true);
 }
 
+// Whether to warn people whose site still signs in through indieauth.com.
+//
+// indieauth.com is being replaced, and the people affected are exactly those
+// this service delegates to it for, so this is the one place they can be told
+// in context. It adds a step to a flow that works, so it stays off unless a
+// deployment asks for it.
+function indieauth_com_notice_enabled() {
+  $value = getenv('INDIEAUTH_COM_NOTICE');
+
+  if($value === false || trim($value) === '')
+    return false;
+
+  return in_array(strtolower(trim($value)), ['1', 'true', 'yes', 'on', 'enabled'], true);
+}
+
+// Where people whose site uses indieauth.com should move to, when a
+// deployment names one. Left unset, the notice still explains the situation
+// without recommending anywhere in particular.
+function replacement_service() {
+  $name = getenv('REPLACEMENT_NAME');
+  $url  = getenv('REPLACEMENT_URL');
+
+  if($name === false || trim($name) === '' || $url === false || trim($url) === '')
+    return null;
+
+  return ['name' => trim($name), 'url' => trim($url)];
+}
+
+// The hosts of the service being retired, whose users this notice is for.
+function is_indieauth_com_url($url) {
+  $host = strtolower((string)parse_url((string)$url, PHP_URL_HOST));
+
+  return in_array($host, ['indieauth.com', 'www.indieauth.com', 'tokens.indieauth.com'], true);
+}
+
 // A CSRF token for the developer area, the only place on this site with
 // session-authenticated forms that change something. Requires session_start().
 function csrf_token() {

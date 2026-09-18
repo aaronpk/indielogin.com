@@ -274,10 +274,20 @@ class Authenticate {
           $indieauth_method = 'authorization-endpoint';
         }
 
-        return $this->_startAuthenticate($login_request, [
+        $details = [
           'provider' => 'indieauth',
           'indieauth_method' => $indieauth_method,
-        ]);
+        ];
+
+        // Everyone this service still delegates to indieauth.com is, by
+        // definition, someone whose own site names it as their authorization
+        // server — the audience that has to move before it shuts down. This is
+        // the only place they can be told while they are actually doing it.
+        if(indieauth_com_notice_enabled() && is_indieauth_com_url($authorization_endpoint)) {
+          return $this->_showIndieAuthComNotice($login_request, $details);
+        }
+
+        return $this->_startAuthenticate($login_request, $details);
       }
 
       // If there are any rel=authn values defined, *only* search those for supported providers.
@@ -513,6 +523,45 @@ class Authenticate {
       'redirect_uri' => $login_request['redirect_uri'],
       'choices' => $choices,
     ]));
+  }
+
+  private function _showIndieAuthComNotice($login_request, $details) {
+    $code = random_string();
+
+    redis()->setex('indielogin:moving:'.$code, 300, json_encode([
+      'login_request' => $login_request,
+      'details' => $details,
+    ]));
+
+    return new HtmlResponse(view('auth/indieauth-com-moving', [
+      'title' => 'Signing in through indieauth.com',
+      'me' => $login_request['me'],
+      'client_id' => $login_request['client_id'],
+      'redirect_uri' => $login_request['redirect_uri'],
+      'code' => $code,
+      'replacement' => replacement_service(),
+    ]));
+  }
+
+  public function post_continue(ServerRequestInterface $request): ResponseInterface {
+    session_start();
+
+    $params = $request->getParsedBody();
+
+    if(!isset($params['code'])) {
+      die('bad request');
+    }
+
+    $stored = redis()->get('indielogin:moving:'.$params['code']);
+
+    if(!$stored) {
+      make_logger('user')->warning('Notice continue code expired');
+      return $this->_userError('The session timed out. Please go back and try again.');
+    }
+
+    $stored = json_decode($stored, true);
+
+    return $this->_startAuthenticate($stored['login_request'], $stored['details']);
   }
 
   private function _startAuthenticate($login_request, $details) {

@@ -51,6 +51,8 @@ $route->map('POST', '/auth', 'App\\Authenticate::verify')->middleware(new App\CO
 $route->map('GET', '/authorize', 'App\\Authenticate::start')->middleware(new App\CORSStrategy);
 $route->map('POST', '/token', 'App\\Authenticate::verify')->middleware(new App\CORSStrategy);
 
+$route->map('POST', '/continue', 'App\\Authenticate::post_continue');
+
 $route->map('GET', '/select', 'App\\Authenticate::select');
 $route->map('POST', '/select', 'App\\Authenticate::post_select');
 
