@@ -241,8 +241,21 @@ class Authenticate {
 
       $rels = $profile['rels'];
 
+      // The replacement for indieauth.com asks this service to prove that a
+      // visitor owns a site that still names indieauth.com as its server. For
+      // that one client, the endpoint is ignored and the site's rel=me links
+      // are used, as they would be for a site with no endpoint at all.
+      $prove_by_rel_me = replacement_client_id() !== null
+        && $client_id === replacement_client_id()
+        && count($rels['authorization_endpoint'])
+        && is_indieauth_com_url($rels['authorization_endpoint'][0]);
+
+      if($prove_by_rel_me) {
+        $userlog->info('Proving ownership by rel=me for the replacement service', ['me' => $me, 'authorization_endpoint' => $rels['authorization_endpoint'][0]]);
+      }
+
       // If there is an IndieAuth authorization_endpoint, redirect there now
-      if(count($rels['authorization_endpoint'])) {
+      if(count($rels['authorization_endpoint']) && !$prove_by_rel_me) {
         $authorization_endpoint = $rels['authorization_endpoint'][0];
 
         // Check that it's a full URL and was not a relative URL.

@@ -144,6 +144,21 @@ function replacement_service() {
   return ['name' => trim($name), 'url' => trim($url)];
 }
 
+// The replacement service's own client_id, when it uses this service to
+// prove that someone owns a domain that still names indieauth.com as its
+// authorization server. For that one client, a site whose endpoint is on
+// indieauth.com is verified through its rel=me links instead of being sent
+// to indieauth.com — which, once the replacement answers on that hostname,
+// would only send the person back where they came from.
+function replacement_client_id() {
+  $value = getenv('REPLACEMENT_CLIENT_ID');
+
+  if($value === false || trim($value) === '')
+    return null;
+
+  return trim($value);
+}
+
 // The hosts of the service being retired, whose users this notice is for.
 function is_indieauth_com_url($url) {
   $host = strtolower((string)parse_url((string)$url, PHP_URL_HOST));
