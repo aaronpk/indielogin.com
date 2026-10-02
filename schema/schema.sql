@@ -42,5 +42,8 @@ CREATE TABLE IF NOT EXISTS `logins` (
   `complete` tinyint(4) NOT NULL DEFAULT '0',
   `date_complete` datetime DEFAULT NULL,
   `code` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `date` (`date`),
+  KEY `client_id` (`client_id`(191)),
+  KEY `me_resolved` (`me_resolved`(191))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;

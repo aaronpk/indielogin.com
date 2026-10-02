@@ -89,3 +89,57 @@ footer.footer a {
 footer.footer .row {
   margin: 0;
 }
+/* Admin section */
+.admin h3 {
+  margin-top: 1.5em;
+  font-size: 1.3em;
+}
+.admin-tile {
+  display: block;
+  padding: .75em 1em;
+  border: 1px #ddd solid;
+  border-radius: 6px;
+  background: #fafafa;
+  color: inherit;
+  height: 100%;
+}
+a.admin-tile:hover {
+  border-color: #007bff;
+  text-decoration: none;
+  color: inherit;
+}
+.admin-tile-count {
+  font-size: 1.8em;
+  font-weight: bold;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.admin-tile-label {
+  font-weight: 600;
+}
+.admin-table td, .admin-table th {
+  font-variant-numeric: tabular-nums;
+}
+.admin-url {
+  word-break: break-all;
+}
+.admin-bar {
+  height: .8em;
+  margin-top: .3em;
+  background: #007bff;
+  border-radius: 2px;
+  min-width: 1px;
+}
+.admin-search {
+  min-width: 20em;
+}
+.admin-section {
+  margin-top: 1.5em;
+  border-radius: 6px;
+  border: 1px #eee solid;
+  background: #fafafa;
+  padding: 1em;
+}
+.admin-section h3 {
+  margin-top: 0;
+}

@@ -15,10 +15,13 @@ class Developers {
   public function docs(ServerRequestInterface $request): ResponseInterface {
     session_start();
 
+    $user = client_registration_enabled() ? current_developer() : false;
+
     return new HtmlResponse(view('docs/developers', [
       'title' => getenv('APP_NAME').' for Developers',
       'registration_enabled' => client_registration_enabled(),
-      'user' => client_registration_enabled() ? $this->_currentUser() : false,
+      'user' => $user,
+      'is_admin' => $user && is_admin_url($user->url),
       'error' => $this->_takeFlash('developer_error'),
     ]));
   }
@@ -103,6 +106,12 @@ class Developers {
 
     $user = $this->_findOrCreateUser($login['me']);
 
+    // A new session ID and CSRF token from the moment someone is signed in,
+    // so that anyone who knew the ones from before, by having planted them,
+    // holds nothing that works. The old session is deleted, not just left.
+    session_regenerate_id(true);
+    unset($_SESSION['csrf_token']);
+
     // Deliberately not $_SESSION['me'], which is set by any completed login
     // and cleared by prompt=login, so it cannot stand in for an account
     $_SESSION['developer_user_id'] = $user->id;
@@ -120,8 +129,10 @@ class Developers {
 
     $params = $request->getParsedBody();
 
-    if(csrf_valid($params['csrf'] ?? null))
-      unset($_SESSION['developer_user_id']);
+    if(csrf_valid($params['csrf'] ?? null)) {
+      unset($_SESSION['developer_user_id'], $_SESSION['csrf_token']);
+      session_regenerate_id(true);
+    }
 
     return redirect_response('/developers');
   }
@@ -132,13 +143,14 @@ class Developers {
 
     session_start();
 
-    $user = $this->_currentUser();
+    $user = current_developer();
     if(!$user)
       return redirect_response('/developers');
 
     return new HtmlResponse(view('developers/clients', [
       'title' => 'Your Applications',
       'user' => $user,
+      'is_admin' => is_admin_url($user->url),
       'clients' => ORM::for_table('clients')
         ->where('user_id', $user->id)
         ->order_by_desc('date_last_used')
@@ -156,7 +168,7 @@ class Developers {
 
     session_start();
 
-    $user = $this->_currentUser();
+    $user = current_developer();
     if(!$user)
       return redirect_response('/developers');
 
@@ -205,7 +217,7 @@ class Developers {
 
     session_start();
 
-    $user = $this->_currentUser();
+    $user = current_developer();
     if(!$user)
       return redirect_response('/developers');
 
@@ -246,7 +258,7 @@ class Developers {
 
     session_start();
 
-    $user = $this->_currentUser();
+    $user = current_developer();
     if(!$user)
       return redirect_response('/developers');
 
@@ -276,13 +288,6 @@ class Developers {
       'status' => 404,
       'message' => 'Not Found',
     ]), 404);
-  }
-
-  private function _currentUser() {
-    if(empty($_SESSION['developer_user_id']))
-      return false;
-
-    return ORM::for_table('users')->where('id', $_SESSION['developer_user_id'])->find_one();
   }
 
   private function _findOrCreateUser($url) {

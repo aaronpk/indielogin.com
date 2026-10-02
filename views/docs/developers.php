@@ -23,7 +23,12 @@
       <p>This installation does not offer self-service registration. Contact whoever runs it to have your <code>client_id</code> added.</p>
     <?php elseif($user): ?>
       <p>You are signed in as <b><?= e(\p3k\url\display_url($user->url)) ?></b>.</p>
-      <p><a class="btn btn-primary" href="/developers/clients">Your applications</a></p>
+      <p>
+        <a class="btn btn-primary" href="/developers/clients">Your applications</a>
+        <?php if($is_admin): ?>
+          <a class="btn btn-outline-dark" href="/admin">Admin</a>
+        <?php endif ?>
+      </p>
     <?php else: ?>
       <p>To register one, sign in with your own website. You will need a website set up for <a href="/setup">web sign-in</a>, and an email address so we have a way to contact you about your applications.</p>
 

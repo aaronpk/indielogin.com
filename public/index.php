@@ -21,6 +21,7 @@ $request = Laminas\Diactoros\ServerRequestFactory::fromGlobals(
 $route = new League\Route\Router;
 
 initdb();
+configure_session();
 
 $route->map('GET', '/', 'App\\Controller::index');
 $route->map('GET', '/health', 'App\\Healthcheck::index');
@@ -35,6 +36,18 @@ $route->map('GET', '/developers/clients', 'App\\Developers::clients');
 $route->map('POST', '/developers/clients', 'App\\Developers::register');
 $route->map('POST', '/developers/clients/delete', 'App\\Developers::delete');
 $route->map('POST', '/developers/profile', 'App\\Developers::profile');
+
+# Only for the profile URLs in ADMIN_USERS; a 404 for everyone else
+$route->map('GET', '/admin', 'App\\Admin::overview');
+$route->map('GET', '/admin/clients', 'App\\Admin::clients');
+$route->map('GET', '/admin/clients/{id:number}', 'App\\Admin::client');
+$route->map('POST', '/admin/clients/{id:number}/active', 'App\\Admin::client_active');
+$route->map('POST', '/admin/clients/{id:number}/pkce', 'App\\Admin::client_pkce');
+$route->map('POST', '/admin/clients/{id:number}/redirect_uris', 'App\\Admin::redirect_uri_add');
+$route->map('POST', '/admin/clients/{id:number}/redirect_uris/delete', 'App\\Admin::redirect_uri_delete');
+$route->map('GET', '/admin/users', 'App\\Admin::users');
+$route->map('GET', '/admin/users/{id:number}', 'App\\Admin::user');
+$route->map('GET', '/admin/logins', 'App\\Admin::logins');
 $route->map('GET', '/setup', 'App\\Controller::setup_docs');
 $route->map('GET', '/faq', 'App\\Controller::faq');
 $route->map('GET', '/privacy-policy', 'App\\Controller::privacy');

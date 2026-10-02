@@ -38,6 +38,48 @@ client IDs have to be inserted into the `clients` table by hand. Set
 `clients.active` to `0` to stop an application from signing anyone in.
 
 
+## Admin
+
+`ADMIN_USERS` in `.env` is a comma-separated list of profile URLs, such as
+`ADMIN_USERS=https://aaronparecki.com/`. Sign in at `/developers` as one of
+them and an Admin button appears there. Everyone else, signed in or not, gets
+a 404 on every `/admin` path, so the section leaves no trace. Leave it empty
+and nobody is an admin. The host is compared without regard to case, but the
+scheme has to match, so an `http://` sign-in does not count for an `https://`
+entry. The admin section uses the developer sign-in, so it is not available
+when `CLIENT_REGISTRATION=false`.
+
+Signing in to the developer area issues a new session ID and CSRF token, and
+the session cookie is `HttpOnly`, refuses IDs the server did not issue, and is
+`Secure` whenever `BASE_URL` is https. These are set in `configure_session()`
+rather than left to the server's php.ini.
+
+Run `schema/0006.sql` before using it. It adds the indexes on `logins` that
+the admin pages query by.
+
+* `/admin`: sign-ins today and over 7 and 30 days, with the share that
+  completed (the application exchanged the code). Also sign-ins per day,
+  sign-ins by provider, the busiest clients, and counts of developers and
+  clients. Recounted at most once a minute.
+* `/admin/clients`: every client, searchable by client ID or owner. A client's
+  page shows its owner and recent sign-ins. It is also where you deactivate or
+  reactivate the client, turn its PKCE requirement on or off, and add or remove
+  the registered redirect URIs it needs for a `redirect_uri` on another host.
+* `/admin/users`: developer accounts, searchable by URL or email, each with
+  their clients and their own recent sign-ins.
+* `/admin/logins`: the sign-in log, filterable by client ID, the person's URL,
+  provider, and whether it completed.
+
+Every change made there is checked against the session's CSRF token and logged
+to `logs/app.log` with the admin's URL.
+
+Run its tests with:
+
+```sh
+php tests/admin.php
+```
+
+
 ## PGP
 
 Signing in with a `rel="pgpkey"` link is handled entirely in PHP, in

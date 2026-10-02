@@ -617,6 +617,13 @@ class Authenticate {
 
     redis()->setex('indielogin:code:'.$code, 60, json_encode($_SESSION['login_request']));
 
+    // The session is about to remember who this is, and that is enough to
+    // sign in to other applications as them without authenticating again.
+    // Give it a new ID first, so that anyone who knew the old one, by having
+    // planted it in this browser, is left holding a session that is gone.
+    if(session_status() === PHP_SESSION_ACTIVE)
+      session_regenerate_id(true);
+
     $_SESSION['me'] = $_SESSION['expected_me'];
     unset($_SESSION['expected_me']);
 

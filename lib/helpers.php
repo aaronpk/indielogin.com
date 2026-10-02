@@ -24,6 +24,25 @@ function initdb() {
   }
 }
 
+// Session settings for every session_start() in the app, so they do not
+// depend on the server's php.ini. Strict mode refuses a session ID the server
+// never issued, so one cannot be planted in someone's browser ahead of their
+// sign-in. HttpOnly keeps the cookie away from scripts, and Secure keeps it
+// off plain HTTP wherever the site itself is served over https.
+//
+// SameSite is deliberately left unset: the sign-in flow and the FedCM
+// endpoints are reached from other sites and need the cookie to come along.
+function configure_session() {
+  ini_set('session.use_strict_mode', '1');
+  ini_set('session.use_only_cookies', '1');
+
+  session_set_cookie_params([
+    'path' => '/',
+    'httponly' => true,
+    'secure' => parse_url((string)getenv('BASE_URL'), PHP_URL_SCHEME) === 'https',
+  ]);
+}
+
 function make_logger($channel) {
   $log = new Logger($channel);
   $log->pushHandler(new StreamHandler(dirname(__FILE__).'/../logs/app.log', Logger::DEBUG));
@@ -164,6 +183,52 @@ function is_indieauth_com_url($url) {
   $host = strtolower((string)parse_url((string)$url, PHP_URL_HOST));
 
   return in_array($host, ['indieauth.com', 'www.indieauth.com', 'tokens.indieauth.com'], true);
+}
+
+// The profile URLs that may see the admin section, from ADMIN_USERS, a
+// comma-separated list. Each is normalized the way a sign-in is, so
+// aaronparecki.com and https://aaronparecki.com/ name the same person.
+// Unset or empty means nobody.
+function admin_urls() {
+  $value = getenv('ADMIN_USERS');
+
+  if($value === false)
+    return [];
+
+  $urls = [];
+  foreach(explode(',', $value) as $url) {
+    $url = normalize_me_url($url);
+    if($url !== false)
+      $urls[] = $url;
+  }
+
+  return array_values(array_unique($urls));
+}
+
+// The host is compared without regard to case, but the scheme has to match:
+// signing in as http://example.com/ is a weaker proof than https, and should
+// not open the admin section to someone who can tamper with plain HTTP.
+function is_admin_url($url) {
+  $url = normalize_me_url($url);
+
+  if($url === false)
+    return false;
+
+  foreach(admin_urls() as $admin) {
+    if(urls_are_equivalent($url, $admin))
+      return true;
+  }
+
+  return false;
+}
+
+// Whoever is signed in to the developer area, or false. Requires
+// session_start().
+function current_developer() {
+  if(empty($_SESSION['developer_user_id']))
+    return false;
+
+  return ORM::for_table('users')->where('id', $_SESSION['developer_user_id'])->find_one();
 }
 
 // A CSRF token for the developer area, the only place on this site with

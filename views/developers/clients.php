@@ -10,6 +10,9 @@
       <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
       <button type="submit" class="btn btn-link p-0 align-baseline">Sign out</button>
     </form>
+    <?php if($is_admin): ?>
+      <a class="btn btn-sm btn-outline-dark ml-2" href="/admin">Admin</a>
+    <?php endif ?>
   </div>
 
   <?php if($error): ?>
