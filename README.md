@@ -199,26 +199,33 @@ being confirmed by mistake. The prompt shows the application, the site, when
 the sign-in started and from which address. The code works as the username
 too.
 
-To run it:
+To run it, on a fresh Debian or Ubuntu VPS:
 
-1. On the server's machine, move its own admin sshd off port 22, and point
-   `ssh.indielogin.com` at it.
-2. Build it with Go 1.24 or newer and install it with the systemd unit, which
-   runs it unprivileged, binds port 22 by capability, and sandboxes it:
+1. Build it wherever you have Go 1.24 or newer, and copy it over with the
+   setup script and the unit. The VPS needs no Go toolchain:
 
    ```sh
    cd ssh-server
-   go test ./... && go build -o indielogin-ssh
+   go test ./...
+   CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -o indielogin-ssh
+   scp indielogin-ssh indielogin-ssh.service setup-vps.sh root@<vps>:
+   ssh root@<vps> ./setup-vps.sh --hostname ssh.indielogin.com
    ```
 
-   See the comments in `ssh-server/indielogin-ssh.service` for the install
-   commands and `/etc/indielogin-ssh.env`. It creates its host key on first
-   start and logs its fingerprint.
-3. In indielogin.com's `.env`, set `SSH_SERVER_HOST`, `SSH_SERVER_FINGERPRINT`
-   (from `ssh-keygen -lf /var/lib/indielogin-ssh/host_ed25519_key.pub`),
-   `SSH_SERVER_API_KEY` and `SSH_SERVER_API_IPS`. Until `SSH_SERVER_HOST` is
-   set, the sign-in page only offers the signature, and until the API settings
-   are, the API is a 404.
+   `setup-vps.sh` moves the VPS's own sshd to port 2200 (`--admin-port`),
+   handling sshd started by `ssh.socket` as well as by `ssh.service`. It does
+   that in two steps so you cannot be locked out: sshd listens on both ports
+   until you have logged in on the new one from a second terminal and said so.
+   Then it installs the server under the sandboxed systemd unit, as an
+   unprivileged user binding port 22 by capability, starts it, and prints the
+   settings for indielogin.com, with a newly made API key. `--dry-run` shows
+   every change without making any. Running it again upgrades the server and
+   keeps its host key and API key.
+2. Point `ssh.indielogin.com` at the VPS.
+3. Put the printed `SSH_SERVER_HOST`, `SSH_SERVER_FINGERPRINT`,
+   `SSH_SERVER_API_KEY` and `SSH_SERVER_API_IPS` in indielogin.com's `.env`.
+   Until `SSH_SERVER_HOST` is set, the sign-in page only offers the
+   signature, and until the API settings are, the API is a 404.
 
 Run its tests with:
 
