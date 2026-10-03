@@ -190,15 +190,15 @@ a.admin-tile:hover {
 .admin-chart .hit:focus-visible {
   fill: rgba(11, 11, 11, 0.05);
 }
-.admin-chart .series-1 { fill: #2a78d6; background: #2a78d6; }
-.admin-chart .series-2 { fill: #eb6834; background: #eb6834; }
-.admin-chart .series-3 { fill: #1baf7a; background: #1baf7a; }
-.admin-chart .series-4 { fill: #eda100; background: #eda100; }
-.admin-chart .series-5 { fill: #e87ba4; background: #e87ba4; }
-.admin-chart .series-6 { fill: #008300; background: #008300; }
-.admin-chart .series-7 { fill: #4a3aa7; background: #4a3aa7; }
-.admin-chart .series-8 { fill: #e34948; background: #e34948; }
-.admin-chart .series-other { fill: #c3c2b7; background: #c3c2b7; }
+.admin-chart .series-1, .admin-tooltip .series-1 { fill: #2a78d6; background: #2a78d6; }
+.admin-chart .series-2, .admin-tooltip .series-2 { fill: #eb6834; background: #eb6834; }
+.admin-chart .series-3, .admin-tooltip .series-3 { fill: #1baf7a; background: #1baf7a; }
+.admin-chart .series-4, .admin-tooltip .series-4 { fill: #eda100; background: #eda100; }
+.admin-chart .series-5, .admin-tooltip .series-5 { fill: #e87ba4; background: #e87ba4; }
+.admin-chart .series-6, .admin-tooltip .series-6 { fill: #008300; background: #008300; }
+.admin-chart .series-7, .admin-tooltip .series-7 { fill: #4a3aa7; background: #4a3aa7; }
+.admin-chart .series-8, .admin-tooltip .series-8 { fill: #e34948; background: #e34948; }
+.admin-chart .series-other, .admin-tooltip .series-other { fill: #c3c2b7; background: #c3c2b7; }
 .admin-legend {
   display: flex;
   flex-wrap: wrap;
@@ -212,7 +212,8 @@ a.admin-tile:hover {
   margin-right: 1em;
   white-space: nowrap;
 }
-.admin-legend .swatch {
+.admin-legend .swatch,
+.admin-tooltip .swatch {
   display: inline-block;
   width: 10px;
   height: 10px;

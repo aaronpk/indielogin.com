@@ -18,11 +18,20 @@
     label.textContent = hit.getAttribute('data-label');
     tip.appendChild(label);
 
+    // On a chart with several series, data-keys names each line's color
+    // class, in the same order, so every line gets a swatch matching its
+    // segment and the legend
     var extra = hit.getAttribute('data-extra');
+    var keys = (hit.getAttribute('data-keys') || '').split(' ');
     if(extra) {
-      extra.split('\n').forEach(function(line) {
+      extra.split('\n').forEach(function(line, i) {
         var row = document.createElement('div');
-        row.textContent = line;
+        if(keys[i]) {
+          var swatch = document.createElement('span');
+          swatch.className = 'swatch ' + keys[i];
+          row.appendChild(swatch);
+        }
+        row.appendChild(document.createTextNode(line));
         tip.appendChild(row);
       });
     }

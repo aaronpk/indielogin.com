@@ -57,6 +57,7 @@ $y = fn($share) => $top + $plotH - $share * $plotH;
           $topKey = array_key_last($parts);
           $base = 0;
           $tip = [];
+          $keys = [];
         ?>
         <g<?= $month === $current ? ' class="partial"' : '' ?>>
         <?php foreach($parts as $k => $count): ?>
@@ -65,6 +66,7 @@ $y = fn($share) => $top + $plotH - $share * $plotH;
             $y0 = $y($base); $y1 = $y($base + $share);
             $base += $share;
             $tip[] = $series[$k].': '.number_format($count).' ('.round(100 * $share).'%)';
+            $keys[] = 'series-'.($k === 'other' ? 'other' : $slotOf[$k] + 1);
             // A 2px gap in the surface color between segments; a sliver too
             // thin to survive it is left to the tooltip and the table
             $h = $y0 - $y1 - ($k === $topKey ? 0 : 2);
@@ -84,6 +86,7 @@ $y = fn($share) => $top + $plotH - $share * $plotH;
               data-label="<?= e(admin_chart_month_label($month, true).($month === $current ? ', so far' : '')) ?>"
               data-value="<?= e(number_format($total).' sign-ins') ?>"
               data-extra="<?= e(implode("\n", array_reverse($tip))) ?>"
+              data-keys="<?= e(implode(' ', array_reverse($keys))) ?>"
               aria-label="<?= e(admin_chart_month_label($month, true).': '.implode(', ', array_reverse($tip))) ?>"/>
       <?php $i++; endforeach ?>
     </svg>
