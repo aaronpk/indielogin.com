@@ -146,7 +146,8 @@ a.admin-tile:hover {
 
 /* Admin charts. Colors are the reference data-viz palette; series 1 to 8 are
    assigned in a fixed order, so each provider keeps its color. Series 9 is a
-   near-black neutral, distinct from all eight by lightness. */
+   near-black neutral, distinct from all eight by lightness, and series 10 a
+   muted plum, checked against all nine for normal and colorblind vision. */
 .chart {
   margin: 1.5em 0 0;
   --surface: #ffffff;
@@ -200,6 +201,7 @@ a.admin-tile:hover {
 .chart .series-7, .chart-tooltip .series-7 { fill: #4a3aa7; background: #4a3aa7; }
 .chart .series-8, .chart-tooltip .series-8 { fill: #e34948; background: #e34948; }
 .chart .series-9, .chart-tooltip .series-9 { fill: #3d3c39; background: #3d3c39; }
+.chart .series-10, .chart-tooltip .series-10 { fill: #944070; background: #944070; }
 .chart .series-other, .chart-tooltip .series-other { fill: #c3c2b7; background: #c3c2b7; }
 .chart-legend {
   display: flex;

@@ -239,6 +239,14 @@ function current_developer() {
   return ORM::for_table('users')->where('id', $_SESSION['developer_user_id'])->find_one();
 }
 
+// What an SSH signature has to be made for to count as signing in here: this
+// site's own hostname, as OpenSSH recommends for a namespace. A signature
+// made for git commits, or for some other site, cannot be replayed here.
+function ssh_signature_namespace() {
+  $host = parse_url((string)getenv('BASE_URL'), PHP_URL_HOST);
+  return $host ? strtolower($host) : 'indielogin';
+}
+
 // A CSRF token for the developer area, the only place on this site with
 // session-authenticated forms that change something. Requires session_start().
 function csrf_token() {
@@ -675,6 +683,7 @@ function fetch_profile($me) {
       'token_endpoint' => $rels['token_endpoint'] ?? [],
       'indieauth-metadata' => $rels['indieauth-metadata'] ?? [],
       'pgpkey' => $rels['pgpkey'] ?? [],
+      'ssh-key' => $rels['ssh-key'] ?? [],
       'atproto_did' => $rels['atproto_did'] ?? null,
       'atproto' => $rels['atproto'] ?? [],
     ],

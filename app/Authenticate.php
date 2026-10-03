@@ -20,6 +20,7 @@ class Authenticate {
   use Provider\FedCM;
   use Provider\Email;
   use Provider\PGP;
+  use Provider\SSH;
   use Provider\ATProtoProvider;
 
   public function start(ServerRequestInterface $request): ResponseInterface {
@@ -36,6 +37,7 @@ class Authenticate {
     unset($_SESSION['expected_me']);
     unset($_SESSION['me_entered']);
     unset($_SESSION['pgp_challenge']);
+    unset($_SESSION['ssh_challenge']);
     unset($_SESSION['email_challenge']);
 
     // Check that the application provided all the necessary parameters
@@ -327,8 +329,10 @@ class Authenticate {
         return $this->_showProviderChooser($login_request, $supported);
       }
 
-      // Check for any rel=me or rel=atproto
-      if(count($rels['me']) || $rels['atproto_did']) {
+      // Check for any rel=me or rel=atproto, or a key to sign with. A site
+      // that publishes only a rel=pgpkey or rel=ssh-key link, and no rel=me
+      // at all, can still sign in with that key.
+      if(count($rels['me']) || count($rels['pgpkey']) || count($rels['ssh-key']) || $rels['atproto_did']) {
         $supported = $this->_getSupportedProviders($rels, 'me');
 
         // If there are no supported rel=me, then show an error
@@ -709,6 +713,17 @@ class Authenticate {
           'key' => $url,
           'display' => $url,
           'icon' => 'fa-solid fa-key',
+        ];
+      }
+    }
+
+    foreach($rels['ssh-key'] as $url) {
+      if($mode == 'me' || ($mode == 'authn' && in_array($url, $rels['authn']))) {
+        $supported[] = [
+          'provider' => 'ssh',
+          'key' => $url,
+          'display' => $url,
+          'icon' => 'fa-solid fa-terminal',
         ];
       }
     }

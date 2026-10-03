@@ -126,6 +126,30 @@ php tests/openpgp.php
 ```
 
 
+## SSH keys
+
+A site links to its SSH public keys with `rel="ssh-key"`. The file it points
+to can be a `.pub` file, an `authorized_keys` file, `https://github.com/USER.keys`,
+or `SHA256:` fingerprints, one per line, in any mix. During sign-in the person
+signs a one-time challenge with `ssh-keygen -Y sign` and pastes the result back.
+The signature has to be made for this site's hostname as its namespace, so a
+signature made for git, or for any other site, does not count here.
+
+OpenSSH's signature format (SSHSIG) carries the key that made it, so a listed
+fingerprint is enough: the signature is checked with the key it carries, and
+that key is looked for in the list. Ed25519, ECDSA (P-256, P-384, P-521), RSA
+(2048 bits and up, signed with SHA-256 or SHA-512) and FIDO security keys
+(`sk-ssh-ed25519@openssh.com`, `sk-ecdsa-sha2-nistp256@openssh.com`) are
+supported; certificates are not. It is all PHP, in `app/SSH`, with the
+cryptography done by PHP's `openssl` and `sodium` extensions.
+
+Run its tests with:
+
+```sh
+php tests/ssh.php
+```
+
+
 ## Internationalized domain names
 
 Someone can sign in with either spelling of an internationalized domain, the

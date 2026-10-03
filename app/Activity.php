@@ -46,7 +46,9 @@ class Activity {
   // are assigned. The first eight take the eight colors of the palette; PGP,
   // the ninth, is a near-black neutral set apart from all of them by
   // lightness rather than by a ninth hue, which would be mistaken for one of
-  // the others. Each keeps its color whatever range is shown; any other
+  // the others. SSH, the tenth, is a muted plum: no gray clears the
+  // colorblind checks against the mid-tone hues, and this was the color that
+  // cleared them by the widest margin. Each keeps its color whatever range is shown; any other
   // provider, past or future, is counted as "other".
   //
   // Months keep their sign-ins by provider exactly as recorded, and are
@@ -62,6 +64,7 @@ class Activity {
     'codeberg' => 'Codeberg',
     'atproto' => 'ATProto',
     'pgp' => 'PGP',
+    'ssh' => 'SSH key',
   ];
 
   // Spellings that are the same provider for this purpose

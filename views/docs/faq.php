@@ -14,12 +14,12 @@ $this->layout('layout', ['title' => $title]);
 
 If you choose to authenticate with GitHub, <?= getenv('APP_NAME') ?> uses the GitHub API to verify your account. The least amount of permissions this site can request from GitHub is accessing your public data. This site does not actually access your GitHub account other than to verify your username. Your GitHub token is never stored by this site or provided to the site you're logging in to.
 
-If you are uncomfortable with the permissions requested, you can choose to authenticate using a <a href="/setup">different provider</a> such as your IndieAuth server, email, or PGP key.
+If you are uncomfortable with the permissions requested, you can choose to authenticate using a <a href="/setup">different provider</a> such as your IndieAuth server, email, an SSH key or a PGP key.
 
 
 ### What is the difference between <?= getenv('APP_NAME') ?> and IndieAuth? {#difference-indieauth}
 
-<?= getenv('APP_NAME') ?> is a service for developers who want to offload logging in users to an external service, and implements web sign-in by consuming IndieAuth, other OAuth APIs, as well as email and PGP verification.
+<?= getenv('APP_NAME') ?> is a service for developers who want to offload logging in users to an external service, and implements web sign-in by consuming IndieAuth, other OAuth APIs, as well as email, SSH key and PGP verification.
 
 IndieAuth is a protocol that lets your website be its own identity while supporting OAuth 2.0.
 

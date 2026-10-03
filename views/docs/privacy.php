@@ -17,7 +17,7 @@ $this->layout('layout', ['title' => $title]);
 * the application identifier
 * the redirect URL of the application
 * the name of the provider used to authenticate (Twitter, GitHub, GitLab, Codeberg, email, etc)
-* the profile URL, email address, or PGP key URL used to authenticate
+* the profile URL, email address, or SSH or PGP key URL used to authenticate
 * the profile URL the user entered
 * the profile URL the user's website returned
 * the date of the completed authentication
