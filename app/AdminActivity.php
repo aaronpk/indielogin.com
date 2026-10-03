@@ -150,6 +150,29 @@ class AdminActivity {
   }
 
   /**
+   * What is stored so far: how many months, the first and last of them, and
+   * when the latest was counted. Null if nothing is.
+   */
+  public function stored() {
+    $row = ORM::for_table('activity_months')
+      ->select_expr('COUNT(*)', 'months')
+      ->select_expr('MIN(month)', 'first')
+      ->select_expr('MAX(month)', 'last')
+      ->select_expr('MAX(date_counted)', 'counted')
+      ->find_one();
+
+    if(!$row || !(int)$row->months)
+      return null;
+
+    return [
+      'months' => (int)$row->months,
+      'first' => $row->first,
+      'last' => $row->last,
+      'counted' => $row->counted,
+    ];
+  }
+
+  /**
    * How many months that have ended are not counted yet.
    */
   public function pending() {

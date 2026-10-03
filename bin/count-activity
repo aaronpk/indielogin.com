@@ -19,10 +19,26 @@ require 'vendor/autoload.php';
 initdb();
 
 $activity = new App\AdminActivity;
+
+// "Every month is counted" alone looks like nothing happened, so say what is
+// there, and when it was counted: often by a page load that got there first
+$summary = function() use($activity) {
+  $stored = $activity->stored();
+  if(!$stored)
+    return 'nothing is stored yet';
+
+  $month = fn($m) => gmdate('F Y', strtotime($m.'-01 00:00:00 UTC'));
+
+  return sprintf('%d month%s, %s to %s, last counted %s UTC',
+    $stored['months'], $stored['months'] == 1 ? '' : 's',
+    $month($stored['first']), $month($stored['last']),
+    substr($stored['counted'], 0, 16));
+};
+
 $pending = $activity->pending();
 
 if(!$pending) {
-  echo "Every month is counted.\n";
+  echo "Every month is counted: ".$summary().".\n";
   exit(0);
 }
 
@@ -38,4 +54,4 @@ if($folded === false) {
   exit(1);
 }
 
-printf("Counted %d month%s in %.1fs.\n", $folded, $folded == 1 ? '' : 's', microtime(true) - $start);
+printf("Counted %d month%s in %.1fs. Now stored: %s.\n", $folded, $folded == 1 ? '' : 's', microtime(true) - $start, $summary());
