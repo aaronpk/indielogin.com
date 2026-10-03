@@ -50,6 +50,7 @@ $route->map('GET', '/admin/users', 'App\\Admin::users');
 $route->map('GET', '/admin/users/{id:number}', 'App\\Admin::user');
 $route->map('GET', '/admin/logins', 'App\\Admin::logins');
 $route->map('GET', '/setup', 'App\\Controller::setup_docs');
+$route->map('GET', '/stats', 'App\\Controller::stats');
 $route->map('GET', '/faq', 'App\\Controller::faq');
 $route->map('GET', '/privacy-policy', 'App\\Controller::privacy');
 $route->map('GET', '/demo_start', 'App\\Controller::demo_start');

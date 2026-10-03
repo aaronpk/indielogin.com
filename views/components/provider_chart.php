@@ -7,7 +7,7 @@
  * @var array  $providers key => label, in color order.
  * @var string $current
  */
-require_once __DIR__.'/_chart_helpers.php';
+require_once __DIR__.'/chart_helpers.php';
 
 $series = $providers + ['other' => 'Other'];
 $keys = array_keys($series);
@@ -29,17 +29,17 @@ $slot = $plotW / $n;
 $barW = max(1, min(24, $slot - 2));
 $y = fn($share) => $top + $plotH - $share * $plotH;
 ?>
-<figure class="admin-chart" id="chart-providers">
+<figure class="chart" id="chart-providers">
   <figcaption>
-    <span class="admin-chart-title">Sign-ins by provider</span>
-    <span class="admin-chart-note">Share of each month's sign-ins; the lighter column is the month in progress. "Remembered" is someone continuing as the account this browser last signed in with.</span>
+    <span class="chart-title">Sign-ins by provider</span>
+    <span class="chart-note">Share of each month's sign-ins; the lighter column is the month in progress. "Remembered" is someone continuing as the account this browser last signed in with.</span>
   </figcaption>
-  <ul class="admin-legend">
+  <ul class="chart-legend">
     <?php foreach($used as $k): ?>
       <li><span class="swatch series-<?= $k === 'other' ? 'other' : $slotOf[$k] + 1 ?>"></span><?= e($series[$k]) ?></li>
     <?php endforeach ?>
   </ul>
-  <div class="admin-chart-plot">
+  <div class="chart-plot">
     <svg viewBox="0 0 <?= $W ?> <?= $H ?>" role="img" aria-label="Share of sign-ins by provider, per month. The same figures are in the table below.">
       <?php foreach([0, 0.25, 0.5, 0.75, 1] as $t): ?>
         <line class="<?= $t == 0 ? 'axis' : 'grid' ?>" x1="<?= $left ?>" x2="<?= $W - $right ?>" y1="<?= round($y($t), 1) ?>" y2="<?= round($y($t), 1) ?>"/>
@@ -50,7 +50,7 @@ $y = fn($share) => $top + $plotH - $share * $plotH;
         <?php
           $x = $left + $i * $slot + ($slot - $barW) / 2;
           $total = $row['signins'];
-          $label = admin_chart_axis_label($month, $slot);
+          $label = chart_axis_label($month, $slot);
           $parts = [];
           foreach($used as $k)
             if(($row['providers'][$k] ?? 0) > 0) $parts[$k] = $row['providers'][$k];
@@ -73,7 +73,7 @@ $y = fn($share) => $top + $plotH - $share * $plotH;
             if($h < 0.5) continue;
           ?>
           <?php if($k === $topKey): ?>
-            <path class="series-<?= $k === 'other' ? 'other' : $slotOf[$k] + 1 ?>" d="<?= admin_chart_column($x, $y1, $barW, $h) ?>"/>
+            <path class="series-<?= $k === 'other' ? 'other' : $slotOf[$k] + 1 ?>" d="<?= chart_column($x, $y1, $barW, $h) ?>"/>
           <?php else: ?>
             <rect class="series-<?= $k === 'other' ? 'other' : $slotOf[$k] + 1 ?>" x="<?= round($x, 2) ?>" y="<?= round($y1 + 2, 2) ?>" width="<?= round($barW, 2) ?>" height="<?= round($h, 2) ?>"/>
           <?php endif ?>
@@ -83,11 +83,11 @@ $y = fn($share) => $top + $plotH - $share * $plotH;
           <text class="tick" x="<?= round($left + ($i + 0.5) * $slot, 1) ?>" y="<?= $H - 8 ?>" text-anchor="middle"><?= e($label) ?></text>
         <?php endif ?>
         <rect class="hit" x="<?= round($left + $i * $slot, 2) ?>" y="<?= $top ?>" width="<?= round($slot, 2) ?>" height="<?= $plotH ?>" tabindex="0"
-              data-label="<?= e(admin_chart_month_label($month, true).($month === $current ? ', so far' : '')) ?>"
+              data-label="<?= e(chart_month_label($month, true).($month === $current ? ', so far' : '')) ?>"
               data-value="<?= e(number_format($total).' sign-ins') ?>"
               data-extra="<?= e(implode("\n", array_reverse($tip))) ?>"
               data-keys="<?= e(implode(' ', array_reverse($keys))) ?>"
-              aria-label="<?= e(admin_chart_month_label($month, true).': '.implode(', ', array_reverse($tip))) ?>"/>
+              aria-label="<?= e(chart_month_label($month, true).': '.implode(', ', array_reverse($tip))) ?>"/>
       <?php $i++; endforeach ?>
     </svg>
   </div>

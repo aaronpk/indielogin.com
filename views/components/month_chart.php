@@ -13,7 +13,7 @@
  * @var int    $width   Optional: the drawing's width, smaller for a chart in
  *                      a half-width column so its text is not shrunk.
  */
-require_once __DIR__.'/_chart_helpers.php';
+require_once __DIR__.'/chart_helpers.php';
 
 $extra = $extra ?? [];
 $note = $note ?? '';
@@ -24,17 +24,17 @@ $plotW = $W - $left - $right;
 $plotH = $H - $top - $bottom;
 
 $n = max(1, count($values));
-[$yMax, $yStep] = admin_chart_scale(max($values ?: [0]));
+[$yMax, $yStep] = chart_scale(max($values ?: [0]));
 $slot = $plotW / $n;
 $barW = max(1, min(24, $slot - 2));
 $y = fn($v) => $top + $plotH - ($v / $yMax) * $plotH;
 ?>
-<figure class="admin-chart" id="<?= e($id) ?>">
+<figure class="chart" id="<?= e($id) ?>">
   <figcaption>
-    <span class="admin-chart-title"><?= e($title) ?></span>
-    <?php if($note): ?><span class="admin-chart-note"><?= e($note) ?></span><?php endif ?>
+    <span class="chart-title"><?= e($title) ?></span>
+    <?php if($note): ?><span class="chart-note"><?= e($note) ?></span><?php endif ?>
   </figcaption>
-  <div class="admin-chart-plot">
+  <div class="chart-plot">
     <svg viewBox="0 0 <?= $W ?> <?= $H ?>" role="img" aria-label="<?= e($title) ?>, per month. The same figures are in the table below.">
       <?php for($t = 0; $t <= $yMax; $t += $yStep): ?>
         <line class="<?= $t === 0 ? 'axis' : 'grid' ?>" x1="<?= $left ?>" x2="<?= $W - $right ?>" y1="<?= round($y($t), 1) ?>" y2="<?= round($y($t), 1) ?>"/>
@@ -44,20 +44,20 @@ $y = fn($v) => $top + $plotH - ($v / $yMax) * $plotH;
       <?php $i = 0; foreach($values as $month => $v): ?>
         <?php
           $x = $left + $i * $slot + ($slot - $barW) / 2;
-          $label = admin_chart_axis_label($month, $slot);
+          $label = chart_axis_label($month, $slot);
           $is_current = $month === $current;
         ?>
         <?php if($v > 0): ?>
-          <path class="mark<?= $is_current ? ' mark-partial' : '' ?>" d="<?= admin_chart_column($x, $y($v), $barW, $top + $plotH - $y($v)) ?>"/>
+          <path class="mark<?= $is_current ? ' mark-partial' : '' ?>" d="<?= chart_column($x, $y($v), $barW, $top + $plotH - $y($v)) ?>"/>
         <?php endif ?>
         <?php if($label !== null): ?>
           <text class="tick" x="<?= round($left + ($i + 0.5) * $slot, 1) ?>" y="<?= $H - 8 ?>" text-anchor="middle"><?= e($label) ?></text>
         <?php endif ?>
         <rect class="hit" x="<?= round($left + $i * $slot, 2) ?>" y="<?= $top ?>" width="<?= round($slot, 2) ?>" height="<?= $plotH ?>" tabindex="0"
-              data-label="<?= e(admin_chart_month_label($month, true).($is_current ? ', so far' : '')) ?>"
+              data-label="<?= e(chart_month_label($month, true).($is_current ? ', so far' : '')) ?>"
               data-value="<?= e(number_format($v).' '.$unit) ?>"
               <?php if(isset($extra[$month])): ?>data-extra="<?= e($extra[$month]) ?>"<?php endif ?>
-              aria-label="<?= e(admin_chart_month_label($month, true).': '.number_format($v).' '.$unit) ?>"/>
+              aria-label="<?= e(chart_month_label($month, true).': '.number_format($v).' '.$unit) ?>"/>
       <?php $i++; endforeach ?>
     </svg>
   </div>

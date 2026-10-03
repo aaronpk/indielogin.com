@@ -18,7 +18,7 @@ require 'vendor/autoload.php';
 
 initdb();
 
-$activity = new App\AdminActivity;
+$activity = new App\Activity;
 
 // "Every month is counted" alone looks like nothing happened, so say what is
 // there, and when it was counted: often by a page load that got there first

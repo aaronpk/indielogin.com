@@ -102,6 +102,20 @@ class Controller {
     ]));
   }
 
+  /**
+   * Sign-ins per month and by provider, for anyone. The figures come from
+   * the same monthly counts as the admin activity page, but only these two
+   * are shown here.
+   */
+  public function stats(ServerRequestInterface $request): ResponseInterface {
+    $range = Activity::range($request->getQueryParams()['months'] ?? '');
+
+    return new HtmlResponse(view('stats', array_merge(
+      ['title' => getenv('APP_NAME').' Stats'],
+      (new Activity)->report($range, false)
+    )));
+  }
+
   public function privacy(ServerRequestInterface $request): ResponseInterface {
     return new HtmlResponse(view('docs/privacy', [
       'title' => 'Privacy Policy',

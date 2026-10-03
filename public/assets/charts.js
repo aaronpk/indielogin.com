@@ -3,7 +3,7 @@
 // only has to be over the month, not on the bar. The same figures are in the
 // table under the charts, so nothing here is the only way to read a value.
 (function() {
-  var tip = document.querySelector('.admin-tooltip');
+  var tip = document.querySelector('.chart-tooltip');
   if(!tip) return;
 
   function show(hit) {
@@ -14,7 +14,7 @@
     tip.appendChild(value);
 
     var label = document.createElement('div');
-    label.className = 'admin-tooltip-label';
+    label.className = 'chart-tooltip-label';
     label.textContent = hit.getAttribute('data-label');
     tip.appendChild(label);
 
@@ -54,7 +54,7 @@
     document.querySelectorAll('.hit.active').forEach(function(el) { el.classList.remove('active'); });
   }
 
-  document.querySelectorAll('.admin-chart .hit').forEach(function(hit) {
+  document.querySelectorAll('.chart .hit').forEach(function(hit) {
     hit.addEventListener('pointerenter', function() { show(hit); });
     hit.addEventListener('focus', function() { show(hit); });
     hit.addEventListener('pointerleave', hide);

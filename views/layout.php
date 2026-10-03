@@ -37,6 +37,9 @@
           <a class="nav-link" href="/developers">Developers</a>
         </li>
         <li class="nav-item">
+          <a class="nav-link" href="/stats">Stats</a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" href="/faq">FAQ</a>
         </li>
         <li class="nav-item">
@@ -58,6 +61,7 @@
           <li><a href="/">Home</a></li>
           <li><a href="/setup">Setup</a></li>
           <li><a href="/developers">Developers</a></li>
+          <li><a href="/stats">Stats</a></li>
           <li><a href="/faq">FAQ</a></li>
           <li><a href="/privacy-policy">Privacy Policy</a></li>
         </ul>

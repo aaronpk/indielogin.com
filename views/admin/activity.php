@@ -1,7 +1,7 @@
 <?php $this->layout('layout', ['title' => $title]) ?>
 <?php
 /**
- * The service month by month. See AdminActivity::report().
+ * The service month by month. See Activity::report().
  *
  * @var int|string $range         12, 24, 60 or 'all'
  * @var array      $ranges
@@ -14,7 +14,7 @@
  * @var int        $pending       Months that have ended and are not counted yet.
  * @var int        $counted
  */
-require_once __DIR__.'/_chart_helpers.php';
+require_once __DIR__.'/../components/chart_helpers.php';
 
 $percent = fn($part, $whole) => $whole ? round(100 * $part / $whole).'%' : '—';
 $column = fn($key) => array_map(fn($row) => $row[$key], $months);
@@ -49,7 +49,7 @@ $tiles = [
     <div class="btn-group btn-group-sm" role="group" aria-label="Range">
       <?php foreach(array_merge($ranges, ['all']) as $r): ?>
         <a href="/admin/activity?months=<?= $r ?>" class="btn btn-outline-secondary<?= $r === $range ? ' active' : '' ?>"
-           <?= $r === $range ? 'aria-current="page"' : '' ?>><?= $r === 'all' ? 'All, since '.e(admin_chart_month_label($first_month)) : $r.' months' ?></a>
+           <?= $r === $range ? 'aria-current="page"' : '' ?>><?= $r === 'all' ? 'All, since '.e(chart_month_label($first_month)) : $r.' months' ?></a>
       <?php endforeach ?>
     </div>
   </div>
@@ -57,14 +57,14 @@ $tiles = [
   <?php if($pending): ?>
     <div class="alert alert-info">
       <b>Still counting.</b> <?= number_format($counted) ?> of <?= number_format($counted + $pending) ?> months since
-      <?= e(admin_chart_month_label($first_month, true)) ?> are counted so far. Each month is counted once, oldest first,
+      <?= e(chart_month_label($first_month, true)) ?> are counted so far. Each month is counted once, oldest first,
       and every month has to be counted before the recent ones can be shown.
       <a href="">Reload</a> to count more, or run <code>php bin/count-activity</code> on the server to count them all at once.
     </div>
   <?php else: ?>
 
   <?php if($last): ?>
-    <h3><?= e(admin_chart_month_label($last, true)) ?></h3>
+    <h3><?= e(chart_month_label($last, true)) ?></h3>
     <div class="row admin-tiles">
       <?php foreach($tiles as $key => $label): ?>
         <?php
@@ -97,42 +97,42 @@ $tiles = [
     $returning = array_map(fn($r) => number_format($r['people'] - $r['new_people']).' returning', $months);
   ?>
 
-  <?php $this->insert('admin/_month_chart', [
+  <?php $this->insert('components/month_chart', [
     'id' => 'chart-signins', 'title' => 'Sign-ins', 'unit' => 'sign-ins',
     'note' => 'Every time someone authenticated and was sent back to an application. The lighter column is the month in progress.',
     'values' => $column('signins'), 'extra' => $completion, 'current' => $current_month,
   ]) ?>
 
-  <?php $this->insert('admin/_month_chart', [
+  <?php $this->insert('components/month_chart', [
     'id' => 'chart-people', 'title' => 'Active people', 'unit' => 'people',
     'note' => 'Different URLs that signed in to anything that month.',
     'values' => $column('people'), 'extra' => $returning, 'current' => $current_month,
   ]) ?>
 
-  <?php $this->insert('admin/_month_chart', [
+  <?php $this->insert('components/month_chart', [
     'id' => 'chart-new-people', 'title' => 'New people', 'unit' => 'new people',
     'note' => 'URLs signing in for the first time on record.',
     'values' => $column('new_people'), 'current' => $current_month,
   ]) ?>
 
-  <?php $this->insert('admin/_month_chart', [
+  <?php $this->insert('components/month_chart', [
     'id' => 'chart-clients', 'title' => 'Active clients', 'unit' => 'clients',
     'note' => 'Different applications that someone signed in to.',
     'values' => $column('clients'), 'current' => $current_month,
   ]) ?>
 
-  <?php $this->insert('admin/_provider_chart', compact('months', 'providers') + ['current' => $current_month]) ?>
+  <?php $this->insert('components/provider_chart', compact('months', 'providers') + ['current' => $current_month]) ?>
 
   <div class="row">
     <div class="col-md-6">
-      <?php $this->insert('admin/_month_chart', [
+      <?php $this->insert('components/month_chart', [
         'id' => 'chart-new-developers', 'width' => 440, 'title' => 'New developer accounts', 'unit' => 'accounts',
         'note' => 'Accounts that existed before self-service registration were all created the month it launched.',
         'values' => $column('new_developers'), 'current' => $current_month,
       ]) ?>
     </div>
     <div class="col-md-6">
-      <?php $this->insert('admin/_month_chart', [
+      <?php $this->insert('components/month_chart', [
         'id' => 'chart-new-clients', 'width' => 440, 'title' => 'Clients registered', 'unit' => 'clients',
         'note' => 'Clients registered by hand before that have no date, and are not counted.',
         'values' => $column('new_clients'), 'current' => $current_month,
@@ -162,7 +162,7 @@ $tiles = [
         <?php foreach(array_reverse($months, true) as $month => $r): ?>
           <tr>
             <td class="text-nowrap">
-              <?= e(admin_chart_month_label($month)) ?>
+              <?= e(chart_month_label($month)) ?>
               <?php if($month === $current_month): ?><span class="small text-muted">so far</span><?php endif ?>
             </td>
             <td class="text-right"><?= number_format($r['signins']) ?></td>
@@ -190,5 +190,5 @@ $tiles = [
 
 </div>
 
-<div class="admin-tooltip" role="tooltip" hidden></div>
-<script src="<?= e(asset('/assets/admin-charts.js')) ?>"></script>
+<div class="chart-tooltip" role="tooltip" hidden></div>
+<script src="<?= e(asset('/assets/charts.js')) ?>"></script>

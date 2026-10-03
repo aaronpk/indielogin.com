@@ -44,10 +44,9 @@ class Admin {
     if(($admin = $this->_admin()) instanceof ResponseInterface)
       return $admin;
 
-    $range = $request->getQueryParams()['months'] ?? '';
-    $range = $range === 'all' ? 'all' : (in_array((int)$range, AdminActivity::RANGES, true) ? (int)$range : 24);
+    $range = Activity::range($request->getQueryParams()['months'] ?? '');
 
-    return $this->_page('admin/activity', 'Activity · Admin', 'activity', $admin, (new AdminActivity)->report($range));
+    return $this->_page('admin/activity', 'Activity · Admin', 'activity', $admin, (new Activity)->report($range));
   }
 
   public function clients(ServerRequestInterface $request): ResponseInterface {

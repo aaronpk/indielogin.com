@@ -26,7 +26,7 @@ use ORM;
  * Everything here is derived from logins. To count it all again, empty
  * activity_months and activity_people.
  */
-class AdminActivity {
+class Activity {
 
   const LIVE_TTL = 600;
 
@@ -72,9 +72,23 @@ class AdminActivity {
   const RANGES = [12, 24, 60];
 
   /**
-   * @param int|string $range a number of months, or 'all'
+   * The range a ?months= value asks for: one of RANGES, 'all', or 24 for
+   * anything else.
    */
-  public function report($range) {
+  public static function range($input) {
+    if($input === 'all')
+      return 'all';
+
+    return in_array((int)$input, self::RANGES, true) ? (int)$input : 24;
+  }
+
+  /**
+   * @param int|string $range         a number of months, or 'all'
+   * @param bool       $registrations whether to count new developer accounts
+   *                                  and clients too, which only the admin
+   *                                  page shows
+   */
+  public function report($range, $registrations = true) {
     $first = $this->_firstMonth();
     $months = $this->_months($range, $first);
 
@@ -95,7 +109,7 @@ class AdminActivity {
         $rows[$month] = $row;
       }
 
-      $registered = $this->_registeredPerMonth($months);
+      $registered = $registrations ? $this->_registeredPerMonth($months) : ['users' => [], 'clients' => []];
       foreach($rows as $month => &$row) {
         $row['new_developers'] = $registered['users'][$month] ?? 0;
         $row['new_clients'] = $registered['clients'][$month] ?? 0;

@@ -147,61 +147,61 @@ a.admin-tile:hover {
 /* Admin charts. Colors are the reference data-viz palette; series 1 to 8 are
    assigned in a fixed order, so each provider keeps its color. Series 9 is a
    near-black neutral, distinct from all eight by lightness. */
-.admin-chart {
+.chart {
   margin: 1.5em 0 0;
   --surface: #ffffff;
   --ink-muted: #898781;
   --grid: #e1e0d9;
   --axis: #c3c2b7;
 }
-.admin-chart figcaption {
+.chart figcaption {
   margin-bottom: .25em;
 }
-.admin-chart-title {
+.chart-title {
   display: block;
   font-size: 1.15em;
   font-weight: 600;
 }
-.admin-chart-note {
+.chart-note {
   display: block;
   font-size: .85em;
   color: #6c757d;
 }
-.admin-chart svg {
+.chart svg {
   display: block;
   width: 100%;
   height: auto;
   overflow: visible;
 }
-.admin-chart .grid { stroke: var(--grid); stroke-width: 1; }
-.admin-chart .axis { stroke: var(--axis); stroke-width: 1; }
-.admin-chart .tick {
+.chart .grid { stroke: var(--grid); stroke-width: 1; }
+.chart .axis { stroke: var(--axis); stroke-width: 1; }
+.chart .tick {
   fill: var(--ink-muted);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
-.admin-chart .mark { fill: #2a78d6; }
-.admin-chart .mark-partial { fill: #86b6ef; }
-.admin-chart .hit {
+.chart .mark { fill: #2a78d6; }
+.chart .mark-partial { fill: #86b6ef; }
+.chart .hit {
   fill: transparent;
   cursor: default;
   outline: none;
 }
-.admin-chart .hit.active,
-.admin-chart .hit:focus-visible {
+.chart .hit.active,
+.chart .hit:focus-visible {
   fill: rgba(11, 11, 11, 0.05);
 }
-.admin-chart .series-1, .admin-tooltip .series-1 { fill: #2a78d6; background: #2a78d6; }
-.admin-chart .series-2, .admin-tooltip .series-2 { fill: #eb6834; background: #eb6834; }
-.admin-chart .series-3, .admin-tooltip .series-3 { fill: #1baf7a; background: #1baf7a; }
-.admin-chart .series-4, .admin-tooltip .series-4 { fill: #eda100; background: #eda100; }
-.admin-chart .series-5, .admin-tooltip .series-5 { fill: #e87ba4; background: #e87ba4; }
-.admin-chart .series-6, .admin-tooltip .series-6 { fill: #008300; background: #008300; }
-.admin-chart .series-7, .admin-tooltip .series-7 { fill: #4a3aa7; background: #4a3aa7; }
-.admin-chart .series-8, .admin-tooltip .series-8 { fill: #e34948; background: #e34948; }
-.admin-chart .series-9, .admin-tooltip .series-9 { fill: #3d3c39; background: #3d3c39; }
-.admin-chart .series-other, .admin-tooltip .series-other { fill: #c3c2b7; background: #c3c2b7; }
-.admin-legend {
+.chart .series-1, .chart-tooltip .series-1 { fill: #2a78d6; background: #2a78d6; }
+.chart .series-2, .chart-tooltip .series-2 { fill: #eb6834; background: #eb6834; }
+.chart .series-3, .chart-tooltip .series-3 { fill: #1baf7a; background: #1baf7a; }
+.chart .series-4, .chart-tooltip .series-4 { fill: #eda100; background: #eda100; }
+.chart .series-5, .chart-tooltip .series-5 { fill: #e87ba4; background: #e87ba4; }
+.chart .series-6, .chart-tooltip .series-6 { fill: #008300; background: #008300; }
+.chart .series-7, .chart-tooltip .series-7 { fill: #4a3aa7; background: #4a3aa7; }
+.chart .series-8, .chart-tooltip .series-8 { fill: #e34948; background: #e34948; }
+.chart .series-9, .chart-tooltip .series-9 { fill: #3d3c39; background: #3d3c39; }
+.chart .series-other, .chart-tooltip .series-other { fill: #c3c2b7; background: #c3c2b7; }
+.chart-legend {
   display: flex;
   flex-wrap: wrap;
   list-style: none;
@@ -210,12 +210,12 @@ a.admin-tile:hover {
   font-size: .85em;
   color: #52514e;
 }
-.admin-legend li {
+.chart-legend li {
   margin-right: 1em;
   white-space: nowrap;
 }
-.admin-legend .swatch,
-.admin-tooltip .swatch {
+.chart-legend .swatch,
+.chart-tooltip .swatch {
   display: inline-block;
   width: 10px;
   height: 10px;
@@ -223,7 +223,7 @@ a.admin-tile:hover {
   margin-right: .35em;
   vertical-align: -1px;
 }
-.admin-tooltip {
+.chart-tooltip {
   position: absolute;
   z-index: 10;
   pointer-events: none;
@@ -237,13 +237,16 @@ a.admin-tile:hover {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-.admin-tooltip strong {
+.chart-tooltip strong {
   color: #0b0b0b;
   font-size: 1.1em;
 }
-.admin-tooltip-label {
+.chart-tooltip-label {
   margin-bottom: .2em;
 }
 .admin-up { color: #006300; }
 .admin-down { color: #b02a37; }
-.admin-chart .partial { opacity: .45; }
+.chart .partial { opacity: .45; }
+.chart-table td, .chart-table th {
+  font-variant-numeric: tabular-nums;
+}
