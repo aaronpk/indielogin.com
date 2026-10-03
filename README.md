@@ -54,8 +54,9 @@ the session cookie is `HttpOnly`, refuses IDs the server did not issue, and is
 `Secure` whenever `BASE_URL` is https. These are set in `configure_session()`
 rather than left to the server's php.ini.
 
-Run `schema/0006.sql` before using it. It adds the indexes on `logins` that
-the admin pages query by.
+Run `schema/0006.sql` and `schema/0007.sql` before using it. The first adds
+the indexes on `logins` that the admin pages query by, and the second the
+tables the activity page counts into.
 
 * `/admin`: sign-ins today and over 7 and 30 days, with the share that
   completed (the application exchanged the code). Also sign-ins per day,
@@ -76,21 +77,30 @@ the admin pages query by.
 * `/admin/logins`: the sign-in log, filterable by client ID, the person's URL,
   provider, and whether it completed.
 
-The activity figures count each month once. A month that has ended is counted
-and kept in Redis for good, and its people are added to a set of everyone seen,
-which is how a later month knows who is new. The month in progress is
-recounted at most every ten minutes. The first time, every month back to the
-first sign-in has to be counted. The page does up to 20 seconds of that per
-load and says how far it has got. To count everything in one go, run this once
-after deploying:
+The activity figures count each month once, into two tables that
+`schema/0007.sql` creates. A month that has ended gets a row in
+`activity_months`, and its people go into `activity_people`, one row per person
+ever seen. That table is how a later month knows who is new. Both happen in one
+transaction, so a month is either counted completely or not at all. The month
+in progress is recounted at most every ten minutes, and that count is cached
+in Redis. The first time, every month back to the first sign-in has to be
+counted. The page does up to 20 seconds of that per load and says how far it
+has got. To count everything in one go, run this once after deploying:
 
 ```sh
 php bin/count-activity
 ```
 
-It is safe to run again at any time, or from cron. To start the counting over,
-delete the `indielogin:admin:activity:v2:*` keys from Redis. The `v1` keys left
-by an earlier version are no longer read and can be deleted.
+It is safe to run again at any time, or from cron. Everything in the two
+tables comes from `logins`, so to start the counting over, empty them:
+
+```sql
+TRUNCATE activity_months; TRUNCATE activity_people;
+```
+
+Earlier versions kept these figures in Redis. Those
+`indielogin:admin:activity:v1:*` and `v2:*` keys are no longer read and can be
+deleted.
 
 Every change made there is checked against the session's CSRF token and logged
 to `logs/app.log` with the admin's URL.

@@ -47,3 +47,22 @@ CREATE TABLE IF NOT EXISTS `logins` (
   KEY `client_id` (`client_id`(191)),
   KEY `me_resolved` (`me_resolved`(191))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+CREATE TABLE IF NOT EXISTS `activity_months` (
+  `month` char(7) NOT NULL,
+  `signins` int(11) unsigned NOT NULL,
+  `completed` int(11) unsigned NOT NULL,
+  `people` int(11) unsigned NOT NULL,
+  `new_people` int(11) unsigned NOT NULL,
+  `clients` int(11) unsigned NOT NULL,
+  `providers` text NOT NULL,
+  `date_counted` datetime NOT NULL,
+  PRIMARY KEY (`month`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+CREATE TABLE IF NOT EXISTS `activity_people` (
+  `person` binary(8) NOT NULL,
+  `first_month` char(7) NOT NULL,
+  PRIMARY KEY (`person`),
+  KEY `first_month` (`first_month`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;

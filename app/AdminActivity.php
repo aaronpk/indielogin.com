@@ -9,33 +9,33 @@ use ORM;
  * and how many developers and clients registered.
  *
  * logins is never pruned, so this is built to count each month once. Months
- * are folded in order, oldest first: a month that has ended is counted with
- * range queries on logins.date, kept in Redis for good, and the people who
- * signed in that month are added to a set of everyone seen so far. Whether
- * someone is new in a later month is then a lookup in that set, rather than
- * a search back through every earlier sign-in, which on a large table takes
- * longer than a page load can.
+ * are folded in order, oldest first. A month that has ended is counted with
+ * range queries on logins.date into a row of activity_months, and the people
+ * who signed in that month go into activity_people, in the same transaction.
+ * activity_people has one row per person ever seen, so whether someone is new
+ * is whether inserting them adds a row, rather than a search back through
+ * every earlier sign-in, which on a large table takes longer than a page
+ * load can.
  *
- * Only the month in progress is counted again, at most every CURRENT_TTL
- * seconds. The first time, every month back to the first sign-in has to be
- * folded before the recent ones can be: a page load does up to BUDGET seconds
- * of that and says how far it got, and bin/count-activity does all of it.
+ * Only a month that is not folded, the one in progress, is counted again, at
+ * most every LIVE_TTL seconds, and that count is the one thing kept in Redis.
+ * The first time, every month back to the first sign-in has to be folded
+ * before the recent ones can be: a page load does up to BUDGET seconds of
+ * that and says how far it got, and bin/count-activity does all of it.
+ *
+ * Everything here is derived from logins. To count it all again, empty
+ * activity_months and activity_people.
  */
 class AdminActivity {
 
-  // Bump this if what a month's figures mean changes, so that everything is
-  // counted again under the new meaning
-  //
-  // v2: PGP got a series of its own, where v1 had counted it as "other"
-  const PREFIX = 'indielogin:admin:activity:v2';
-
-  const CURRENT_TTL = 600;
+  const LIVE_TTL = 600;
 
   // Seconds a page load may spend folding months that have not been counted
   const BUDGET = 20;
 
-  // Long enough to fold one month on a large table
-  const LOCK_TTL = 120;
+  // A MySQL named lock, which the server releases by itself if whatever held
+  // it goes away
+  const LOCK = 'indielogin.admin.activity';
 
   // A code is good for 60 seconds, so a sign-in at the very end of a month
   // can still be completed just after it. Give it that long before keeping
@@ -48,6 +48,10 @@ class AdminActivity {
   // lightness rather than by a ninth hue, which would be mistaken for one of
   // the others. Each keeps its color whatever range is shown; any other
   // provider, past or future, is counted as "other".
+  //
+  // Months keep their sign-ins by provider exactly as recorded, and are
+  // grouped into these when shown, so this list can change without counting
+  // anything again.
   const PROVIDERS = [
     'indieauth' => 'IndieAuth',
     'github' => 'GitHub',
@@ -81,11 +85,14 @@ class AdminActivity {
 
     $rows = [];
     if(!$pending) {
-      $stored = redis()->hgetall($this->_key('months'));
+      $stored = [];
+      foreach(ORM::for_table('activity_months')->where_gte('month', reset($months))->find_array() as $row)
+        $stored[$row['month']] = $row;
+
       foreach($months as $month) {
-        $rows[$month] = isset($stored[$month])
-          ? json_decode($stored[$month], true)
-          : $this->_live($month);
+        $row = isset($stored[$month]) ? $this->_fromRow($stored[$month]) : $this->_live($month);
+        $row['providers'] = $this->_series($row['providers']);
+        $rows[$month] = $row;
       }
 
       $registered = $this->_registeredPerMonth($months);
@@ -105,7 +112,7 @@ class AdminActivity {
       'counted' => count($this->_settledMonths()) - $pending,
       'providers' => self::PROVIDERS,
       'current_month' => $this->_currentMonth(),
-      'current_ttl' => self::CURRENT_TTL,
+      'current_ttl' => self::LIVE_TTL,
     ];
   }
 
@@ -114,12 +121,11 @@ class AdminActivity {
    * how many it folded, or false if another process is already folding.
    */
   public function advance($seconds, ?callable $progress = null) {
-    $lock = $this->_key('lock');
-    $token = random_string();
+    $db = ORM::get_db();
 
-    // Held for a short while and renewed after every month, so that a run
-    // that dies leaves it behind for no longer than that
-    if(!redis()->set($lock, $token, 'EX', self::LOCK_TTL, 'NX'))
+    $lock = $db->prepare('SELECT GET_LOCK(?, 0)');
+    $lock->execute([self::LOCK]);
+    if((int)$lock->fetchColumn() !== 1)
       return false;
 
     $start = microtime(true);
@@ -133,16 +139,11 @@ class AdminActivity {
         $this->_fold($month);
         $folded++;
 
-        if(redis()->get($lock) === $token)
-          redis()->expire($lock, self::LOCK_TTL);
-
         if($progress)
           $progress($month);
       }
     } finally {
-      // Only release the lock if it is still ours
-      if(redis()->get($lock) === $token)
-        redis()->del($lock);
+      $db->prepare('SELECT RELEASE_LOCK(?)')->execute([self::LOCK]);
     }
 
     return $folded;
@@ -156,30 +157,53 @@ class AdminActivity {
   }
 
   /**
-   * Count one month that has ended, and add the people in it to the set of
-   * everyone seen.
+   * Count one month that has ended: its row in activity_months and its new
+   * people in activity_people, together or not at all.
    */
   private function _fold($month) {
     [$from, $to] = $this->_bounds($month);
+    $db = ORM::get_db();
 
     $row = $this->_totals($from, $to);
     $people = $this->_peopleIn($from, $to);
-    $row['new_people'] = $this->_countUnseen($people);
 
-    foreach(array_chunk($people, 1000) as $chunk)
-      redis()->sadd($this->_key('seen'), $chunk);
+    $db->beginTransaction();
+    try {
+      // INSERT IGNORE skips anyone already seen, so the rows it adds are
+      // exactly this month's new people
+      $new = 0;
+      foreach(array_chunk($people, 1000) as $chunk) {
+        $insert = $db->prepare('INSERT IGNORE INTO activity_people (person, first_month) VALUES '
+          .implode(',', array_fill(0, count($chunk), '(UNHEX(?), ?)')));
+        $params = [];
+        foreach($chunk as $person)
+          array_push($params, $person, $month);
+        $insert->execute($params);
+        $new += $insert->rowCount();
+      }
 
-    redis()->hset($this->_key('months'), $month, json_encode($row));
-    redis()->set($this->_key('through'), $month);
+      $insert = $db->prepare('INSERT INTO activity_months
+        (month, signins, completed, people, new_people, clients, providers, date_counted)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+      $insert->execute([
+        $month, $row['signins'], $row['completed'], $row['people'], $new, $row['clients'],
+        json_encode($row['providers']), gmdate('Y-m-d H:i:s'),
+      ]);
+
+      $db->commit();
+    } catch(\Throwable $e) {
+      $db->rollBack();
+      throw $e;
+    }
   }
 
   /**
    * A month that is not folded: the one in progress, or for a couple of
    * minutes after a month ends, the one just gone. Counted at most every
-   * CURRENT_TTL seconds.
+   * LIVE_TTL seconds.
    */
   private function _live($month) {
-    $key = $this->_key('live:'.$month);
+    $key = 'indielogin:admin:activity:live:'.$month;
 
     $cached = redis()->get($key);
     if($cached && is_array($row = json_decode($cached, true)))
@@ -190,9 +214,39 @@ class AdminActivity {
     $row = $this->_totals($from, $to);
     $row['new_people'] = $this->_countUnseen($this->_peopleIn($from, $to));
 
-    redis()->setex($key, self::CURRENT_TTL, json_encode($row));
+    redis()->setex($key, self::LIVE_TTL, json_encode($row));
 
     return $row;
+  }
+
+  /**
+   * A stored month in the shape the page uses.
+   */
+  private function _fromRow(array $row) {
+    return [
+      'signins' => (int)$row['signins'],
+      'completed' => (int)$row['completed'],
+      'people' => (int)$row['people'],
+      'new_people' => (int)$row['new_people'],
+      'clients' => (int)$row['clients'],
+      'providers' => json_decode($row['providers'], true) ?: [],
+    ];
+  }
+
+  /**
+   * Sign-ins by provider as recorded, grouped into the chart's series.
+   */
+  private function _series(array $raw) {
+    $series = array_fill_keys(array_keys(self::PROVIDERS), 0);
+    $series['other'] = 0;
+
+    foreach($raw as $name => $n) {
+      $name = strtolower((string)$name);
+      $name = self::PROVIDER_ALIASES[$name] ?? $name;
+      $series[isset(self::PROVIDERS[$name]) ? $name : 'other'] += (int)$n;
+    }
+
+    return $series;
   }
 
   private function _totals($from, $to) {
@@ -205,9 +259,7 @@ class AdminActivity {
       ->where_lt('date', $to)
       ->find_one();
 
-    $providers = array_fill_keys(array_keys(self::PROVIDERS), 0);
-    $providers['other'] = 0;
-
+    $providers = [];
     $rows = ORM::for_table('logins')
       ->select('authn_provider')
       ->select_expr('COUNT(*)', 'n')
@@ -218,8 +270,7 @@ class AdminActivity {
 
     foreach($rows as $r) {
       $name = strtolower((string)$r['authn_provider']);
-      $name = self::PROVIDER_ALIASES[$name] ?? $name;
-      $providers[isset(self::PROVIDERS[$name]) ? $name : 'other'] += (int)$r['n'];
+      $providers[$name] = ($providers[$name] ?? 0) + (int)$r['n'];
     }
 
     return [
@@ -232,9 +283,15 @@ class AdminActivity {
   }
 
   /**
-   * Everyone who signed in between these times, as the short hashes the set
-   * of everyone seen is kept in. A URL can be long, and the set only ever
+   * Everyone who signed in between these times, as the hex of the short
+   * hashes activity_people keeps. A URL can be long, and the table only ever
    * has to answer whether one is in it.
+   *
+   * Each is lowercased and trimmed before it is hashed. MySQL compares
+   * me_resolved without regard to case or trailing spaces, so it counts
+   * https://Example.com/ and https://example.com/ as one person in a month;
+   * hashed as written they would be two people across months, and the same
+   * person would be counted as new again.
    */
   private function _peopleIn($from, $to) {
     $rows = ORM::for_table('logins')
@@ -245,26 +302,21 @@ class AdminActivity {
       ->where_not_equal('me_resolved', '')
       ->find_array();
 
-    return array_values(array_unique(array_map(fn($r) => substr(sha1($r['me_resolved']), 0, 16), $rows)));
+    return array_values(array_unique(array_map(fn($r) => substr(sha1(rtrim(mb_strtolower($r['me_resolved']))), 0, 16), $rows)));
   }
 
   private function _countUnseen(array $people) {
-    $unseen = 0;
+    $seen = 0;
+    $db = ORM::get_db();
 
-    // One SISMEMBER per person, pipelined, rather than SMISMEMBER, which
-    // needs Redis 6.2
-    $key = $this->_key('seen');
     foreach(array_chunk($people, 1000) as $chunk) {
-      $results = redis()->pipeline(function($pipe) use($key, $chunk) {
-        foreach($chunk as $person)
-          $pipe->sismember($key, $person);
-      });
-
-      foreach($results as $seen)
-        if(!$seen) $unseen++;
+      $query = $db->prepare('SELECT COUNT(*) FROM activity_people WHERE person IN ('
+        .implode(',', array_fill(0, count($chunk), 'UNHEX(?)')).')');
+      $query->execute($chunk);
+      $seen += (int)$query->fetchColumn();
     }
 
-    return $unseen;
+    return count($people) - $seen;
   }
 
   /**
@@ -293,9 +345,11 @@ class AdminActivity {
 
   /**
    * Months that have ended and settled but are not folded yet, oldest first.
+   * Months are only ever folded in order, so the latest one stored is how far
+   * folding has got.
    */
   private function _unfolded() {
-    $through = redis()->get($this->_key('through'));
+    $through = ORM::for_table('activity_months')->max('month');
 
     return array_values(array_filter($this->_settledMonths(), fn($m) => !$through || $m > $through));
   }
@@ -367,10 +421,6 @@ class AdminActivity {
 
   private function _currentMonth() {
     return gmdate('Y-m');
-  }
-
-  private function _key($name) {
-    return self::PREFIX.':'.$name;
   }
 
 }
