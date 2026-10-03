@@ -245,8 +245,16 @@ class AdminActivity {
   private function _countUnseen(array $people) {
     $unseen = 0;
 
+    // One SISMEMBER per person, pipelined, rather than SMISMEMBER, which
+    // needs Redis 6.2
+    $key = $this->_key('seen');
     foreach(array_chunk($people, 1000) as $chunk) {
-      foreach(redis()->smismember($this->_key('seen'), ...$chunk) as $seen)
+      $results = redis()->pipeline(function($pipe) use($key, $chunk) {
+        foreach($chunk as $person)
+          $pipe->sismember($key, $person);
+      });
+
+      foreach($results as $seen)
         if(!$seen) $unseen++;
     }
 
