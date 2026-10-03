@@ -6,6 +6,8 @@
  * @var array  $months    Y-m => month row with 'signins' and 'providers'.
  * @var array  $providers key => label, in color order.
  * @var string $current
+ * @var bool   $table     Optional: false where no table of the same figures
+ *                        follows, so the chart does not point to one.
  */
 require_once __DIR__.'/chart_helpers.php';
 
@@ -40,7 +42,7 @@ $y = fn($share) => $top + $plotH - $share * $plotH;
     <?php endforeach ?>
   </ul>
   <div class="chart-plot">
-    <svg viewBox="0 0 <?= $W ?> <?= $H ?>" role="img" aria-label="Share of sign-ins by provider, per month. The same figures are in the table below.">
+    <svg viewBox="0 0 <?= $W ?> <?= $H ?>" role="img" aria-label="Share of sign-ins by provider, per month.<?= ($table ?? true) ? ' The same figures are in the table below.' : '' ?>">
       <?php foreach([0, 0.25, 0.5, 0.75, 1] as $t): ?>
         <line class="<?= $t == 0 ? 'axis' : 'grid' ?>" x1="<?= $left ?>" x2="<?= $W - $right ?>" y1="<?= round($y($t), 1) ?>" y2="<?= round($y($t), 1) ?>"/>
         <text class="tick" x="<?= $left - 8 ?>" y="<?= round($y($t), 1) ?>" text-anchor="end" dominant-baseline="middle"><?= round($t * 100) ?>%</text>

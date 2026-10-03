@@ -12,6 +12,8 @@
  * @var string $current The month in progress, drawn lighter.
  * @var int    $width   Optional: the drawing's width, smaller for a chart in
  *                      a half-width column so its text is not shrunk.
+ * @var bool   $table   Optional: false where no table of the same figures
+ *                      follows, so the chart does not point to one.
  */
 require_once __DIR__.'/chart_helpers.php';
 
@@ -35,7 +37,7 @@ $y = fn($v) => $top + $plotH - ($v / $yMax) * $plotH;
     <?php if($note): ?><span class="chart-note"><?= e($note) ?></span><?php endif ?>
   </figcaption>
   <div class="chart-plot">
-    <svg viewBox="0 0 <?= $W ?> <?= $H ?>" role="img" aria-label="<?= e($title) ?>, per month. The same figures are in the table below.">
+    <svg viewBox="0 0 <?= $W ?> <?= $H ?>" role="img" aria-label="<?= e($title) ?>, per month.<?= ($table ?? true) ? ' The same figures are in the table below.' : '' ?>">
       <?php for($t = 0; $t <= $yMax; $t += $yStep): ?>
         <line class="<?= $t === 0 ? 'axis' : 'grid' ?>" x1="<?= $left ?>" x2="<?= $W - $right ?>" y1="<?= round($y($t), 1) ?>" y2="<?= round($y($t), 1) ?>"/>
         <text class="tick" x="<?= $left - 8 ?>" y="<?= round($y($t), 1) ?>" text-anchor="end" dominant-baseline="middle"><?= number_format($t) ?></text>

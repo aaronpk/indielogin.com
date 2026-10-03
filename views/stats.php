@@ -2,7 +2,8 @@
 <?php
 /**
  * Public stats: sign-ins by provider, and sign-ins per month. See
- * Activity::report(); only these two figures are shown here.
+ * Activity::report(); only these two figures are shown here, as charts. The
+ * table of every figure is only on the admin activity page.
  *
  * @var int|string $range
  * @var array      $ranges
@@ -37,49 +38,13 @@ $signins = array_map(fn($row) => $row['signins'], $months);
       </div>
     </div>
 
-    <?php $this->insert('components/provider_chart', compact('months', 'providers') + ['current' => $current_month]) ?>
+    <?php $this->insert('components/provider_chart', compact('months', 'providers') + ['current' => $current_month, 'table' => false]) ?>
 
     <?php $this->insert('components/month_chart', [
       'id' => 'chart-signins', 'title' => 'Sign-ins', 'unit' => 'sign-ins',
       'note' => 'Every time someone signed in to an application. The lighter column is the month in progress.',
-      'values' => $signins, 'current' => $current_month,
+      'values' => $signins, 'current' => $current_month, 'table' => false,
     ]) ?>
-
-    <h3 class="mt-4">Month by month</h3>
-    <?php
-      $columns = array_filter($providers + ['other' => 'Other'], function($label, $k) use($months) {
-        foreach($months as $row)
-          if(($row['providers'][$k] ?? 0) > 0) return true;
-        return false;
-      }, ARRAY_FILTER_USE_BOTH);
-    ?>
-    <div class="table-responsive">
-      <table class="table table-sm chart-table">
-        <thead>
-          <tr>
-            <th>Month</th>
-            <th class="text-right">Sign-ins</th>
-            <?php foreach($columns as $label): ?>
-              <th class="text-right"><?= e($label) ?></th>
-            <?php endforeach ?>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach(array_reverse($months, true) as $month => $row): ?>
-            <tr>
-              <td class="text-nowrap">
-                <?= e(chart_month_label($month)) ?>
-                <?php if($month === $current_month): ?><span class="small text-muted">so far</span><?php endif ?>
-              </td>
-              <td class="text-right"><?= number_format($row['signins']) ?></td>
-              <?php foreach(array_keys($columns) as $k): ?>
-                <td class="text-right"><?= number_format($row['providers'][$k] ?? 0) ?></td>
-              <?php endforeach ?>
-            </tr>
-          <?php endforeach ?>
-        </tbody>
-      </table>
-    </div>
 
     <p class="small text-muted">"Other" is any way of signing in not listed separately.</p>
 

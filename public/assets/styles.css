@@ -247,6 +247,3 @@ a.admin-tile:hover {
 .admin-up { color: #006300; }
 .admin-down { color: #b02a37; }
 .chart .partial { opacity: .45; }
-.chart-table td, .chart-table th {
-  font-variant-numeric: tabular-nums;
-}
