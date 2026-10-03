@@ -1,0 +1,41 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Count every month of the admin activity page that has not been counted.
+ *
+ * The page does this itself, a little at a time, but the first time it has to
+ * go back to the first sign-in on record, which can take longer than a page
+ * load should. Run this once after deploying instead:
+ *
+ *   php bin/count-activity
+ *
+ * Safe to run at any time, and from cron: months already counted are skipped,
+ * and it waits for nothing if a page load is counting at the same moment.
+ */
+
+chdir(dirname(__DIR__));
+require 'vendor/autoload.php';
+
+initdb();
+
+$activity = new App\AdminActivity;
+$pending = $activity->pending();
+
+if(!$pending) {
+  echo "Every month is counted.\n";
+  exit(0);
+}
+
+echo "Counting $pending month".($pending == 1 ? '' : 's')."...\n";
+
+$start = microtime(true);
+$folded = $activity->advance(PHP_INT_MAX, function($month) use($start) {
+  printf("  %s  (%.1fs)\n", $month, microtime(true) - $start);
+});
+
+if($folded === false) {
+  echo "Something else is counting right now. Try again in a minute.\n";
+  exit(1);
+}
+
+printf("Counted %d month%s in %.1fs.\n", $folded, $folded == 1 ? '' : 's', microtime(true) - $start);

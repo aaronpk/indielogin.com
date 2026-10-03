@@ -61,6 +61,12 @@ the admin pages query by.
   completed (the application exchanged the code). Also sign-ins per day,
   sign-ins by provider, the busiest clients, and counts of developers and
   clients. Recounted at most once a minute.
+* `/admin/activity`: the service month by month, over 12, 24 or 60 months or
+  everything since the first sign-in. It shows sign-ins and the share
+  completed, active people (different URLs that signed in), new people
+  (signing in for the first time on record), active clients, sign-ins by
+  provider, and new developer accounts and clients. There are charts and a
+  table of the same figures.
 * `/admin/clients`: every client, searchable by client ID or owner. A client's
   page shows its owner and recent sign-ins. It is also where you deactivate or
   reactivate the client, turn its PKCE requirement on or off, and add or remove
@@ -69,6 +75,21 @@ the admin pages query by.
   their clients and their own recent sign-ins.
 * `/admin/logins`: the sign-in log, filterable by client ID, the person's URL,
   provider, and whether it completed.
+
+The activity figures count each month once. A month that has ended is counted
+and kept in Redis for good, and its people are added to a set of everyone seen,
+which is how a later month knows who is new. The month in progress is
+recounted at most every ten minutes. The first time, every month back to the
+first sign-in has to be counted. The page does up to 20 seconds of that per
+load and says how far it has got. To count everything in one go, run this once
+after deploying:
+
+```sh
+php bin/count-activity
+```
+
+It is safe to run again at any time, or from cron. To start the counting over,
+delete the `indielogin:admin:activity:v1:*` keys from Redis.
 
 Every change made there is checked against the session's CSRF token and logged
 to `logs/app.log` with the admin's URL.

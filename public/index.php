@@ -39,6 +39,7 @@ $route->map('POST', '/developers/profile', 'App\\Developers::profile');
 
 # Only for the profile URLs in ADMIN_USERS; a 404 for everyone else
 $route->map('GET', '/admin', 'App\\Admin::overview');
+$route->map('GET', '/admin/activity', 'App\\Admin::activity');
 $route->map('GET', '/admin/clients', 'App\\Admin::clients');
 $route->map('GET', '/admin/clients/{id:number}', 'App\\Admin::client');
 $route->map('POST', '/admin/clients/{id:number}/active', 'App\\Admin::client_active');

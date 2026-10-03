@@ -40,6 +40,16 @@ class Admin {
     return $this->_page('admin/overview', 'Admin', 'overview', $admin, $this->_overviewStats());
   }
 
+  public function activity(ServerRequestInterface $request): ResponseInterface {
+    if(($admin = $this->_admin()) instanceof ResponseInterface)
+      return $admin;
+
+    $range = $request->getQueryParams()['months'] ?? '';
+    $range = $range === 'all' ? 'all' : (in_array((int)$range, AdminActivity::RANGES, true) ? (int)$range : 24);
+
+    return $this->_page('admin/activity', 'Activity · Admin', 'activity', $admin, (new AdminActivity)->report($range));
+  }
+
   public function clients(ServerRequestInterface $request): ResponseInterface {
     if(($admin = $this->_admin()) instanceof ResponseInterface)
       return $admin;

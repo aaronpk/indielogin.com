@@ -2,13 +2,14 @@
 /**
  * The heading, tab strip and flash messages every admin page starts with.
  *
- * @var string      $tab     Which tab is current: overview, clients, users, logins.
+ * @var string      $tab     Which tab is current: overview, activity, clients, users, logins.
  * @var object      $admin   The signed-in admin's users row.
  * @var string|bool $error
  * @var string|bool $success
  */
 $tabs = [
   'overview' => ['/admin', 'Overview'],
+  'activity' => ['/admin/activity', 'Activity'],
   'clients' => ['/admin/clients', 'Clients'],
   'users' => ['/admin/users', 'Users'],
   'logins' => ['/admin/logins', 'Sign-ins'],

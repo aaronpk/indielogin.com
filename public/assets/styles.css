@@ -143,3 +143,104 @@ a.admin-tile:hover {
 .admin-section h3 {
   margin-top: 0;
 }
+
+/* Admin charts. Colors are the reference data-viz palette; series 1 to 8 are
+   assigned in a fixed order, so each provider keeps its color. */
+.admin-chart {
+  margin: 1.5em 0 0;
+  --surface: #ffffff;
+  --ink-muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+}
+.admin-chart figcaption {
+  margin-bottom: .25em;
+}
+.admin-chart-title {
+  display: block;
+  font-size: 1.15em;
+  font-weight: 600;
+}
+.admin-chart-note {
+  display: block;
+  font-size: .85em;
+  color: #6c757d;
+}
+.admin-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.admin-chart .grid { stroke: var(--grid); stroke-width: 1; }
+.admin-chart .axis { stroke: var(--axis); stroke-width: 1; }
+.admin-chart .tick {
+  fill: var(--ink-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.admin-chart .mark { fill: #2a78d6; }
+.admin-chart .mark-partial { fill: #86b6ef; }
+.admin-chart .hit {
+  fill: transparent;
+  cursor: default;
+  outline: none;
+}
+.admin-chart .hit.active,
+.admin-chart .hit:focus-visible {
+  fill: rgba(11, 11, 11, 0.05);
+}
+.admin-chart .series-1 { fill: #2a78d6; background: #2a78d6; }
+.admin-chart .series-2 { fill: #eb6834; background: #eb6834; }
+.admin-chart .series-3 { fill: #1baf7a; background: #1baf7a; }
+.admin-chart .series-4 { fill: #eda100; background: #eda100; }
+.admin-chart .series-5 { fill: #e87ba4; background: #e87ba4; }
+.admin-chart .series-6 { fill: #008300; background: #008300; }
+.admin-chart .series-7 { fill: #4a3aa7; background: #4a3aa7; }
+.admin-chart .series-8 { fill: #e34948; background: #e34948; }
+.admin-chart .series-other { fill: #c3c2b7; background: #c3c2b7; }
+.admin-legend {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  padding: 0;
+  margin: .25em 0 .5em;
+  font-size: .85em;
+  color: #52514e;
+}
+.admin-legend li {
+  margin-right: 1em;
+  white-space: nowrap;
+}
+.admin-legend .swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: .35em;
+  vertical-align: -1px;
+}
+.admin-tooltip {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  background: #ffffff;
+  border: 1px solid rgba(11, 11, 11, 0.10);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(11, 11, 11, 0.12);
+  padding: .4em .6em;
+  font-size: .85em;
+  color: #52514e;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.admin-tooltip strong {
+  color: #0b0b0b;
+  font-size: 1.1em;
+}
+.admin-tooltip-label {
+  margin-bottom: .2em;
+}
+.admin-up { color: #006300; }
+.admin-down { color: #b02a37; }
+.admin-chart .partial { opacity: .45; }
