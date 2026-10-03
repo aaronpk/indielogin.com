@@ -4,18 +4,21 @@ namespace App\Provider;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Laminas\Diactoros\Response\HtmlResponse;
+use Laminas\Diactoros\Response\JsonResponse;
 
 use App\SSH\KeyList;
+use App\SSH\Pending;
 use App\SSH\SSHException;
 use App\SSH\Verifier;
 
-define('SSH_TIMEOUT', 120);
 define('SSH_MAX_KEYS_SIZE', 65536);
 
 /**
  * Signing in with an SSH key: the website links to its keys with
- * rel="ssh-key", and the person signs a challenge with ssh-keygen -Y sign.
- * Works the same way as PGP.
+ * rel="ssh-key", and the person proves they hold one in either of two ways.
+ * They can sign a challenge with ssh-keygen -Y sign and paste it back, the
+ * same way PGP works, or, where an SSH sign-in server is configured, run
+ * ssh <domain>@<server> and confirm there, while this page waits.
  */
 trait SSH {
 
@@ -41,9 +44,16 @@ trait SSH {
 
     $_SESSION['login_request']['profile'] = $details['key'];
 
-    $code = random_string();
-    $details['keystext'] = $keystext;
-    redis()->setex('indielogin:ssh:'.$code, SSH_TIMEOUT, json_encode($details));
+    // What the SSH sign-in server shows when someone confirms, so they can
+    // tell this sign-in from one they did not start
+    [$code, $connect] = Pending::create([
+      'key' => $details['key'],
+      'keystext' => $keystext,
+      'client_id' => $_SESSION['login_request']['client_id'] ?? null,
+      'me' => $_SESSION['expected_me'] ?? '',
+      'started' => time(),
+      'ip' => $_SERVER['REMOTE_ADDR'] ?? null,
+    ]);
 
     // Bind the challenge to this session and to the identity it was issued
     // for, so that a challenge cannot be carried over into a login attempt
@@ -58,6 +68,9 @@ trait SSH {
       'code' => $code,
       'namespace' => ssh_signature_namespace(),
       'keys_url' => $details['key'],
+      'server' => ssh_server(),
+      'domain' => Pending::domain($_SESSION['expected_me'] ?? ''),
+      'connect' => Pending::displayCode($connect),
     ]));
   }
 
@@ -76,12 +89,10 @@ trait SSH {
       return $this->_sshError('The session expired');
     }
 
-    $login = redis()->get('indielogin:ssh:'.$code);
+    $login = Pending::get($code);
 
     if(!$login)
       return $this->_sshError('The session expired');
-
-    $login = json_decode($login, true);
 
     if(!is_string($signed) || !str_contains($signed, '-----BEGIN SSH SIGNATURE-----'))
       return $this->_sshError('It looks like you did not sign the challenge.');
@@ -96,13 +107,74 @@ trait SSH {
     }
 
     // The challenge is good for one use
-    redis()->del('indielogin:ssh:'.$code);
+    Pending::forget($code);
     unset($_SESSION['ssh_challenge']);
 
     $userlog->info('Verified SSH challenge', [
       'key' => $login['key'],
       'type' => $result['type'],
       'fingerprint' => $result['fingerprint'],
+      'method' => 'signature',
+    ]);
+
+    return $this->_finishAuthenticate();
+  }
+
+  /**
+   * What the challenge page polls while it waits for someone to confirm over
+   * SSH. It only ever answers about the challenge bound to this browser's
+   * session.
+   */
+  public function ssh_status(ServerRequestInterface $request): ResponseInterface {
+    session_start();
+    $challenge = $_SESSION['ssh_challenge']['code'] ?? null;
+    // Polling must not hold the session lock while other requests wait on it
+    session_write_close();
+
+    if(!is_string($challenge) || !Pending::get($challenge))
+      $status = 'expired';
+    elseif(Pending::approval($challenge))
+      $status = 'approved';
+    else
+      $status = 'waiting';
+
+    return new JsonResponse(['status' => $status], 200, ['Cache-Control' => 'no-store']);
+  }
+
+  /**
+   * Finish a sign-in that was confirmed over SSH. The SSH sign-in server has
+   * checked that the person holds a key the website lists; this checks that
+   * the confirmation is for the sign-in this browser started.
+   */
+  public function verify_ssh_connection(ServerRequestInterface $request): ResponseInterface {
+    session_start();
+
+    $params = $request->getParsedBody();
+    $code = $params['code'] ?? '';
+
+    $userlog = make_logger('user');
+
+    if(!$this->_ssh_challenge_matches_session($code)) {
+      $userlog->warning('SSH connection confirmation did not match the challenge issued for this session');
+      return $this->_sshError('The session expired');
+    }
+
+    $login = Pending::get($code);
+    if(!$login)
+      return $this->_sshError('The session expired');
+
+    $approval = Pending::approval($code);
+    if(!$approval)
+      return $this->_sshError('This sign-in has not been confirmed over SSH yet. Run the ssh command shown on the previous page, and press Enter when it asks.');
+
+    Pending::forget($code);
+    unset($_SESSION['ssh_challenge']);
+
+    $userlog->info('Verified SSH challenge', [
+      'key' => $login['key'],
+      'type' => $approval['type'],
+      'fingerprint' => $approval['fingerprint'],
+      'method' => 'connect',
     ]);
 
     return $this->_finishAuthenticate();

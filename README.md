@@ -176,6 +176,58 @@ php tests/ssh.php
 ```
 
 
+## SSH sign-in server
+
+As well as pasting a signature, someone signing in with an SSH key can run
+`ssh <their domain>@ssh.indielogin.com` and press Enter to confirm, while the
+sign-in page waits and then finishes by itself. Their SSH client offers their
+keys, and only a key their website lists is accepted.
+
+That server is a small Go program in `ssh-server/`, meant for a machine of its
+own. It does nothing but this: no shell, no commands, no forwarding, no files.
+It has no access to Redis or the database, and asks indielogin.com about each
+sign-in through a private API (`app/SSHServerApi.php`), which trusts it to
+have done the SSH authentication. Anyone with `SSH_SERVER_API_KEY`, from an
+address in `SSH_SERVER_API_IPS`, can therefore approve SSH sign-ins, so keep
+the key secret.
+
+The username is matched against the domain each waiting sign-in is for, from
+whichever application. If more than one is waiting for that domain, the
+server asks for the code the sign-in page shows rather than picking one,
+which is also what stops a sign-in someone else started for your domain from
+being confirmed by mistake. The prompt shows the application, the site, when
+the sign-in started and from which address. The code works as the username
+too.
+
+To run it:
+
+1. On the server's machine, move its own admin sshd off port 22, and point
+   `ssh.indielogin.com` at it.
+2. Build it with Go 1.24 or newer and install it with the systemd unit, which
+   runs it unprivileged, binds port 22 by capability, and sandboxes it:
+
+   ```sh
+   cd ssh-server
+   go test ./... && go build -o indielogin-ssh
+   ```
+
+   See the comments in `ssh-server/indielogin-ssh.service` for the install
+   commands and `/etc/indielogin-ssh.env`. It creates its host key on first
+   start and logs its fingerprint.
+3. In indielogin.com's `.env`, set `SSH_SERVER_HOST`, `SSH_SERVER_FINGERPRINT`
+   (from `ssh-keygen -lf /var/lib/indielogin-ssh/host_ed25519_key.pub`),
+   `SSH_SERVER_API_KEY` and `SSH_SERVER_API_IPS`. Until `SSH_SERVER_HOST` is
+   set, the sign-in page only offers the signature, and until the API settings
+   are, the API is a 404.
+
+Run its tests with:
+
+```sh
+php tests/ssh_server_api.php
+cd ssh-server && go test ./...
+```
+
+
 ## Internationalized domain names
 
 Someone can sign in with either spelling of an internationalized domain, the

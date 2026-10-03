@@ -244,6 +244,24 @@ function ssh_signature_namespace() {
   return $host ? strtolower($host) : 'indielogin';
 }
 
+// Where the SSH sign-in server is, if there is one: a separate program (in
+// ssh-server/) that people can ssh to instead of pasting a signature. Null
+// when SSH_SERVER_HOST is not set, and the sign-in page then only offers the
+// signature.
+function ssh_server() {
+  $host = trim((string)getenv('SSH_SERVER_HOST'));
+  if($host === '')
+    return null;
+
+  $port = (int)(getenv('SSH_SERVER_PORT') ?: 22);
+
+  return [
+    'host' => $host,
+    'port' => $port > 0 ? $port : 22,
+    'fingerprint' => trim((string)getenv('SSH_SERVER_FINGERPRINT')) ?: null,
+  ];
+}
+
 // A CSRF token for the developer area, the only place on this site with
 // session-authenticated forms that change something. Requires session_start().
 function csrf_token() {

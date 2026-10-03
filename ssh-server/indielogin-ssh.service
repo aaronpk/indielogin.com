@@ -1,0 +1,57 @@
+# The IndieLogin SSH sign-in server. Install on its own machine:
+#
+#   useradd --system --home /var/lib/indielogin-ssh --shell /usr/sbin/nologin indielogin-ssh
+#   install -m 0755 indielogin-ssh /usr/local/bin/indielogin-ssh
+#   install -m 0644 indielogin-ssh.service /etc/systemd/system/
+#   install -m 0600 -o indielogin-ssh /dev/null /etc/indielogin-ssh.env   # then fill it in
+#   systemctl enable --now indielogin-ssh
+#
+# /etc/indielogin-ssh.env:
+#   SSH_SERVER_LISTEN=:22
+#   INDIELOGIN_URL=https://indielogin.com
+#   SSH_SERVER_API_KEY=<the same value as on indielogin.com>
+
+[Unit]
+Description=IndieLogin SSH sign-in server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=indielogin-ssh
+Group=indielogin-ssh
+EnvironmentFile=/etc/indielogin-ssh.env
+Environment=SSH_SERVER_HOST_KEY=/var/lib/indielogin-ssh/host_ed25519_key
+ExecStart=/usr/local/bin/indielogin-ssh
+Restart=on-failure
+RestartSec=2
+
+# Port 22 without running as root
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
+# It reads its host key and talks to the network; nothing else
+StateDirectory=indielogin-ssh
+StateDirectoryMode=0700
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictAddressFamilies=AF_INET AF_INET6
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+
+[Install]
+WantedBy=multi-user.target

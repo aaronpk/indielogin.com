@@ -81,6 +81,13 @@ $route->map('POST', '/auth/send_email', 'App\\Authenticate::send_email');
 $route->map('POST', '/auth/verify_email_code', 'App\\Authenticate::verify_email_code');
 $route->map('POST', '/auth/verify_pgp_challenge', 'App\\Authenticate::verify_pgp_challenge');
 $route->map('POST', '/auth/verify_ssh_challenge', 'App\\Authenticate::verify_ssh_challenge');
+$route->map('GET', '/auth/ssh_status', 'App\\Authenticate::ssh_status');
+$route->map('POST', '/auth/verify_ssh_connection', 'App\\Authenticate::verify_ssh_connection');
+
+# The SSH sign-in server's private API; a 404 unless SSH_SERVER_API_KEY and
+# SSH_SERVER_API_IPS are both set
+$route->map('POST', '/ssh-server/check', 'App\\SSHServerApi::check');
+$route->map('POST', '/ssh-server/approve', 'App\\SSHServerApi::approve');
 
 $route->map('POST', '/fedcm/start', 'App\\Authenticate::fedcm_start');
 $route->map('POST', '/fedcm/login', 'App\\Authenticate::fedcm_login');

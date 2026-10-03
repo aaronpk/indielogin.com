@@ -4,3 +4,4 @@ lib/config.php
 .env
 logs/
 pgp/data/
+ssh-server/indielogin-ssh

@@ -104,6 +104,10 @@
     <p>The file can be your <code>id_ed25519.pub</code> as it is, an <code>authorized_keys</code> file, or a list of fingerprints like <code>SHA256:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU</code> (the output of <code>ssh-keygen -lf ~/.ssh/id_ed25519.pub</code>), one per line. Since the keys you've added to GitHub are published at <code>https://github.com/<i>username</i>.keys</code>, you can link straight to that instead.</p>
 
     <p>When you sign in, you'll be given a command to run, which signs the challenge with <code>ssh-keygen -Y sign</code>, and you paste the result back in. Ed25519, ECDSA and RSA keys work, as do keys on a hardware security key. It needs OpenSSH 8.1 or newer.</p>
+
+    <?php if($ssh = ssh_server()): ?>
+      <p>Or skip the pasting: run <code>ssh <i>yourdomain.com</i>@<?= e($ssh['host']) ?></code><?= $ssh['port'] != 22 ? ' with <code>-p '.e($ssh['port']).'</code>' : '' ?> while the sign-in page is open, and press Enter to confirm. Your SSH client offers your keys, and one of them has to be listed in your file. No shell or anything else is available on that server; it only confirms sign-ins.</p>
+    <?php endif ?>
   </section>
 
 
