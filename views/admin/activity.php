@@ -191,4 +191,4 @@ $tiles = [
 </div>
 
 <div class="admin-tooltip" role="tooltip" hidden></div>
-<script src="/assets/admin-charts.js"></script>
+<script src="<?= e(asset('/assets/admin-charts.js')) ?>"></script>

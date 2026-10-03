@@ -55,6 +55,14 @@ function view($template, $data=[]) {
   return $templates->render($template, $data);
 }
 
+// The URL of a file under public/, with its modification time appended so
+// that a changed file gets a new URL. Nothing sends cache headers for these,
+// so without it a browser can keep using an old copy after a deploy.
+function asset($path) {
+  $mtime = @filemtime(__DIR__.'/../public'.$path);
+  return $mtime ? $path.'?v='.$mtime : $path;
+}
+
 function redirect_response($url, $code=302) {
   $response = new \Laminas\Diactoros\Response();
   return $response->withHeader('Location', $url)->withStatus($code);
