@@ -89,7 +89,8 @@ php bin/count-activity
 ```
 
 It is safe to run again at any time, or from cron. To start the counting over,
-delete the `indielogin:admin:activity:v1:*` keys from Redis.
+delete the `indielogin:admin:activity:v2:*` keys from Redis. The `v1` keys left
+by an earlier version are no longer read and can be deleted.
 
 Every change made there is checked against the session's CSRF token and logged
 to `logs/app.log` with the admin's URL.

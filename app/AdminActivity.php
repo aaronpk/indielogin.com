@@ -25,7 +25,9 @@ class AdminActivity {
 
   // Bump this if what a month's figures mean changes, so that everything is
   // counted again under the new meaning
-  const PREFIX = 'indielogin:admin:activity:v1';
+  //
+  // v2: PGP got a series of its own, where v1 had counted it as "other"
+  const PREFIX = 'indielogin:admin:activity:v2';
 
   const CURRENT_TTL = 600;
 
@@ -41,7 +43,10 @@ class AdminActivity {
   const SETTLE = 120;
 
   // The providers that get a series of their own, in the order their colors
-  // are assigned. Each keeps its color whatever range is shown; any other
+  // are assigned. The first eight take the eight colors of the palette; PGP,
+  // the ninth, is a near-black neutral set apart from all of them by
+  // lightness rather than by a ninth hue, which would be mistaken for one of
+  // the others. Each keeps its color whatever range is shown; any other
   // provider, past or future, is counted as "other".
   const PROVIDERS = [
     'indieauth' => 'IndieAuth',
@@ -52,6 +57,7 @@ class AdminActivity {
     'gitlab' => 'GitLab',
     'codeberg' => 'Codeberg',
     'atproto' => 'ATProto',
+    'pgp' => 'PGP',
   ];
 
   // Spellings that are the same provider for this purpose
