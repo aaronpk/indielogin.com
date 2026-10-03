@@ -15,7 +15,7 @@
         "mf2/mf2": "^0.4.6",
         "michelf/php-markdown": "^2.0",
         "monolog/monolog": "^3.8",
-        "p3k/http": "^0.1.7",
+        "p3k/http": "^0.2.2",
         "p3k/utils": "^1.2",
         "predis/predis": "^2",
         "vlucas/phpdotenv": "^4.1",

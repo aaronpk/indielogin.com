@@ -112,6 +112,32 @@ php tests/admin.php
 ```
 
 
+## Fetching other sites
+
+Every URL this service fetches is chosen by whoever is signing in: their
+profile page, the key files it links to, their IndieAuth, FedCM and ATProto
+endpoints. So every outgoing request goes through p3k-http's safe mode
+(`http_client()` and `safe_get()` in `lib/helpers.php`): only `http` and
+`https`, only to hosts that resolve to public addresses, with the connection
+pinned to the addresses that were checked, and the same checks on every
+redirect. Loopback, private networks, link-local addresses (including cloud
+metadata services) and other reserved ranges are refused.
+
+To reach a private server on purpose, such as a development site on your
+network, list it in `ALLOW_PRIVATE_NETWORK` in `.env`: hostnames, addresses or
+CIDR ranges, comma separated. Leave it empty in production.
+
+```
+ALLOW_PRIVATE_NETWORK=10.11.11.0/24,127.0.0.1
+```
+
+Run its tests with:
+
+```sh
+php tests/fetch.php
+```
+
+
 ## PGP
 
 Signing in with a `rel="pgpkey"` link is handled entirely in PHP, in

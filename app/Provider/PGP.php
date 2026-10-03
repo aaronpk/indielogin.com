@@ -121,12 +121,14 @@ trait PGP {
     if(!\p3k\url\is_url($url))
       return false;
 
-    $response = guzzle_request_get(new \GuzzleHttp\Client(), $url);
+    // The same safe fetch as the profile page: public addresses only, on
+    // every redirect
+    $response = safe_get($url);
 
-    if(!is_object($response) || $response->getStatusCode() != 200)
+    if(isset($response['exception']) || $response['code'] != 200)
       return false;
 
-    $keytext = \GuzzleHttp\Psr7\Utils::copyToString($response->getBody(), PGP_MAX_KEY_SIZE);
+    $keytext = substr((string)$response['body'], 0, PGP_MAX_KEY_SIZE);
 
     return $keytext === '' ? false : $keytext;
   }

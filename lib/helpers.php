@@ -1,7 +1,4 @@
 <?php
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\UriInterface;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Dotenv\Dotenv;
@@ -271,10 +268,28 @@ function display_date($format, $date) {
   }
 }
 
+// Hostnames, addresses or CIDR ranges that outgoing requests may reach even
+// though they are private, from ALLOW_PRIVATE_NETWORK, comma separated. Empty
+// in production: the URLs this service fetches are chosen by whoever is
+// signing in, and must not be able to reach this machine or its network.
+function private_network_allow() {
+  $value = getenv('ALLOW_PRIVATE_NETWORK');
+
+  if($value === false)
+    return [];
+
+  return array_values(array_filter(array_map('trim', explode(',', $value)), 'strlen'));
+}
+
+// The HTTP client for every outgoing request. Safe mode refuses anything but
+// http and https to public addresses, pins the connection to the addresses
+// it checked, and checks every redirect the same way.
 function http_client() {
   static $http;
-  if(!isset($http))
+  if(!isset($http)) {
     $http = new \p3k\HTTP(getenv('HTTPCLIENT_USER_AGENT'));
+    $http->set_safe_mode(true, private_network_allow());
+  }
   $http->set_timeout(10);
   return $http;
 }
@@ -452,85 +467,83 @@ function string_contains_url($str, $url) {
   return false;
 }
 
-function guzzle_request_get($client, $url, $onRedirect=null) {
+// GET a URL that someone else chose: a profile page, a key file, a metadata
+// document. Every request, and every redirect, goes through the same safe
+// mode as http_client(), so it can only reach public addresses.
+//
+// Redirects are followed here, one hop at a time, rather than by the HTTP
+// client, because fetch_profile() needs each hop's status code: a temporary
+// redirect must not change which URL is someone's identity. $onRedirect is
+// called with ['code', 'from', 'to'] for each hop.
+//
+// Returns the p3k response array (code, header, headers, body, url), or
+// ['code' => ..., 'exception' => ...] for anything refused or failed, an
+// error status included.
+function safe_get($url, ?callable $onRedirect=null) {
+  $http = new \p3k\HTTP(getenv('HTTPCLIENT_USER_AGENT') ?: null);
+  $http->set_safe_mode(true, private_network_allow());
+  $http->set_max_redirects(0);
+  $http->set_timeout(10);
 
-  // Guzzle refuses to send a request whose host is not printable ASCII, so
-  // an internationalized domain has to be in A-label form before it gets
-  // here. Doing it at the one place every Guzzle fetch goes through covers
-  // the URLs we pick up from someone's page as well as the one they typed.
-  if($ascii = idn_normalize_url_host($url))
-    $url = $ascii;
+  $max_redirects = 10;
 
-  // Guzzle rejects a non-string header value, so only send the user agent
-  // when one is actually configured
-  $headers = ['Accept' => 'text/html,*/*'];
-  if($user_agent = getenv('HTTPCLIENT_USER_AGENT'))
-    $headers['User-Agent'] = $user_agent;
+  for($hop = 0; ; $hop++) {
+    // An internationalized domain has to be in A-label form to be resolved
+    // and sent, whether it was typed or picked up from someone's page
+    if($ascii = idn_normalize_url_host($url))
+      $url = $ascii;
 
-  // Likewise, on_redirect has to be left out entirely when there is no
-  // callback rather than passed as null
-  $allow_redirects = [
-    'max'             => 10,
-    'strict'          => true,
-    'referer'         => true,
-    'track_redirects' => true,
-  ];
-  if(is_callable($onRedirect))
-    $allow_redirects['on_redirect'] = $onRedirect;
+    $res = $http->get($url, ['Accept: text/html,*/*']);
+    $code = (int)$res['code'];
 
-  try {
-    // Fetch the entered URL
-    $res = $client->request('GET', $url, [
-      'timeout'         => 10,
-      'allow_redirects' => $allow_redirects,
-      'headers'         => $headers,
-    ]);
-  // Guzzle groups its failures by whether a response ever arrived, so these
-  // three catches cover everything it can throw. Order matters, because
-  // TooManyRedirectsException is itself a ResponseException.
-  } catch(\GuzzleHttp\Exception\TooManyRedirectsException $e) {
-    // We were bounced around and never landed anywhere usable
-    return [
-      'code' => 0,
-      'exception' => $e->getMessage(),
-    ];
-  } catch(\GuzzleHttp\Exception\ResponseException $e) {
-    // Response headers were received, so there is a status code to report
-    return [
-      'code' => $e->getResponse()->getStatusCode(),
-      'exception' => $e->getMessage(),
-    ];
-  } catch(\GuzzleHttp\Exception\TransferException $e) {
-    // Connection refused, DNS failure, timeout, or anything else that
-    // produced no response at all
-    return [
-      'code' => 0,
-      'exception' => $e->getMessage(),
-    ];
+    $location = in_array($code, [301, 302, 303, 307, 308], true) ? ($res['headers']['Location'] ?? null) : null;
+    if(is_array($location))
+      $location = end($location);
+
+    if(is_string($location) && $location !== '') {
+      if($hop >= $max_redirects) {
+        return [
+          'code' => 0,
+          'exception' => 'Stopped after '.$max_redirects.' redirects',
+        ];
+      }
+
+      $next = \Mf2\resolveUrl($url, $location);
+      if($onRedirect)
+        $onRedirect(['code' => $code, 'from' => $url, 'to' => $next]);
+      $url = $next;
+      continue;
+    }
+
+    // Refused, unresolvable, timed out, or nothing came back at all
+    if($code === 0) {
+      return [
+        'code' => 0,
+        'exception' => ($res['error_description'] ?? '') ?: ($res['error'] ?? 'The request failed'),
+      ];
+    }
+
+    if($code >= 400) {
+      return [
+        'code' => $code,
+        'exception' => 'GET '.$url.' returned HTTP '.$code,
+      ];
+    }
+
+    $res['url'] = $url;
+    return $res;
   }
-
-  return $res;
 }
 
 function fetch_profile($me) {
 
   $userlog = make_logger('user');
 
-  $client = new \GuzzleHttp\Client();
-
   // Keep track of redirects in this array
   $redirects = [];
 
-  $onRedirect = function(
-      RequestInterface $request,
-      ResponseInterface $response,
-      UriInterface $uri
-  ) use(&$redirects) {
-    $redirects[] = [
-      'code' => $response->getStatusCode(),
-      'from' => ''.$request->getUri(),
-      'to' => ''.$uri
-    ];
+  $onRedirect = function(array $redirect) use(&$redirects) {
+    $redirects[] = $redirect;
   };
 
   // Normalize before fetching rather than after, so that the URL we ask for
@@ -545,14 +558,14 @@ function fetch_profile($me) {
     ];
   }
 
-  $res = guzzle_request_get($client, $me, $onRedirect);
+  $res = safe_get($me, $onRedirect);
 
   $final_url = $me;
   $final_profile_url = $me;
 
   $indieauth_issuer = null;
 
-  if(!is_object($res) && isset($res['exception'])) {
+  if(isset($res['exception'])) {
 
     $statusCode = -1;
     $error = $res;
@@ -564,7 +577,7 @@ function fetch_profile($me) {
 
   } else {
 
-    $statusCode = $res->getStatusCode();
+    $statusCode = $res['code'];
 
     // Get the final URL
     if(count($redirects)) {
@@ -591,7 +604,7 @@ function fetch_profile($me) {
     }
 
     // Parse the resulting body for rel me/authn/authorization_endpoint
-    $body = ''.$res->getBody();
+    $body = (string)$res['body'];
 
     $parsed = \Mf2\parse($body, $final_url);
     $rels = $parsed['rels'];
@@ -599,9 +612,8 @@ function fetch_profile($me) {
 
     // If the header includes a rel=authorization_endpoint, use that instead of from the body
     // https://www.w3.org/TR/indieauth/#discovery-by-clients-p-3
-    if($res->getHeaderLine('Link')) {
-      $link = 'Link: '.$res->getHeaderLine('Link');
-      $link_rels = \IndieWeb\http_rels($link, $final_url);
+    if(!empty($res['headers']['Link'])) {
+      $link_rels = \IndieWeb\http_rels($res['header'], $final_url);
       if(isset($link_rels['authorization_endpoint'])) {
         $rels['authorization_endpoint'] = $link_rels['authorization_endpoint'];
       }
@@ -613,12 +625,12 @@ function fetch_profile($me) {
     // If IndieAuth metadata was discovered, fetch it and populate the authorization and token endpoint from there
     if(isset($rels['indieauth-metadata'])) {
 
-      $res = guzzle_request_get($client, $rels['indieauth-metadata'][0]);
-      if(!is_object($res) && isset($res['exception'])) {
+      $res = safe_get($rels['indieauth-metadata'][0]);
+      if(isset($res['exception'])) {
         return $res;
       }
 
-      $metadata = json_decode(''.$res->getBody(), true);
+      $metadata = json_decode((string)$res['body'], true);
 
       if(empty($metadata)) {
         return [

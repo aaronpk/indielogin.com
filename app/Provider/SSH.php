@@ -122,12 +122,14 @@ trait SSH {
     if(!\p3k\url\is_url($url))
       return false;
 
-    $response = guzzle_request_get(new \GuzzleHttp\Client(), $url);
+    // The same safe fetch as the profile page: public addresses only, on
+    // every redirect
+    $response = safe_get($url);
 
-    if(!is_object($response) || $response->getStatusCode() != 200)
+    if(isset($response['exception']) || $response['code'] != 200)
       return false;
 
-    $keystext = \GuzzleHttp\Psr7\Utils::copyToString($response->getBody(), SSH_MAX_KEYS_SIZE);
+    $keystext = substr((string)$response['body'], 0, SSH_MAX_KEYS_SIZE);
 
     return $keystext === '' ? false : $keystext;
   }
