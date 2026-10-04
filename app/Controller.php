@@ -90,9 +90,44 @@ class Controller {
     ]));
   }
 
-  public function setup_docs(ServerRequestInterface $request): ResponseInterface {
-    return new HtmlResponse(view('docs/setup', [
-      'title' => 'How to Start Using '.getenv('APP_NAME'),
+  // The setup docs, in sidebar order: slug => [title, sidebar group]. The
+  // overview has no slug of its own and lives at /setup.
+  const SETUP_PAGES = [
+    'overview' => ['Overview', null],
+    'indieauth' => ['IndieAuth', 'Your website'],
+    'atproto' => ['Bluesky / ATProto', 'Your website'],
+    'github' => ['GitHub', 'Link a profile'],
+    'gitlab' => ['GitLab', 'Link a profile'],
+    'codeberg' => ['Codeberg', 'Link a profile'],
+    'email' => ['Email', 'Link a profile'],
+    'ssh-key' => ['SSH key', 'Sign with a key'],
+    'pgp' => ['PGP key', 'Sign with a key'],
+    'advanced' => ['Advanced options', 'More'],
+  ];
+
+  public function setup_docs(ServerRequestInterface $request, array $args = []): ResponseInterface {
+    $page = $args['page'] ?? 'overview';
+
+    // /setup/overview would be the same page twice
+    if(!isset(self::SETUP_PAGES[$page]) || ($page === 'overview' && isset($args['page']))) {
+      return new HtmlResponse(view('http-error', [
+        'title' => '404 Not Found',
+        'status' => 404,
+        'message' => 'Not Found',
+      ]), 404);
+    }
+
+    $slugs = array_keys(self::SETUP_PAGES);
+    $i = array_search($page, $slugs, true);
+
+    return new HtmlResponse(view('docs/setup/'.$page, [
+      'title' => $page === 'overview'
+        ? 'How to Start Using '.getenv('APP_NAME')
+        : self::SETUP_PAGES[$page][0].' · Setup · '.getenv('APP_NAME'),
+      'page' => $page,
+      'pages' => self::SETUP_PAGES,
+      'previous' => $i > 0 ? $slugs[$i - 1] : null,
+      'next' => $i < count($slugs) - 1 ? $slugs[$i + 1] : null,
     ]));
   }
 
