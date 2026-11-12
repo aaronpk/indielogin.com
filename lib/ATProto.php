@@ -70,45 +70,57 @@ class ATProto {
     return $this->_http;
   }
 
+  // https://atproto.com/specs/handle: any handle may be resolved through DNS
+  // or an HTTPS well-known file, and ATProto accounts are did:plc or did:web
   public static function handle_to_did($handle) {
     $dns_record = dns_get_record('_atproto.'.$handle, DNS_TXT);
 
-    if(count($dns_record) >= 1) {
+    if($dns_record && count($dns_record) >= 1) {
 
       $dns_record = $dns_record[0];
 
-      if(preg_match('/did=(did:plc:.+)/', $dns_record['txt'], $match)) {
+      if(preg_match('/did=(did:(?:plc|web):.+)/', $dns_record['txt'], $match)) {
         return $match[1];
       }
 
-    } else {
+    }
 
-      // Fallback to HTTP lookup for bsky.social subdomains
-      if(preg_match('/\.bsky.social/', $handle)) {
-        $http = http_client();
-        $response = $http->get('https://'.$handle.'/.well-known/atproto-did');
-        $body = trim($response['body']);
-        if(is_string($body) && preg_match('/^did:plc:.+$/', $body)) {
-          return $body;
-        }
-      }
-
+    $http = http_client();
+    $response = $http->get('https://'.$handle.'/.well-known/atproto-did');
+    $body = trim($response['body'] ?? '');
+    if(preg_match('/^did:(?:plc|web):.+$/', $body)) {
+      return $body;
     }
 
     return null;
   }
 
-  public function did_to_pds($did, $handle) {
-    $result = $this->_http()->get('https://plc.directory/'.$did);
+  // A did:plc document is served by the PLC directory, and a did:web one by the
+  // domain it names, which ATProto allows no path on
+  private function did_document($did) {
+    if(preg_match('/^did:web:([a-zA-Z0-9.\-]+)$/', $did, $match)) {
+      $url = 'https://'.$match[1].'/.well-known/did.json';
+    } else {
+      $url = 'https://plc.directory/'.$did;
+    }
 
-    if(!empty($result['body'])) {
-      $data = json_decode($result['body'], true);
-      if($data) {
-        $aka = $data['alsoKnownAs'][0];
-        // Bidirectionally verify that the DID document links back to the handle
-        if($aka == 'at://'.$handle) {
-          return $data['service'][0]['serviceEndpoint'] ?? null;
-        }
+    $result = $this->_http()->get($url);
+
+    if(empty($result['body'])) {
+      return null;
+    }
+
+    return json_decode($result['body'], true);
+  }
+
+  public function did_to_pds($did, $handle) {
+    $data = $this->did_document($did);
+
+    if($data) {
+      $aka = $data['alsoKnownAs'][0];
+      // Bidirectionally verify that the DID document links back to the handle
+      if($aka == 'at://'.$handle) {
+        return $data['service'][0]['serviceEndpoint'] ?? null;
       }
     }
 
